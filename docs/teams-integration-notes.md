@@ -11,6 +11,7 @@
 - Add Teams app manifest and packaging assets
 - Wire Teams theme/context handling
 - Add Teams SSO once product scope is stable
+- Keep calendar subscription work deferred until backend identity and revocable token support exist
 - Introduce read-only Graph / Shifts integration after role and privacy boundaries are enforced
 
 ## Notes for implementation

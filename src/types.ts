@@ -42,8 +42,9 @@ export type Shift = {
   id: string;
   userId: string;
   title: string;
-  day: string;
-  timeRange: string;
+  department?: string;
+  start: string;
+  end: string;
   location: string;
 };
 

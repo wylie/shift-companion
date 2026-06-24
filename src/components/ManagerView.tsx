@@ -1,4 +1,9 @@
 import { shifts, staffConflicts, staffMembers, teams } from "../data/mockData";
+import {
+  formatDateLabel,
+  formatTimeRange,
+  parseLocalDateTime,
+} from "../lib/date";
 import type { CurrentUser } from "../types";
 
 type Props = {
@@ -65,7 +70,10 @@ export function ManagerView({ currentUser }: Props) {
               <p>{conflict.summary}</p>
               <p className="muted">
                 {shift
-                  ? `${shift.day} • ${shift.timeRange}`
+                  ? `${formatDateLabel(parseLocalDateTime(shift.start))} • ${formatTimeRange(
+                      parseLocalDateTime(shift.start),
+                      parseLocalDateTime(shift.end),
+                    )}`
                   : "Shift details pending"}
               </p>
             </article>

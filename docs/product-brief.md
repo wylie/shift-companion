@@ -19,8 +19,15 @@ Build a Teams-contained companion to Microsoft Teams Shifts for YMCA departments
 - Teams-compatible embedded tab shell
 - Mocked current user roles: staff and manager
 - Staff-entered recurring and dated unavailability using mocked local state
-- Mocked schedules and manager conflicts
+- Mocked weekly schedules with local `.ics` calendar downloads
+- Mocked manager conflicts
 - Privacy and roadmap documentation
+
+## Phase 1 completion
+
+- Phase 1 staff experience is complete in mocked local form.
+- Staff can manage recurring unavailable times and download a personal `.ics` file of mocked shifts.
+- Live calendar subscriptions remain intentionally deferred until secure backend identity and privacy controls exist.
 
 ## Default department assumptions
 

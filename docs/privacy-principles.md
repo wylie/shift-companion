@@ -12,6 +12,7 @@
 
 - Local mocked data only
 - Staff-entered unavailability is the first real feature and remains current-user-only local state for now
+- Calendar download is current-user-only and exports only that staff member's mocked shifts
 - No production authentication
 - No Microsoft Graph integration
 - No YMCA source-system integration
@@ -27,4 +28,5 @@
 
 - UI role checks are not enough on their own.
 - Manager-only access must later be enforced in server-side authorization.
+- Live calendar subscriptions should not launch until identity, authorization, token storage, revocation, and privacy controls are in place.
 - Any future calendar feed must use private, revocable tokens.

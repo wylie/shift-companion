@@ -23,8 +23,8 @@ export function SettingsPrivacy() {
         <article className="card">
           <h3>Calendar export</h3>
           <p>
-            Future export will be individual-only and revocable by the staff
-            member.
+            Local `.ics` downloads are individual-only now. Private subscription
+            links remain a future revocable feature.
           </p>
         </article>
         <article className="card">

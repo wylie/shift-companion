@@ -2,11 +2,11 @@
 
 ## Phase 1
 
-Mocked Teams-compatible app shell with staff-entered unavailability add, edit, delete, and validation
+Mocked Teams-compatible staff experience complete with unavailability add, edit, delete, validation, weekly schedule view, and local `.ics` download
 
 ## Phase 2
 
-Staff recurring unavailability CRUD with mocked local state completed as the first usable flow, pending future persistence
+Staff recurring unavailability persistence and refinement after mocked local workflow validation
 
 ## Phase 3
 
@@ -14,7 +14,7 @@ Manager conflict dashboard
 
 ## Phase 4
 
-Personal `.ics` calendar export and download
+Secure personal `.ics` calendar export backend support and download hardening
 
 ## Phase 5
 
