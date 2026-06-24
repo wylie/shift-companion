@@ -1,4 +1,15 @@
-export function SettingsPrivacy() {
+import { auditEvents } from "../data/mockData";
+import type { CurrentUser } from "../types";
+
+type Props = {
+  currentUser: CurrentUser;
+};
+
+export function SettingsPrivacy({ currentUser }: Props) {
+  const visibleAuditEvents = auditEvents.filter(
+    (event) => event.actorUserId === currentUser.id,
+  );
+
   return (
     <section className="screen">
       <div className="section-header">
@@ -35,6 +46,37 @@ export function SettingsPrivacy() {
           </p>
         </article>
       </div>
+
+      <section className="card">
+        <div className="group-header">
+          <h3>Mock audit trail</h3>
+          <span className="muted">Local only</span>
+        </div>
+        <p className="muted">
+          These demo events are mocked in local state only and are filtered to
+          the selected preview identity.
+        </p>
+
+        {visibleAuditEvents.length > 0 ? (
+          <div className="audit-list">
+            {visibleAuditEvents.map((event) => (
+              <article className="audit-row" key={event.id}>
+                <p>{event.summary}</p>
+                <p className="muted">
+                  {event.timestamp.replace("T", " ").slice(0, 16)}
+                </p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <article className="card inset-card empty-state">
+            <h4>No demo audit events yet</h4>
+            <p className="muted">
+              This preview identity has no mocked local audit entries right now.
+            </p>
+          </article>
+        )}
+      </section>
     </section>
   );
 }

@@ -19,6 +19,7 @@
 - No database persistence
 - Manager View is mocked, read-only, and limited to assigned departments in the demo
 - Manager tools are hidden and guarded for staff users in the demo
+- Identity and role handling are mocked preview states only
 
 ## Product scope notes
 
@@ -34,3 +35,12 @@
 - Conflict detection is currently mocked and should later run against persisted shift and unavailability data.
 - Live calendar subscriptions should not launch until identity, authorization, token storage, revocation, and privacy controls are in place.
 - Any future calendar feed must use private, revocable tokens.
+
+## Developer Demo Checklist
+
+- Staff cannot access Manager View.
+- Staff only see their own schedule.
+- Staff only export their own calendar.
+- Staff only edit their own unavailability.
+- Managers only see assigned departments.
+- Live Teams, Shifts, Graph, and YMCA data are not connected yet.

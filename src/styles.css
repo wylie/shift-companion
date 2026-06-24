@@ -115,9 +115,28 @@ h2 {
   font-size: 0.95rem;
 }
 
+.sidebar-helper,
+.field-help {
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.sidebar-helper {
+  color: rgba(247, 251, 255, 0.72);
+}
+
 .nav-list {
   display: grid;
   gap: 0.55rem;
+}
+
+.demo-notice {
+  padding: 0.85rem 0.9rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(247, 251, 255, 0.88);
+  font-size: 0.88rem;
+  line-height: 1.4;
 }
 
 .nav-item {
@@ -264,10 +283,19 @@ h2 {
   border-color: #9bb6d5;
 }
 
+.select-control:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
 .field-error {
   color: #9e2d22;
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+.field-help {
+  color: #6a7888;
 }
 
 .primary-button,
@@ -317,6 +345,8 @@ h2 {
 .manager-conflicts,
 .staff-list,
 .staff-row,
+.audit-list,
+.audit-row,
 .calendar-section,
 .calendar-actions,
 .privacy-grid,
@@ -390,6 +420,18 @@ h2 {
 
 .staff-stats {
   text-align: right;
+}
+
+.audit-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  padding-top: 1rem;
+  border-top: 1px solid #d9e4f0;
+}
+
+.audit-row:first-child {
+  padding-top: 0;
+  border-top: 0;
 }
 
 .privacy-grid {
@@ -497,7 +539,8 @@ select[aria-invalid="true"] {
     text-align: left;
   }
 
-  .staff-row {
+  .staff-row,
+  .audit-row {
     grid-template-columns: 1fr;
   }
 }

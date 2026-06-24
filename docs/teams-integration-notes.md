@@ -19,3 +19,4 @@
 - `src/lib/teams.ts` is the placeholder for Teams SDK initialization.
 - `src/App.tsx` is the main place to extend host context, theming, and future auth bootstrapping.
 - Manager-only UI in `src/components/ManagerView.tsx` must eventually be backed by server-side authorization.
+- Preview identity and role handling are mocked only and should later be replaced with Teams SSO plus persisted authorization records.

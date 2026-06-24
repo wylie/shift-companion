@@ -5,6 +5,7 @@ import {
   teams,
   unavailabilityRules,
 } from "../data/mockData";
+import { canAccessManagerView, getManagedDepartments } from "../lib/access";
 import {
   detectManagerConflicts,
   formatManagerConflictTiming,
@@ -27,8 +28,8 @@ const today = new Date("2026-06-24T12:00:00");
 
 export function ManagerView({ currentUser }: Props) {
   const managedDepartments = useMemo(
-    () => teams.filter((team) => team.managerIds.includes(currentUser.id)),
-    [currentUser.id],
+    () => getManagedDepartments(currentUser, teams),
+    [currentUser],
   );
   const [selectedDepartmentId, setSelectedDepartmentId] = useState(
     managedDepartments[0]?.id ?? "",
@@ -41,7 +42,7 @@ export function ManagerView({ currentUser }: Props) {
     }
   }, [managedDepartments, selectedDepartmentId]);
 
-  if (currentUser.role !== "manager") {
+  if (!canAccessManagerView(currentUser)) {
     return (
       <section className="screen">
         <div className="section-header">
@@ -154,6 +155,8 @@ export function ManagerView({ currentUser }: Props) {
           Department
           <select
             className="select-control"
+            disabled={managedDepartments.length <= 1}
+            aria-disabled={managedDepartments.length <= 1}
             value={selectedDepartment.id}
             onChange={(event) => setSelectedDepartmentId(event.target.value)}
           >
@@ -163,6 +166,11 @@ export function ManagerView({ currentUser }: Props) {
               </option>
             ))}
           </select>
+          {managedDepartments.length <= 1 && (
+            <span className="field-help">
+              This mocked manager identity is assigned to one department.
+            </span>
+          )}
         </label>
 
         <div

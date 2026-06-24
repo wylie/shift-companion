@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { currentUsers } from "./data/mockData";
+import { mockUsers, teams } from "./data/mockData";
 import { initializeTeamsSdk } from "./lib/teams";
-import type { CurrentUser, NavItem } from "./types";
+import type { NavItem } from "./types";
 import { AppSidebar } from "./components/AppSidebar";
 import { ManagerView } from "./components/ManagerView";
 import { MySchedule } from "./components/MySchedule";
 import { MyUnavailability } from "./components/MyUnavailability";
 import { SettingsPrivacy } from "./components/SettingsPrivacy";
+import { canAccessManagerView, getVisibleNavItems } from "./lib/access";
 
 const navItems: NavItem[] = [
   { id: "unavailability", label: "My Unavailability" },
@@ -17,14 +18,15 @@ const navItems: NavItem[] = [
 
 export default function App() {
   const [activeView, setActiveView] = useState<NavItem["id"]>("unavailability");
-  const [userMode, setUserMode] = useState<CurrentUser["role"]>("staff");
+  const [currentUserId, setCurrentUserId] = useState(mockUsers[0]!.id);
   const [isTeamsContext, setIsTeamsContext] = useState(false);
 
-  const currentUser = currentUsers[userMode];
-  const visibleNavItems =
-    currentUser.role === "manager"
-      ? navItems
-      : navItems.filter((item) => item.id !== "manager");
+  const currentUser =
+    mockUsers.find((user) => user.id === currentUserId) ?? mockUsers[0]!;
+  const visibleNavItems = getVisibleNavItems(navItems, currentUser);
+  const currentUserDepartmentLabel = currentUser.teamIds
+    .map((teamId) => teams.find((team) => team.id === teamId)?.name ?? teamId)
+    .join(" + ");
 
   useEffect(() => {
     // Future Teams context, theme, and SSO wiring belongs here.
@@ -32,20 +34,22 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (currentUser.role !== "manager" && activeView === "manager") {
+    if (!canAccessManagerView(currentUser) && activeView === "manager") {
       setActiveView("unavailability");
     }
-  }, [activeView, currentUser.role]);
+  }, [activeView, currentUser]);
 
   return (
     <div className="app-shell">
       <AppSidebar
         activeView={activeView}
         currentUser={currentUser}
+        currentUserDepartmentLabel={currentUserDepartmentLabel}
         isTeamsContext={isTeamsContext}
+        mockUsers={mockUsers}
         navItems={visibleNavItems}
         onSelectView={setActiveView}
-        onUserModeChange={setUserMode}
+        onUserChange={setCurrentUserId}
       />
 
       <main className="content">
@@ -54,7 +58,9 @@ export default function App() {
         )}
         {activeView === "schedule" && <MySchedule currentUser={currentUser} />}
         {activeView === "manager" && <ManagerView currentUser={currentUser} />}
-        {activeView === "settings" && <SettingsPrivacy />}
+        {activeView === "settings" && (
+          <SettingsPrivacy currentUser={currentUser} />
+        )}
       </main>
     </div>
   );

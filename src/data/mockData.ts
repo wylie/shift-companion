@@ -1,4 +1,5 @@
 import type {
+  AuditEvent,
   CurrentUser,
   Shift,
   StaffMember,
@@ -8,32 +9,32 @@ import type {
 
 export const teams: Team[] = [
   { id: "wellness", name: "Wellness", managerIds: ["user-manager-1"] },
-  { id: "front-desk", name: "Front Desk", managerIds: ["user-manager-1"] },
-  { id: "membership", name: "Membership", managerIds: ["user-manager-1"] },
-  { id: "child-watch", name: "Child Watch", managerIds: ["user-manager-1"] },
-  { id: "facilities", name: "Facilities", managerIds: ["user-manager-1"] },
+  { id: "front-desk", name: "Front Desk", managerIds: ["user-manager-2"] },
+  { id: "membership", name: "Membership", managerIds: ["user-manager-2"] },
+  { id: "child-watch", name: "Child Watch", managerIds: [] },
+  { id: "facilities", name: "Facilities", managerIds: [] },
 ];
 
-export const currentUsers: Record<"staff" | "manager", CurrentUser> = {
-  staff: {
+export const mockUsers: CurrentUser[] = [
+  {
     id: "user-staff-1",
     name: "Jordan Lee",
     role: "staff",
     teamIds: ["wellness"],
   },
-  manager: {
+  {
     id: "user-manager-1",
+    name: "Morgan Smith",
+    role: "manager",
+    teamIds: ["wellness"],
+  },
+  {
+    id: "user-manager-2",
     name: "Avery Patel",
     role: "manager",
-    teamIds: [
-      "wellness",
-      "front-desk",
-      "membership",
-      "child-watch",
-      "facilities",
-    ],
+    teamIds: ["front-desk", "membership"],
   },
-};
+];
 
 export const staffMembers: StaffMember[] = [
   { id: "user-staff-1", name: "Jordan Lee", teamId: "wellness", role: "staff" },
@@ -130,6 +131,24 @@ export const unavailabilityRules: UnavailabilityRule[] = [
     startTime: "09:00",
     endTime: "12:00",
     note: "Medical appointment.",
+  },
+  {
+    id: "ua-8",
+    userId: "user-manager-1",
+    type: "weekly-recurring",
+    dayOfWeek: "Tuesday",
+    startTime: "08:00",
+    endTime: "10:00",
+    note: "Leadership meeting.",
+  },
+  {
+    id: "ua-9",
+    userId: "user-manager-2",
+    type: "one-time-date",
+    date: "2026-07-08",
+    startTime: "13:00",
+    endTime: "15:00",
+    note: "Regional leadership call.",
   },
 ];
 
@@ -259,5 +278,50 @@ export const shifts: Shift[] = [
     start: "2026-07-15T07:00:00",
     end: "2026-07-15T13:00:00",
     location: "Strength Floor",
+  },
+  {
+    id: "shift-15",
+    userId: "user-manager-1",
+    title: "Wellness Team Check-In",
+    department: "Wellness",
+    start: "2026-06-23T10:30:00",
+    end: "2026-06-23T12:00:00",
+    location: "Wellness Office",
+  },
+  {
+    id: "shift-16",
+    userId: "user-manager-2",
+    title: "Membership Operations Review",
+    department: "Membership",
+    start: "2026-07-08T09:00:00",
+    end: "2026-07-08T12:00:00",
+    location: "Member Services",
+  },
+];
+
+export const auditEvents: AuditEvent[] = [
+  {
+    id: "audit-1",
+    actorUserId: "user-staff-1",
+    timestamp: "2026-06-24T09:12:00",
+    summary: "Jordan Lee added weekly unavailability.",
+  },
+  {
+    id: "audit-2",
+    actorUserId: "user-staff-1",
+    timestamp: "2026-06-24T09:18:00",
+    summary: "Jordan Lee downloaded a calendar file.",
+  },
+  {
+    id: "audit-3",
+    actorUserId: "user-manager-1",
+    timestamp: "2026-06-24T10:05:00",
+    summary: "Morgan Smith reviewed Wellness conflicts.",
+  },
+  {
+    id: "audit-4",
+    actorUserId: "user-manager-2",
+    timestamp: "2026-06-24T11:20:00",
+    summary: "Avery Patel reviewed Front Desk conflicts.",
   },
 ];

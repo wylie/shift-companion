@@ -52,3 +52,10 @@ export type NavItem = {
   id: "unavailability" | "schedule" | "manager" | "settings";
   label: string;
 };
+
+export type AuditEvent = {
+  id: string;
+  actorUserId: string;
+  timestamp: string;
+  summary: string;
+};
