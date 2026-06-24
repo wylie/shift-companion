@@ -11,7 +11,7 @@
 ## Current scaffold posture
 
 - Local mocked data only
-- Staff-entered unavailability is the first real feature and remains local-only for now
+- Staff-entered unavailability is the first real feature and remains current-user-only local state for now
 - No production authentication
 - No Microsoft Graph integration
 - No YMCA source-system integration

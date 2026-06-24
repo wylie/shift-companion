@@ -38,6 +38,7 @@ textarea {
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
   min-height: 100vh;
+  align-items: start;
 }
 
 .sidebar {
@@ -47,6 +48,20 @@ textarea {
   padding: 2rem 1.25rem;
   background: rgba(11, 37, 69, 0.92);
   color: #f7fbff;
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-top {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.sidebar-muted {
+  color: rgba(247, 251, 255, 0.74);
 }
 
 .content {
@@ -221,6 +236,12 @@ h2 {
   resize: vertical;
 }
 
+.field-error {
+  color: #9e2d22;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .primary-button,
 .ghost-button {
   border-radius: 12px;
@@ -244,10 +265,25 @@ h2 {
   color: #9e2d22;
 }
 
-.form-error {
-  margin: 0;
-  color: #9e2d22;
-  font-weight: 600;
+.inline-confirmation {
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #d9e4f0;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(77, 148, 255, 0.45);
+  outline-offset: 2px;
+}
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: #c65348;
 }
 
 .severity-row {
@@ -282,6 +318,13 @@ h2 {
 @media (max-width: 860px) {
   .app-shell {
     grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    min-height: auto;
+    max-height: none;
+    overflow-y: visible;
   }
 
   .content {

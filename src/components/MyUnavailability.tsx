@@ -22,6 +22,16 @@ type RuleDraft = {
   note: string;
 };
 
+type RuleField =
+  | "dayOfWeek"
+  | "startTime"
+  | "endTime"
+  | "date"
+  | "startDate"
+  | "endDate";
+
+type FieldErrors = Partial<Record<RuleField, string>>;
+
 const dayOptions = [
   "Monday",
   "Tuesday",
@@ -30,6 +40,15 @@ const dayOptions = [
   "Friday",
   "Saturday",
   "Sunday",
+];
+
+const groupedRuleTypes: Array<{
+  type: UnavailabilityRuleType;
+  label: string;
+}> = [
+  { type: "weekly-recurring", label: "Weekly recurring" },
+  { type: "one-time-date", label: "One-time date" },
+  { type: "date-range", label: "Date range" },
 ];
 
 const emptyDraft: RuleDraft = {
@@ -43,15 +62,6 @@ const emptyDraft: RuleDraft = {
   note: "",
 };
 
-const groupedRuleTypes: Array<{
-  type: UnavailabilityRuleType;
-  label: string;
-}> = [
-  { type: "weekly-recurring", label: "Weekly recurring" },
-  { type: "one-time-date", label: "One-time date" },
-  { type: "date-range", label: "Date range" },
-];
-
 function createDraftFromRule(rule: UnavailabilityRule): RuleDraft {
   return {
     type: rule.type,
@@ -63,18 +73,6 @@ function createDraftFromRule(rule: UnavailabilityRule): RuleDraft {
     endDate: rule.endDate ?? "",
     note: rule.note,
   };
-}
-
-function formatRuleSummary(rule: UnavailabilityRule): string {
-  if (rule.type === "weekly-recurring") {
-    return `${rule.dayOfWeek} • ${rule.startTime} - ${rule.endTime}`;
-  }
-
-  if (rule.type === "one-time-date") {
-    return `${rule.date} • ${rule.startTime} - ${rule.endTime}`;
-  }
-
-  return `${rule.startDate} to ${rule.endDate}`;
 }
 
 function buildRuleFromDraft(
@@ -114,38 +112,83 @@ function buildRuleFromDraft(
   };
 }
 
-function validateDraft(draft: RuleDraft): string | null {
+function validateDraft(draft: RuleDraft): FieldErrors {
+  const errors: FieldErrors = {};
+
   if (draft.type === "weekly-recurring") {
-    if (!draft.dayOfWeek || !draft.startTime || !draft.endTime) {
-      return "Weekly recurring rules need a day, start time, and end time.";
+    if (!draft.startTime) {
+      errors.startTime = "Start time is required.";
     }
 
-    if (draft.endTime <= draft.startTime) {
-      return "End time must be after start time.";
+    if (!draft.endTime) {
+      errors.endTime = "End time is required.";
+    }
+
+    if (draft.startTime && draft.endTime && draft.endTime <= draft.startTime) {
+      errors.endTime = "End time must be after start time.";
     }
   }
 
   if (draft.type === "one-time-date") {
-    if (!draft.date || !draft.startTime || !draft.endTime) {
-      return "One-time dates need a date, start time, and end time.";
+    if (!draft.date) {
+      errors.date = "Date is required.";
     }
 
-    if (draft.endTime <= draft.startTime) {
-      return "End time must be after start time.";
+    if (!draft.startTime) {
+      errors.startTime = "Start time is required.";
+    }
+
+    if (!draft.endTime) {
+      errors.endTime = "End time is required.";
+    }
+
+    if (draft.startTime && draft.endTime && draft.endTime <= draft.startTime) {
+      errors.endTime = "End time must be after start time.";
     }
   }
 
   if (draft.type === "date-range") {
-    if (!draft.startDate || !draft.endDate) {
-      return "Date ranges need a start date and end date.";
+    if (!draft.startDate) {
+      errors.startDate = "Start date is required.";
     }
 
-    if (draft.endDate < draft.startDate) {
-      return "End date must be on or after the start date.";
+    if (!draft.endDate) {
+      errors.endDate = "End date is required.";
+    }
+
+    if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) {
+      errors.endDate = "End date cannot be before start date.";
     }
   }
 
-  return null;
+  return errors;
+}
+
+function formatTime(value: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(`2026-01-01T${value}:00`));
+}
+
+function formatDate(value: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(`${value}T12:00:00`));
+}
+
+function formatRuleSummary(rule: UnavailabilityRule): string {
+  if (rule.type === "weekly-recurring") {
+    return `Every ${rule.dayOfWeek}, ${formatTime(rule.startTime ?? "")}-${formatTime(rule.endTime ?? "")}`;
+  }
+
+  if (rule.type === "one-time-date") {
+    return `${formatDate(rule.date ?? "")}, ${formatTime(rule.startTime ?? "")}-${formatTime(rule.endTime ?? "")}`;
+  }
+
+  return `${formatDate(rule.startDate ?? "")} to ${formatDate(rule.endDate ?? "")}`;
 }
 
 export function MyUnavailability({ currentUser }: Props) {
@@ -155,7 +198,10 @@ export function MyUnavailability({ currentUser }: Props) {
   );
   const [draft, setDraft] = useState<RuleDraft>(emptyDraft);
   const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [deleteCandidateId, setDeleteCandidateId] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     // Future persistence and user filtering should refresh rules for the active user.
@@ -164,7 +210,8 @@ export function MyUnavailability({ currentUser }: Props) {
     );
     setDraft(emptyDraft);
     setEditingRuleId(null);
-    setErrorMessage(null);
+    setFieldErrors({});
+    setDeleteCandidateId(null);
   }, [currentUser.id]);
 
   const groupedRules = useMemo(
@@ -179,7 +226,7 @@ export function MyUnavailability({ currentUser }: Props) {
   function resetForm() {
     setDraft(emptyDraft);
     setEditingRuleId(null);
-    setErrorMessage(null);
+    setFieldErrors({});
   }
 
   function handleDraftChange<Key extends keyof RuleDraft>(
@@ -190,14 +237,34 @@ export function MyUnavailability({ currentUser }: Props) {
       ...currentDraft,
       [key]: value,
     }));
+
+    setFieldErrors((currentErrors) => {
+      if (!currentErrors[key as RuleField]) {
+        return currentErrors;
+      }
+
+      const nextErrors = { ...currentErrors };
+      delete nextErrors[key as RuleField];
+      return nextErrors;
+    });
+  }
+
+  function handleRuleTypeChange(type: UnavailabilityRuleType) {
+    setDraft({
+      ...emptyDraft,
+      type,
+      note: draft.note,
+    });
+    setFieldErrors({});
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const validationError = validateDraft(draft);
-    if (validationError) {
-      setErrorMessage(validationError);
+    const errors = validateDraft(draft);
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
       return;
     }
 
@@ -224,13 +291,23 @@ export function MyUnavailability({ currentUser }: Props) {
   function handleEdit(rule: UnavailabilityRule) {
     setDraft(createDraftFromRule(rule));
     setEditingRuleId(rule.id);
-    setErrorMessage(null);
+    setFieldErrors({});
+    setDeleteCandidateId(null);
   }
 
-  function handleDelete(ruleId: string) {
+  function requestDelete(ruleId: string) {
+    setDeleteCandidateId(ruleId);
+  }
+
+  function cancelDelete() {
+    setDeleteCandidateId(null);
+  }
+
+  function confirmDelete(ruleId: string) {
     setRules((currentRules) =>
       currentRules.filter((rule) => rule.id !== ruleId),
     );
+    setDeleteCandidateId(null);
 
     if (editingRuleId === ruleId) {
       resetForm();
@@ -252,20 +329,21 @@ export function MyUnavailability({ currentUser }: Props) {
         visibility comes later and is intentionally excluded from this flow.
       </p>
 
-      <form className="card form-card" onSubmit={handleSubmit}>
+      <form className="card form-card" onSubmit={handleSubmit} noValidate>
         <div className="form-header">
           <div>
             <h3>
               {editingRuleId ? "Edit unavailable rule" : "Add unavailable rule"}
             </h3>
             <p className="muted">
-              Mocked only for now. No database, Teams SSO, or Microsoft Graph is
-              connected yet.
+              Add the times you cannot work. Recurring rules are best for
+              regular commitments; date ranges are best for trips, school
+              breaks, or extended conflicts.
             </p>
           </div>
           {editingRuleId && (
             <button className="ghost-button" type="button" onClick={resetForm}>
-              Cancel edit
+              Cancel
             </button>
           )}
         </div>
@@ -276,8 +354,7 @@ export function MyUnavailability({ currentUser }: Props) {
             <select
               value={draft.type}
               onChange={(event) =>
-                handleDraftChange(
-                  "type",
+                handleRuleTypeChange(
                   event.target.value as UnavailabilityRuleType,
                 )
               }
@@ -307,25 +384,57 @@ export function MyUnavailability({ currentUser }: Props) {
                   ))}
                 </select>
               </label>
+
               <label className="field">
                 Start time
                 <input
+                  aria-describedby={
+                    fieldErrors.startTime
+                      ? "unavailability-start-time-error"
+                      : undefined
+                  }
+                  aria-invalid={Boolean(fieldErrors.startTime)}
                   type="time"
                   value={draft.startTime}
                   onChange={(event) =>
                     handleDraftChange("startTime", event.target.value)
                   }
                 />
+                {fieldErrors.startTime && (
+                  <span
+                    className="field-error"
+                    id="unavailability-start-time-error"
+                    role="alert"
+                  >
+                    {fieldErrors.startTime}
+                  </span>
+                )}
               </label>
+
               <label className="field">
                 End time
                 <input
+                  aria-describedby={
+                    fieldErrors.endTime
+                      ? "unavailability-end-time-error"
+                      : undefined
+                  }
+                  aria-invalid={Boolean(fieldErrors.endTime)}
                   type="time"
                   value={draft.endTime}
                   onChange={(event) =>
                     handleDraftChange("endTime", event.target.value)
                   }
                 />
+                {fieldErrors.endTime && (
+                  <span
+                    className="field-error"
+                    id="unavailability-end-time-error"
+                    role="alert"
+                  >
+                    {fieldErrors.endTime}
+                  </span>
+                )}
               </label>
             </>
           )}
@@ -335,32 +444,77 @@ export function MyUnavailability({ currentUser }: Props) {
               <label className="field">
                 Date
                 <input
+                  aria-describedby={
+                    fieldErrors.date ? "unavailability-date-error" : undefined
+                  }
+                  aria-invalid={Boolean(fieldErrors.date)}
                   type="date"
                   value={draft.date}
                   onChange={(event) =>
                     handleDraftChange("date", event.target.value)
                   }
                 />
+                {fieldErrors.date && (
+                  <span
+                    className="field-error"
+                    id="unavailability-date-error"
+                    role="alert"
+                  >
+                    {fieldErrors.date}
+                  </span>
+                )}
               </label>
+
               <label className="field">
                 Start time
                 <input
+                  aria-describedby={
+                    fieldErrors.startTime
+                      ? "unavailability-start-time-error"
+                      : undefined
+                  }
+                  aria-invalid={Boolean(fieldErrors.startTime)}
                   type="time"
                   value={draft.startTime}
                   onChange={(event) =>
                     handleDraftChange("startTime", event.target.value)
                   }
                 />
+                {fieldErrors.startTime && (
+                  <span
+                    className="field-error"
+                    id="unavailability-start-time-error"
+                    role="alert"
+                  >
+                    {fieldErrors.startTime}
+                  </span>
+                )}
               </label>
+
               <label className="field">
                 End time
                 <input
+                  aria-describedby={
+                    fieldErrors.endTime
+                      ? "unavailability-end-time-error"
+                      : undefined
+                  }
+                  aria-invalid={Boolean(fieldErrors.endTime)}
                   type="time"
                   value={draft.endTime}
                   onChange={(event) =>
                     handleDraftChange("endTime", event.target.value)
                   }
                 />
+                {fieldErrors.endTime && (
+                  <span
+                    className="field-error"
+                    id="unavailability-end-time-error"
+                    role="alert"
+                  >
+                    {fieldErrors.endTime}
+                  </span>
+                )}
               </label>
             </>
           )}
@@ -370,22 +524,53 @@ export function MyUnavailability({ currentUser }: Props) {
               <label className="field">
                 Start date
                 <input
+                  aria-describedby={
+                    fieldErrors.startDate
+                      ? "unavailability-start-date-error"
+                      : undefined
+                  }
+                  aria-invalid={Boolean(fieldErrors.startDate)}
                   type="date"
                   value={draft.startDate}
                   onChange={(event) =>
                     handleDraftChange("startDate", event.target.value)
                   }
                 />
+                {fieldErrors.startDate && (
+                  <span
+                    className="field-error"
+                    id="unavailability-start-date-error"
+                    role="alert"
+                  >
+                    {fieldErrors.startDate}
+                  </span>
+                )}
               </label>
+
               <label className="field">
                 End date
                 <input
+                  aria-describedby={
+                    fieldErrors.endDate
+                      ? "unavailability-end-date-error"
+                      : undefined
+                  }
+                  aria-invalid={Boolean(fieldErrors.endDate)}
                   type="date"
                   value={draft.endDate}
                   onChange={(event) =>
                     handleDraftChange("endDate", event.target.value)
                   }
                 />
+                {fieldErrors.endDate && (
+                  <span
+                    className="field-error"
+                    id="unavailability-end-date-error"
+                    role="alert"
+                  >
+                    {fieldErrors.endDate}
+                  </span>
+                )}
               </label>
             </>
           )}
@@ -403,16 +588,15 @@ export function MyUnavailability({ currentUser }: Props) {
           </label>
         </div>
 
-        {errorMessage && (
-          <p className="form-error" role="alert">
-            {errorMessage}
-          </p>
-        )}
-
         <div className="form-actions">
           <button className="primary-button" type="submit">
             {editingRuleId ? "Save changes" : "Add rule"}
           </button>
+          {editingRuleId && (
+            <button className="ghost-button" type="button" onClick={resetForm}>
+              Cancel
+            </button>
+          )}
         </div>
       </form>
 
@@ -432,29 +616,54 @@ export function MyUnavailability({ currentUser }: Props) {
                     <p className="muted">
                       {rule.note || "No note added for this unavailable rule."}
                     </p>
-                    <div className="card-actions">
-                      <button
-                        className="ghost-button"
-                        type="button"
-                        onClick={() => handleEdit(rule)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="ghost-button ghost-button-danger"
-                        type="button"
-                        onClick={() => handleDelete(rule.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+
+                    {deleteCandidateId === rule.id ? (
+                      <div className="inline-confirmation" role="alert">
+                        <p>Delete this unavailable rule?</p>
+                        <div className="card-actions">
+                          <button
+                            className="ghost-button ghost-button-danger"
+                            type="button"
+                            onClick={() => confirmDelete(rule.id)}
+                          >
+                            Confirm delete
+                          </button>
+                          <button
+                            className="ghost-button"
+                            type="button"
+                            onClick={cancelDelete}
+                          >
+                            Keep rule
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="card-actions">
+                        <button
+                          className="ghost-button"
+                          type="button"
+                          onClick={() => handleEdit(rule)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="ghost-button ghost-button-danger"
+                          type="button"
+                          onClick={() => requestDelete(rule.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </article>
                 ))}
               </div>
             ) : (
-              <article className="card">
+              <article className="card empty-state">
+                <h3>No {group.label.toLowerCase()} rules yet</h3>
                 <p className="muted">
-                  No {group.label.toLowerCase()} unavailable rules yet.
+                  Add one to keep your schedule aligned with the times you
+                  cannot work.
                 </p>
               </article>
             )}

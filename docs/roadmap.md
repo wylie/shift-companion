@@ -2,11 +2,11 @@
 
 ## Phase 1
 
-Mocked Teams-compatible app shell with staff-entered recurring unavailability
+Mocked Teams-compatible app shell with staff-entered unavailability add, edit, delete, and validation
 
 ## Phase 2
 
-Staff recurring unavailability CRUD
+Staff recurring unavailability CRUD with mocked local state completed as the first usable flow, pending future persistence
 
 ## Phase 3
 
