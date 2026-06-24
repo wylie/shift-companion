@@ -222,6 +222,15 @@ h2 {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+.form-grid-compact {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 240px));
+}
+
+.rule-fields {
+  display: grid;
+  gap: 1rem;
+}
+
 .field {
   display: grid;
   gap: 0.4rem;
@@ -245,6 +254,18 @@ h2 {
 
 .field textarea {
   resize: vertical;
+}
+
+.fieldset-group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.fieldset-group legend {
+  margin-bottom: 0.4rem;
+  padding: 0;
 }
 
 .select-control {
@@ -306,19 +327,35 @@ h2 {
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
 }
 
-.checkbox-option {
+.day-checkbox-grid {
+  grid-template-columns: repeat(auto-fit, minmax(108px, max-content));
+  align-items: start;
+}
+
+.checkbox-option,
+.checkbox-chip {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  min-height: 2.75rem;
-  padding: 0.7rem 0.85rem;
   border: 1px solid #c8d4e4;
   border-radius: 12px;
   background: #fff;
   font-weight: 500;
 }
 
-.checkbox-option input {
+.checkbox-option {
+  min-height: 2.75rem;
+  padding: 0.7rem 0.85rem;
+}
+
+.checkbox-chip {
+  min-height: 0;
+  padding: 0.55rem 0.7rem;
+  width: fit-content;
+}
+
+.checkbox-option input,
+.checkbox-chip input {
   margin: 0;
 }
 
@@ -575,7 +612,8 @@ select[aria-invalid="true"] {
   }
 
   .schedule-week,
-  .checkbox-grid {
+  .checkbox-grid,
+  .day-checkbox-grid {
     grid-template-columns: 1fr;
   }
 

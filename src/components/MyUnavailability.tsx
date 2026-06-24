@@ -421,36 +421,38 @@ export function MyUnavailability({ currentUser }: Props) {
             </select>
             {renderFieldMessage()}
           </label>
+        </div>
 
-          {draft.type === "weekly-recurring" && (
-            <>
-              <label className="field">
-                Days of week
-                <div
-                  aria-describedby={
-                    fieldErrors.daysOfWeek
-                      ? "unavailability-days-of-week-error"
-                      : undefined
-                  }
-                  className="checkbox-grid"
-                >
-                  {dayOptions.map((day) => (
-                    <label className="checkbox-option" key={day}>
-                      <input
-                        checked={draft.daysOfWeek.includes(day)}
-                        type="checkbox"
-                        onChange={() => handleWeeklyDayToggle(day)}
-                      />
-                      <span>{day}</span>
-                    </label>
-                  ))}
-                </div>
-                {renderFieldMessage(
-                  fieldErrors.daysOfWeek,
-                  "unavailability-days-of-week-error",
-                )}
-              </label>
+        {draft.type === "weekly-recurring" && (
+          <div className="rule-fields">
+            <fieldset className="field fieldset-group field-full">
+              <legend>Days of week</legend>
+              <div
+                aria-describedby={
+                  fieldErrors.daysOfWeek
+                    ? "unavailability-days-of-week-error"
+                    : undefined
+                }
+                className="checkbox-grid day-checkbox-grid"
+              >
+                {dayOptions.map((day) => (
+                  <label className="checkbox-chip" key={day}>
+                    <input
+                      checked={draft.daysOfWeek.includes(day)}
+                      type="checkbox"
+                      onChange={() => handleWeeklyDayToggle(day)}
+                    />
+                    <span>{day}</span>
+                  </label>
+                ))}
+              </div>
+              {renderFieldMessage(
+                fieldErrors.daysOfWeek,
+                "unavailability-days-of-week-error",
+              )}
+            </fieldset>
 
+            <div className="form-grid form-grid-compact">
               <label className="field">
                 Start time
                 <input
@@ -492,11 +494,13 @@ export function MyUnavailability({ currentUser }: Props) {
                   "unavailability-end-time-error",
                 )}
               </label>
-            </>
-          )}
+            </div>
+          </div>
+        )}
 
-          {draft.type === "one-time-date" && (
-            <>
+        {draft.type === "one-time-date" && (
+          <div className="rule-fields">
+            <div className="form-grid form-grid-compact">
               <label className="field">
                 Date
                 <input
@@ -557,11 +561,13 @@ export function MyUnavailability({ currentUser }: Props) {
                   "unavailability-end-time-error",
                 )}
               </label>
-            </>
-          )}
+            </div>
+          </div>
+        )}
 
-          {draft.type === "date-range" && (
-            <>
+        {draft.type === "date-range" && (
+          <div className="rule-fields">
+            <div className="form-grid form-grid-compact">
               <label className="field">
                 Start date
                 <input
@@ -603,9 +609,11 @@ export function MyUnavailability({ currentUser }: Props) {
                   "unavailability-end-date-error",
                 )}
               </label>
-            </>
-          )}
+            </div>
+          </div>
+        )}
 
+        <div className="form-grid">
           <label className="field field-full">
             Optional note
             <textarea
