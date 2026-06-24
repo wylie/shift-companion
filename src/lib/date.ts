@@ -86,6 +86,10 @@ export function formatTimeRange(start: Date, end: Date): string {
   return `${timeFormatter.format(start)}-${timeFormatter.format(end)}`;
 }
 
+export function formatClockTime(value: string): string {
+  return timeFormatter.format(new Date(`2026-01-01T${value}:00`));
+}
+
 export function formatDateLabel(value: Date): string {
   return dateFormatter.format(value);
 }

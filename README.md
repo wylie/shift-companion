@@ -7,6 +7,7 @@ Small Microsoft Teams tab app for YMCA departments that use Microsoft Teams Shif
 - Teams-contained companion app shell
 - Mocked staff unavailability flow with add, edit, delete, and inline validation
 - Mocked weekly schedule view with local `.ics` calendar download
+- Mocked read-only Manager View for department conflict review
 - Mocked staff and manager roles
 - Staff-first views for unavailability and personal schedule
 - Narrow manager conflict view for assigned teams only
@@ -46,6 +47,9 @@ Then open the local Vite URL in a browser. The app is structured so Teams SDK in
 - Staff should only see their own schedule and unavailability.
 - The current mocked staff unavailability flow supports add, edit, delete, and validation in local state.
 - The mocked Phase 1 staff experience now includes local `.ics` downloads for the current staff member's shifts.
+- Manager View is mocked, local-only, and read-only.
+- Manager View is hidden and guarded for staff users in the current demo experience.
+- Conflict detection currently runs against mocked shifts and mocked unavailable rules only.
 - Managers should only see staff and conflict data for teams they manage.
 - Live calendar subscriptions remain deferred until secure backend identity, authorization, token storage, revocation, and privacy controls exist.
 - This scaffold uses mocked data only and does not connect to live Shifts or Graph data.

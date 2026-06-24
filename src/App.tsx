@@ -21,11 +21,21 @@ export default function App() {
   const [isTeamsContext, setIsTeamsContext] = useState(false);
 
   const currentUser = currentUsers[userMode];
+  const visibleNavItems =
+    currentUser.role === "manager"
+      ? navItems
+      : navItems.filter((item) => item.id !== "manager");
 
   useEffect(() => {
     // Future Teams context, theme, and SSO wiring belongs here.
     void initializeTeamsSdk().then(setIsTeamsContext);
   }, []);
+
+  useEffect(() => {
+    if (currentUser.role !== "manager" && activeView === "manager") {
+      setActiveView("unavailability");
+    }
+  }, [activeView, currentUser.role]);
 
   return (
     <div className="app-shell">
@@ -33,7 +43,7 @@ export default function App() {
         activeView={activeView}
         currentUser={currentUser}
         isTeamsContext={isTeamsContext}
-        navItems={navItems}
+        navItems={visibleNavItems}
         onSelectView={setActiveView}
         onUserModeChange={setUserMode}
       />

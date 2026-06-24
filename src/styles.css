@@ -284,6 +284,12 @@ h2 {
 .day-section,
 .day-shifts,
 .shift-row,
+.manager-controls,
+.manager-layout,
+.manager-panel,
+.manager-conflicts,
+.staff-list,
+.staff-row,
 .calendar-section,
 .calendar-actions,
 .privacy-grid,
@@ -321,6 +327,42 @@ h2 {
 .calendar-actions {
   grid-template-columns: repeat(auto-fit, minmax(220px, max-content));
   align-items: center;
+}
+
+.manager-controls {
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  align-items: start;
+}
+
+.schedule-toolbar-inline {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.manager-layout {
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+  align-items: start;
+}
+
+.staff-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  padding-top: 1rem;
+  border-top: 1px solid #d9e4f0;
+}
+
+.staff-row:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.staff-stats {
+  text-align: right;
 }
 
 .privacy-grid {
@@ -415,12 +457,20 @@ select[aria-invalid="true"] {
   .schedule-toolbar,
   .shift-row,
   .toolbar-actions,
-  .calendar-actions {
+  .calendar-actions,
+  .summary-grid,
+  .manager-controls,
+  .manager-layout {
     grid-template-columns: 1fr;
     justify-content: stretch;
   }
 
-  .shift-meta {
+  .shift-meta,
+  .staff-stats {
     text-align: left;
+  }
+
+  .staff-row {
+    grid-template-columns: 1fr;
   }
 }

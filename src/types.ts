@@ -48,15 +48,6 @@ export type Shift = {
   location: string;
 };
 
-export type StaffConflict = {
-  id: string;
-  teamId: string;
-  staffId: string;
-  shiftId: string;
-  summary: string;
-  severity: "low" | "medium" | "high";
-};
-
 export type NavItem = {
   id: "unavailability" | "schedule" | "manager" | "settings";
   label: string;

@@ -6,7 +6,7 @@ Mocked Teams-compatible staff experience complete with unavailability add, edit,
 
 ## Phase 2
 
-Staff recurring unavailability persistence and refinement after mocked local workflow validation
+Mocked read-only manager conflict review with department filtering, weekly review, and local conflict detection
 
 ## Phase 3
 
