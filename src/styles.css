@@ -328,8 +328,9 @@ h2 {
 }
 
 .day-checkbox-grid {
-  grid-template-columns: repeat(auto-fit, minmax(108px, max-content));
+  grid-template-columns: repeat(auto-fit, minmax(96px, max-content));
   align-items: start;
+  gap: 0.5rem 0.85rem;
 }
 
 .checkbox-option,
@@ -337,9 +338,6 @@ h2 {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  border: 1px solid #c8d4e4;
-  border-radius: 12px;
-  background: #fff;
   font-weight: 500;
 }
 
@@ -350,13 +348,41 @@ h2 {
 
 .checkbox-chip {
   min-height: 0;
-  padding: 0.55rem 0.7rem;
-  width: fit-content;
+  padding: 0.1rem 0;
+  width: auto;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.checkbox-chip span {
+  color: #31465f;
+}
+
+.checkbox-chip:hover span {
+  color: #122033;
 }
 
 .checkbox-option input,
 .checkbox-chip input {
   margin: 0;
+}
+
+.checkbox-chip input {
+  inline-size: 1rem;
+  block-size: 1rem;
+  accent-color: #224d86;
+}
+
+.checkbox-chip:has(input:checked) span {
+  color: #122033;
+  font-weight: 600;
+}
+
+.checkbox-chip:has(input:focus-visible) {
+  outline: 3px solid rgba(77, 148, 255, 0.45);
+  outline-offset: 3px;
 }
 
 .field-help {
@@ -439,6 +465,10 @@ h2 {
 .day-column-header {
   display: grid;
   gap: 0.25rem;
+}
+
+.day-column-title {
+  white-space: nowrap;
 }
 
 .day-column-shifts {

@@ -6,6 +6,7 @@ import {
   addWeeks,
   formatDateLabel,
   formatDayLabel,
+  formatShortDayLabel,
   formatTimeRange,
   formatWeekRange,
   isSameDay,
@@ -145,7 +146,13 @@ export function MySchedule({ currentUser }: Props) {
           {scheduleDays.map(({ date, shifts: dayShifts }) => (
             <section className="card day-column" key={date.toISOString()}>
               <div className="day-column-header">
-                <h3>{formatDayLabel(date)}</h3>
+                <h3
+                  aria-label={formatDayLabel(date)}
+                  className="day-column-title"
+                  title={formatDayLabel(date)}
+                >
+                  {formatShortDayLabel(date)}
+                </h3>
                 <span className="muted">{dayShifts.length} shifts</span>
               </div>
 
