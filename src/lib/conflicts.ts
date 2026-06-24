@@ -21,6 +21,18 @@ function getDayName(value: Date): string {
   return value.toLocaleDateString("en-US", { weekday: "long" });
 }
 
+function getRuleDays(rule: UnavailabilityRule): string[] {
+  if (rule.daysOfWeek && rule.daysOfWeek.length > 0) {
+    return rule.daysOfWeek;
+  }
+
+  return rule.dayOfWeek ? [rule.dayOfWeek] : [];
+}
+
+function formatDayAbbreviation(day: string): string {
+  return day.slice(0, 3);
+}
+
 function parseTimeToMinutes(value?: string): number | null {
   if (!value) {
     return null;
@@ -52,7 +64,8 @@ function shiftOverlapsTimeRange(
 
 export function formatUnavailabilityRule(rule: UnavailabilityRule): string {
   if (rule.type === "weekly-recurring") {
-    return `Every ${rule.dayOfWeek}, ${formatClockTime(rule.startTime ?? "00:00")}-${formatClockTime(rule.endTime ?? "00:00")}`;
+    const days = getRuleDays(rule).map(formatDayAbbreviation).join(", ");
+    return `Every ${days}, ${formatClockTime(rule.startTime ?? "00:00")}-${formatClockTime(rule.endTime ?? "00:00")}`;
   }
 
   if (rule.type === "one-time-date") {
@@ -72,7 +85,7 @@ export function ruleConflictsWithShift(
 
   if (rule.type === "weekly-recurring") {
     return (
-      rule.dayOfWeek === getDayName(shiftStart) &&
+      getRuleDays(rule).includes(getDayName(shiftStart)) &&
       shiftOverlapsTimeRange(shiftStart, shiftEnd, rule.startTime, rule.endTime)
     );
   }

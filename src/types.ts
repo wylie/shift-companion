@@ -38,6 +38,7 @@ export type UnavailabilityRule = {
   type: UnavailabilityRuleType;
   note: string;
   dayOfWeek?: string;
+  daysOfWeek?: string[];
   startTime?: string;
   endTime?: string;
   date?: string;

@@ -264,8 +264,8 @@ h2 {
     linear-gradient(45deg, transparent 50%, #5f7086 50%),
     linear-gradient(135deg, #5f7086 50%, transparent 50%);
   background-position:
-    calc(100% - 18px) calc(50% - 1px),
-    calc(100% - 12px) calc(50% - 1px);
+    calc(100% - 18px) 50%,
+    calc(100% - 12px) 50%;
   background-size:
     6px 6px,
     6px 6px;
@@ -298,6 +298,28 @@ h2 {
   min-height: 1.2rem;
   font-size: 0.9rem;
   line-height: 1.2;
+}
+
+.checkbox-grid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #c8d4e4;
+  border-radius: 12px;
+  background: #fff;
+  font-weight: 500;
+}
+
+.checkbox-option input {
+  margin: 0;
 }
 
 .field-help {
@@ -341,10 +363,9 @@ h2 {
 
 .schedule-toolbar,
 .toolbar-actions,
-.schedule-days,
-.day-section,
-.day-shifts,
-.shift-row,
+.schedule-week,
+.day-column,
+.day-column-shifts,
 .manager-controls,
 .manager-layout,
 .manager-panel,
@@ -366,25 +387,39 @@ h2 {
   align-items: center;
 }
 
+.schedule-week {
+  grid-template-columns: repeat(7, minmax(180px, 1fr));
+  align-items: start;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.day-column {
+  min-height: 100%;
+  gap: 0.85rem;
+}
+
+.day-column-header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.day-column-shifts {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.shift-card,
+.day-empty-state {
+  border: 1px solid #d9e4f0;
+  border-radius: 14px;
+  padding: 0.9rem;
+  background: #f7fbff;
+}
+
 .toolbar-actions {
   grid-template-columns: repeat(3, auto);
   justify-content: end;
-}
-
-.shift-row {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  padding-top: 1rem;
-  border-top: 1px solid #d9e4f0;
-}
-
-.shift-row:first-child {
-  padding-top: 0;
-  border-top: 0;
-}
-
-.shift-meta {
-  text-align: right;
 }
 
 .calendar-actions {
@@ -530,7 +565,6 @@ select[aria-invalid="true"] {
   }
 
   .schedule-toolbar,
-  .shift-row,
   .toolbar-actions,
   .calendar-actions,
   .summary-grid,
@@ -540,7 +574,11 @@ select[aria-invalid="true"] {
     justify-content: stretch;
   }
 
-  .shift-meta,
+  .schedule-week,
+  .checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+
   .staff-stats {
     text-align: left;
   }

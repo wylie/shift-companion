@@ -141,41 +141,39 @@ export function MySchedule({ currentUser }: Props) {
       </div>
 
       {visibleShifts.length > 0 ? (
-        <div className="schedule-days">
+        <div className="schedule-week">
           {scheduleDays.map(({ date, shifts: dayShifts }) => (
-            <section className="card day-section" key={date.toISOString()}>
-              <div className="group-header">
+            <section className="card day-column" key={date.toISOString()}>
+              <div className="day-column-header">
                 <h3>{formatDayLabel(date)}</h3>
                 <span className="muted">{dayShifts.length} shifts</span>
               </div>
 
               {dayShifts.length > 0 ? (
-                <div className="day-shifts">
+                <div className="day-column-shifts">
                   {dayShifts.map((shift) => (
-                    <article className="shift-row" key={shift.id}>
-                      <div>
-                        <h4>{shift.title}</h4>
-                        <p className="muted">
-                          {formatDateLabel(parseLocalDateTime(shift.start))}
-                        </p>
-                      </div>
-                      <div className="shift-meta">
-                        <p>
-                          {formatTimeRange(
-                            parseLocalDateTime(shift.start),
-                            parseLocalDateTime(shift.end),
-                          )}
-                        </p>
-                        {shift.department && (
-                          <p className="muted">{shift.department}</p>
+                    <article className="shift-card" key={shift.id}>
+                      <h4>{shift.title}</h4>
+                      <p className="muted">
+                        {formatDateLabel(parseLocalDateTime(shift.start))}
+                      </p>
+                      <p>
+                        {formatTimeRange(
+                          parseLocalDateTime(shift.start),
+                          parseLocalDateTime(shift.end),
                         )}
-                        <p className="muted">{shift.location}</p>
-                      </div>
+                      </p>
+                      {shift.department && (
+                        <p className="muted">{shift.department}</p>
+                      )}
+                      <p className="muted">{shift.location}</p>
                     </article>
                   ))}
                 </div>
               ) : (
-                <p className="muted">No shifts scheduled for this day.</p>
+                <article className="day-empty-state">
+                  <p className="muted">No shifts scheduled.</p>
+                </article>
               )}
             </section>
           ))}

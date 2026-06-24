@@ -13,7 +13,7 @@ type Props = {
 
 type RuleDraft = {
   type: UnavailabilityRuleType;
-  dayOfWeek: string;
+  daysOfWeek: string[];
   startTime: string;
   endTime: string;
   date: string;
@@ -23,7 +23,7 @@ type RuleDraft = {
 };
 
 type RuleField =
-  | "dayOfWeek"
+  | "daysOfWeek"
   | "startTime"
   | "endTime"
   | "date"
@@ -53,7 +53,7 @@ const groupedRuleTypes: Array<{
 
 const emptyDraft: RuleDraft = {
   type: "weekly-recurring",
-  dayOfWeek: "Monday",
+  daysOfWeek: [],
   startTime: "",
   endTime: "",
   date: "",
@@ -74,10 +74,22 @@ function renderFieldMessage(message?: string, id?: string) {
   );
 }
 
+function getRuleDays(rule: UnavailabilityRule): string[] {
+  if (rule.daysOfWeek && rule.daysOfWeek.length > 0) {
+    return rule.daysOfWeek;
+  }
+
+  return rule.dayOfWeek ? [rule.dayOfWeek] : [];
+}
+
+function formatDayAbbreviation(day: string): string {
+  return day.slice(0, 3);
+}
+
 function createDraftFromRule(rule: UnavailabilityRule): RuleDraft {
   return {
     type: rule.type,
-    dayOfWeek: rule.dayOfWeek ?? "Monday",
+    daysOfWeek: getRuleDays(rule),
     startTime: rule.startTime ?? "",
     endTime: rule.endTime ?? "",
     date: rule.date ?? "",
@@ -102,7 +114,8 @@ function buildRuleFromDraft(
   if (draft.type === "weekly-recurring") {
     return {
       ...baseRule,
-      dayOfWeek: draft.dayOfWeek,
+      dayOfWeek: draft.daysOfWeek[0],
+      daysOfWeek: draft.daysOfWeek,
       startTime: draft.startTime,
       endTime: draft.endTime,
     };
@@ -128,6 +141,10 @@ function validateDraft(draft: RuleDraft): FieldErrors {
   const errors: FieldErrors = {};
 
   if (draft.type === "weekly-recurring") {
+    if (draft.daysOfWeek.length === 0) {
+      errors.daysOfWeek = "Select at least one day.";
+    }
+
     if (!draft.startTime) {
       errors.startTime = "Start time is required.";
     }
@@ -193,7 +210,8 @@ function formatDate(value: string): string {
 
 function formatRuleSummary(rule: UnavailabilityRule): string {
   if (rule.type === "weekly-recurring") {
-    return `Every ${rule.dayOfWeek}, ${formatTime(rule.startTime ?? "")}-${formatTime(rule.endTime ?? "")}`;
+    const days = getRuleDays(rule).map(formatDayAbbreviation).join(", ");
+    return `Every ${days}, ${formatTime(rule.startTime ?? "")}-${formatTime(rule.endTime ?? "")}`;
   }
 
   if (rule.type === "one-time-date") {
@@ -266,6 +284,28 @@ export function MyUnavailability({ currentUser }: Props) {
       note: draft.note,
     });
     setFieldErrors({});
+  }
+
+  function handleWeeklyDayToggle(day: string) {
+    setDraft((currentDraft) => {
+      const hasDay = currentDraft.daysOfWeek.includes(day);
+      return {
+        ...currentDraft,
+        daysOfWeek: hasDay
+          ? currentDraft.daysOfWeek.filter((item) => item !== day)
+          : [...currentDraft.daysOfWeek, day],
+      };
+    });
+
+    setFieldErrors((currentErrors) => {
+      if (!currentErrors.daysOfWeek) {
+        return currentErrors;
+      }
+
+      const nextErrors = { ...currentErrors };
+      delete nextErrors.daysOfWeek;
+      return nextErrors;
+    });
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -385,21 +425,30 @@ export function MyUnavailability({ currentUser }: Props) {
           {draft.type === "weekly-recurring" && (
             <>
               <label className="field">
-                Day of week
-                <select
-                  className="select-control"
-                  value={draft.dayOfWeek}
-                  onChange={(event) =>
-                    handleDraftChange("dayOfWeek", event.target.value)
+                Days of week
+                <div
+                  aria-describedby={
+                    fieldErrors.daysOfWeek
+                      ? "unavailability-days-of-week-error"
+                      : undefined
                   }
+                  className="checkbox-grid"
                 >
                   {dayOptions.map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                    </option>
+                    <label className="checkbox-option" key={day}>
+                      <input
+                        checked={draft.daysOfWeek.includes(day)}
+                        type="checkbox"
+                        onChange={() => handleWeeklyDayToggle(day)}
+                      />
+                      <span>{day}</span>
+                    </label>
                   ))}
-                </select>
-                {renderFieldMessage()}
+                </div>
+                {renderFieldMessage(
+                  fieldErrors.daysOfWeek,
+                  "unavailability-days-of-week-error",
+                )}
               </label>
 
               <label className="field">

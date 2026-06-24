@@ -6,8 +6,8 @@ Small Microsoft Teams tab app for YMCA departments that use Microsoft Teams Shif
 
 - Teams-contained companion app shell
 - Mocked identity preview selector for developer/demo use
-- Mocked staff unavailability flow with add, edit, delete, and inline validation
-- Mocked weekly schedule view with local `.ics` calendar download
+- Mocked staff unavailability flow with add, edit, delete, inline validation, and multi-day recurring weekly rules
+- Mocked horizontal weekly schedule view with local `.ics` calendar download
 - Mocked read-only Manager View for department conflict review
 - Persistence-ready repository and data-access layer backed by mocked local data
 - Mocked staff and manager roles

@@ -31,7 +31,7 @@
 ## UnavailabilityRule
 
 - Purpose: stores staff-entered unavailable times for recurring, one-time, and date-range conflicts.
-- Key fields: `id`, `userId`, `type`, `dayOfWeek`, `date`, `startDate`, `endDate`, `startTime`, `endTime`, `note`
+- Key fields: `id`, `userId`, `type`, `daysOfWeek`, `date`, `startDate`, `endDate`, `startTime`, `endTime`, `note`
 - Privacy notes: staff unavailability access must remain current-user-only; managers should only review conflicts inside assigned departments.
 - Status: mocked/local data now, future persisted data later
 

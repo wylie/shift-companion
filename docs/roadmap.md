@@ -2,7 +2,7 @@
 
 ## Phase 1
 
-Mocked Teams-compatible staff experience complete with unavailability add, edit, delete, validation, weekly schedule view, and local `.ics` download
+Mocked Teams-compatible staff experience complete with unavailability add, edit, delete, validation, multi-day recurring weekly rules, horizontal weekly schedule view, and local `.ics` download
 
 ## Phase 2
 
