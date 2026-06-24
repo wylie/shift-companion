@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { unavailabilityRules } from "../data/mockData";
+import { appRepositories } from "../data/repositories";
 import type {
   CurrentUser,
   UnavailabilityRule,
@@ -61,6 +61,18 @@ const emptyDraft: RuleDraft = {
   endDate: "",
   note: "",
 };
+
+function renderFieldMessage(message?: string, id?: string) {
+  return (
+    <span
+      aria-live="polite"
+      className={message ? "field-message field-error" : "field-message"}
+      id={id}
+    >
+      {message ?? ""}
+    </span>
+  );
+}
 
 function createDraftFromRule(rule: UnavailabilityRule): RuleDraft {
   return {
@@ -194,7 +206,7 @@ function formatRuleSummary(rule: UnavailabilityRule): string {
 export function MyUnavailability({ currentUser }: Props) {
   const [rules, setRules] = useState(() =>
     // Future persistence should load only the signed-in staff member's rules.
-    unavailabilityRules.filter((rule) => rule.userId === currentUser.id),
+    appRepositories.unavailabilityRules.listForUser(currentUser.id),
   );
   const [draft, setDraft] = useState<RuleDraft>(emptyDraft);
   const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
@@ -205,9 +217,7 @@ export function MyUnavailability({ currentUser }: Props) {
 
   useEffect(() => {
     // Future persistence and user filtering should refresh rules for the active user.
-    setRules(
-      unavailabilityRules.filter((rule) => rule.userId === currentUser.id),
-    );
+    setRules(appRepositories.unavailabilityRules.listForUser(currentUser.id));
     setDraft(emptyDraft);
     setEditingRuleId(null);
     setFieldErrors({});
@@ -276,12 +286,14 @@ export function MyUnavailability({ currentUser }: Props) {
 
     setRules((currentRules) => {
       if (editingRuleId) {
+        appRepositories.unavailabilityRules.save(nextRule);
         return currentRules.map((rule) =>
           rule.id === editingRuleId ? nextRule : rule,
         );
       }
 
       // Future persistence should write user-scoped rule changes to the backend.
+      appRepositories.unavailabilityRules.save(nextRule);
       return [...currentRules, nextRule];
     });
 
@@ -304,6 +316,7 @@ export function MyUnavailability({ currentUser }: Props) {
   }
 
   function confirmDelete(ruleId: string) {
+    appRepositories.unavailabilityRules.delete(ruleId);
     setRules((currentRules) =>
       currentRules.filter((rule) => rule.id !== ruleId),
     );
@@ -366,6 +379,7 @@ export function MyUnavailability({ currentUser }: Props) {
                 </option>
               ))}
             </select>
+            {renderFieldMessage()}
           </label>
 
           {draft.type === "weekly-recurring" && (
@@ -385,6 +399,7 @@ export function MyUnavailability({ currentUser }: Props) {
                     </option>
                   ))}
                 </select>
+                {renderFieldMessage()}
               </label>
 
               <label className="field">
@@ -402,14 +417,9 @@ export function MyUnavailability({ currentUser }: Props) {
                     handleDraftChange("startTime", event.target.value)
                   }
                 />
-                {fieldErrors.startTime && (
-                  <span
-                    className="field-error"
-                    id="unavailability-start-time-error"
-                    role="alert"
-                  >
-                    {fieldErrors.startTime}
-                  </span>
+                {renderFieldMessage(
+                  fieldErrors.startTime,
+                  "unavailability-start-time-error",
                 )}
               </label>
 
@@ -428,14 +438,9 @@ export function MyUnavailability({ currentUser }: Props) {
                     handleDraftChange("endTime", event.target.value)
                   }
                 />
-                {fieldErrors.endTime && (
-                  <span
-                    className="field-error"
-                    id="unavailability-end-time-error"
-                    role="alert"
-                  >
-                    {fieldErrors.endTime}
-                  </span>
+                {renderFieldMessage(
+                  fieldErrors.endTime,
+                  "unavailability-end-time-error",
                 )}
               </label>
             </>
@@ -456,14 +461,9 @@ export function MyUnavailability({ currentUser }: Props) {
                     handleDraftChange("date", event.target.value)
                   }
                 />
-                {fieldErrors.date && (
-                  <span
-                    className="field-error"
-                    id="unavailability-date-error"
-                    role="alert"
-                  >
-                    {fieldErrors.date}
-                  </span>
+                {renderFieldMessage(
+                  fieldErrors.date,
+                  "unavailability-date-error",
                 )}
               </label>
 
@@ -482,14 +482,9 @@ export function MyUnavailability({ currentUser }: Props) {
                     handleDraftChange("startTime", event.target.value)
                   }
                 />
-                {fieldErrors.startTime && (
-                  <span
-                    className="field-error"
-                    id="unavailability-start-time-error"
-                    role="alert"
-                  >
-                    {fieldErrors.startTime}
-                  </span>
+                {renderFieldMessage(
+                  fieldErrors.startTime,
+                  "unavailability-start-time-error",
                 )}
               </label>
 
@@ -508,14 +503,9 @@ export function MyUnavailability({ currentUser }: Props) {
                     handleDraftChange("endTime", event.target.value)
                   }
                 />
-                {fieldErrors.endTime && (
-                  <span
-                    className="field-error"
-                    id="unavailability-end-time-error"
-                    role="alert"
-                  >
-                    {fieldErrors.endTime}
-                  </span>
+                {renderFieldMessage(
+                  fieldErrors.endTime,
+                  "unavailability-end-time-error",
                 )}
               </label>
             </>
@@ -538,14 +528,9 @@ export function MyUnavailability({ currentUser }: Props) {
                     handleDraftChange("startDate", event.target.value)
                   }
                 />
-                {fieldErrors.startDate && (
-                  <span
-                    className="field-error"
-                    id="unavailability-start-date-error"
-                    role="alert"
-                  >
-                    {fieldErrors.startDate}
-                  </span>
+                {renderFieldMessage(
+                  fieldErrors.startDate,
+                  "unavailability-start-date-error",
                 )}
               </label>
 
@@ -564,14 +549,9 @@ export function MyUnavailability({ currentUser }: Props) {
                     handleDraftChange("endDate", event.target.value)
                   }
                 />
-                {fieldErrors.endDate && (
-                  <span
-                    className="field-error"
-                    id="unavailability-end-date-error"
-                    role="alert"
-                  >
-                    {fieldErrors.endDate}
-                  </span>
+                {renderFieldMessage(
+                  fieldErrors.endDate,
+                  "unavailability-end-date-error",
                 )}
               </label>
             </>
@@ -587,6 +567,7 @@ export function MyUnavailability({ currentUser }: Props) {
               }
               placeholder="Add context for this unavailable time."
             />
+            {renderFieldMessage()}
           </label>
         </div>
 

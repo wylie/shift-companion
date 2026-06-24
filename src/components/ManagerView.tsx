@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  shifts,
-  staffMembers,
-  teams,
-  unavailabilityRules,
-} from "../data/mockData";
-import { canAccessManagerView, getManagedDepartments } from "../lib/access";
+import { appRepositories } from "../data/repositories";
+import { canAccessManagerView } from "../lib/access";
 import {
   detectManagerConflicts,
   formatManagerConflictTiming,
@@ -27,8 +22,15 @@ type Props = {
 const today = new Date("2026-06-24T12:00:00");
 
 export function ManagerView({ currentUser }: Props) {
+  const allDepartments = appRepositories.departments.listAll();
+  const allShifts = appRepositories.shifts.listAll();
+  const allStaffMembers = appRepositories.staff.listAll();
+  const allRules = appRepositories.unavailabilityRules.listAll();
   const managedDepartments = useMemo(
-    () => getManagedDepartments(currentUser, teams),
+    () =>
+      canAccessManagerView(currentUser)
+        ? appRepositories.departments.listForUser(currentUser.id)
+        : [],
     [currentUser],
   );
   const [selectedDepartmentId, setSelectedDepartmentId] = useState(
@@ -82,7 +84,7 @@ export function ManagerView({ currentUser }: Props) {
   }
 
   const weekEnd = addDays(weekStart, 7);
-  const reviewedShifts = shifts
+  const reviewedShifts = allShifts
     .filter(
       (shift) =>
         shift.department === selectedDepartment.name &&
@@ -93,19 +95,19 @@ export function ManagerView({ currentUser }: Props) {
 
   const conflicts = detectManagerConflicts({
     departmentId: selectedDepartment.id,
-    shifts,
-    staffMembers,
-    teams,
-    unavailabilityRules,
+    shifts: allShifts,
+    staffMembers: allStaffMembers,
+    teams: allDepartments,
+    unavailabilityRules: allRules,
     weekStart,
     weekEnd,
   });
 
-  const departmentStaff = staffMembers.filter(
-    (staffMember) => staffMember.teamId === selectedDepartment.id,
+  const departmentStaff = appRepositories.staff.listForDepartment(
+    selectedDepartment.id,
   );
   const staffSummaries = departmentStaff.map((staffMember) => {
-    const unavailableRuleCount = unavailabilityRules.filter(
+    const unavailableRuleCount = allRules.filter(
       (rule) => rule.userId === staffMember.id,
     ).length;
     const staffConflictCount = conflicts.filter(

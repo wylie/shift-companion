@@ -10,7 +10,7 @@ Mocked read-only manager conflict review complete with identity-scoped departmen
 
 ## Phase 3
 
-Persistence for staff and manager workflows, including secure identity-backed authorization and saved unavailability / audit data
+Persistence preparation started with repository boundaries; next steps are saved staff and manager workflows, secure identity-backed authorization, and durable unavailability / audit data
 
 ## Phase 4
 

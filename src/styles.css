@@ -264,8 +264,8 @@ h2 {
     linear-gradient(45deg, transparent 50%, #5f7086 50%),
     linear-gradient(135deg, #5f7086 50%, transparent 50%);
   background-position:
-    calc(100% - 18px) calc(50% - 3px),
-    calc(100% - 12px) calc(50% - 3px);
+    calc(100% - 18px) calc(50% - 1px),
+    calc(100% - 12px) calc(50% - 1px);
   background-size:
     6px 6px,
     6px 6px;
@@ -292,6 +292,12 @@ h2 {
   color: #9e2d22;
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+.field-message {
+  min-height: 1.2rem;
+  font-size: 0.9rem;
+  line-height: 1.2;
 }
 
 .field-help {
@@ -537,6 +543,10 @@ select[aria-invalid="true"] {
   .shift-meta,
   .staff-stats {
     text-align: left;
+  }
+
+  .field-message {
+    min-height: 0;
   }
 
   .staff-row,

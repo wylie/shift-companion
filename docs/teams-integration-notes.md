@@ -12,6 +12,7 @@
 - Wire Teams theme/context handling
 - Add Teams SSO once product scope is stable
 - Keep calendar subscription work deferred until backend identity and revocable token support exist
+- Keep mocked repositories as the local default until a real database boundary is introduced after Phase 3 prep
 - Introduce read-only Graph / Shifts integration after role and privacy boundaries are enforced
 
 ## Notes for implementation

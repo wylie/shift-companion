@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { mockUsers, teams } from "./data/mockData";
+import { appRepositories } from "./data/repositories";
 import { initializeTeamsSdk } from "./lib/teams";
 import type { NavItem } from "./types";
 import { AppSidebar } from "./components/AppSidebar";
@@ -18,14 +18,16 @@ const navItems: NavItem[] = [
 
 export default function App() {
   const [activeView, setActiveView] = useState<NavItem["id"]>("unavailability");
-  const [currentUserId, setCurrentUserId] = useState(mockUsers[0]!.id);
+  const previewUsers = appRepositories.users.listPreviewUsers();
+  const [currentUserId, setCurrentUserId] = useState(previewUsers[0]!.id);
   const [isTeamsContext, setIsTeamsContext] = useState(false);
 
   const currentUser =
-    mockUsers.find((user) => user.id === currentUserId) ?? mockUsers[0]!;
+    appRepositories.users.getById(currentUserId) ?? previewUsers[0]!;
   const visibleNavItems = getVisibleNavItems(navItems, currentUser);
-  const currentUserDepartmentLabel = currentUser.teamIds
-    .map((teamId) => teams.find((team) => team.id === teamId)?.name ?? teamId)
+  const currentUserDepartmentLabel = appRepositories.departments
+    .listForUser(currentUser.id)
+    .map((department) => department.name)
     .join(" + ");
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export default function App() {
         currentUser={currentUser}
         currentUserDepartmentLabel={currentUserDepartmentLabel}
         isTeamsContext={isTeamsContext}
-        mockUsers={mockUsers}
+        mockUsers={previewUsers}
         navItems={visibleNavItems}
         onSelectView={setActiveView}
         onUserChange={setCurrentUserId}

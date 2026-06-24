@@ -1,4 +1,4 @@
-import { auditEvents } from "../data/mockData";
+import { appRepositories } from "../data/repositories";
 import type { CurrentUser } from "../types";
 
 type Props = {
@@ -6,8 +6,8 @@ type Props = {
 };
 
 export function SettingsPrivacy({ currentUser }: Props) {
-  const visibleAuditEvents = auditEvents.filter(
-    (event) => event.actorUserId === currentUser.id,
+  const visibleAuditEvents = appRepositories.auditEvents.listForUser(
+    currentUser.id,
   );
 
   return (

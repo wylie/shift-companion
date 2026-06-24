@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { shifts } from "../data/mockData";
+import { appRepositories } from "../data/repositories";
 import { buildCalendarIcs } from "../lib/calendar";
 import {
   addDays,
@@ -37,8 +37,8 @@ export function MySchedule({ currentUser }: Props) {
 
   const myShifts = useMemo(
     () =>
-      shifts
-        .filter((shift) => shift.userId === currentUser.id)
+      appRepositories.shifts
+        .listForUser(currentUser.id)
         .slice()
         .sort((left, right) => left.start.localeCompare(right.start)),
     [currentUser.id],

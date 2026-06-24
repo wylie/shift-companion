@@ -39,6 +39,12 @@ Build a Teams-contained companion to Microsoft Teams Shifts for YMCA departments
 - Real authorization must later be enforced server-side after Teams SSO and persistence exist.
 - Real department permissions, Teams SSO, persistence, and Microsoft Graph / Shifts integration remain future work.
 
+## Phase 3 start
+
+- Phase 3 has started with a persistence-ready repository and data-access layer.
+- The app still runs with mocked and local data by default for browser preview.
+- A real database should be introduced next only after repository boundaries are stable.
+
 ## Default department assumptions
 
 - This app is for departments using Microsoft Teams Shifts.

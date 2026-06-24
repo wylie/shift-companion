@@ -1,6 +1,7 @@
 import type {
   AuditEvent,
   CurrentUser,
+  DepartmentMembership,
   Shift,
   StaffMember,
   Team,
@@ -66,6 +67,63 @@ export const staffMembers: StaffMember[] = [
     id: "user-staff-6",
     name: "Sam Rivera",
     teamId: "wellness",
+    role: "staff",
+  },
+];
+
+export const departmentMemberships: DepartmentMembership[] = [
+  {
+    id: "membership-1",
+    userId: "user-staff-1",
+    departmentId: "wellness",
+    role: "staff",
+  },
+  {
+    id: "membership-2",
+    userId: "user-manager-1",
+    departmentId: "wellness",
+    role: "manager",
+  },
+  {
+    id: "membership-3",
+    userId: "user-manager-2",
+    departmentId: "front-desk",
+    role: "manager",
+  },
+  {
+    id: "membership-4",
+    userId: "user-manager-2",
+    departmentId: "membership",
+    role: "manager",
+  },
+  {
+    id: "membership-5",
+    userId: "user-staff-2",
+    departmentId: "membership",
+    role: "staff",
+  },
+  {
+    id: "membership-6",
+    userId: "user-staff-3",
+    departmentId: "child-watch",
+    role: "staff",
+  },
+  {
+    id: "membership-7",
+    userId: "user-staff-4",
+    departmentId: "front-desk",
+    role: "staff",
+  },
+  {
+    id: "membership-8",
+    userId: "user-staff-5",
+    departmentId: "facilities",
+    role: "staff",
+  },
+  {
+    id: "membership-9",
+    userId: "user-staff-6",
+    departmentId: "wellness",
     role: "staff",
   },
 ];

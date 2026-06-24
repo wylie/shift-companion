@@ -11,6 +11,7 @@
 ## Current scaffold posture
 
 - Local mocked data only
+- Persistence-ready repository boundaries with mocked/local implementations by default
 - Staff-entered unavailability is the first real feature and remains current-user-only local state for now
 - Calendar download is current-user-only and exports only that staff member's mocked shifts
 - No production authentication
@@ -33,6 +34,7 @@
 - Manager-only access must later be enforced in server-side authorization.
 - Real department permissions should later come from secure identity, authorization, and persisted team assignments.
 - Conflict detection is currently mocked and should later run against persisted shift and unavailability data.
+- Real authorization must later be enforced server-side after Teams SSO and persistence exist.
 - Live calendar subscriptions should not launch until identity, authorization, token storage, revocation, and privacy controls are in place.
 - Any future calendar feed must use private, revocable tokens.
 

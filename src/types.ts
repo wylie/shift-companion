@@ -13,6 +13,13 @@ export type Team = {
   managerIds: string[];
 };
 
+export type DepartmentMembership = {
+  id: string;
+  userId: string;
+  departmentId: string;
+  role: "staff" | "manager";
+};
+
 export type StaffMember = {
   id: string;
   name: string;
