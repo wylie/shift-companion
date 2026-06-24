@@ -31,10 +31,11 @@ Build a Teams-contained companion to Microsoft Teams Shifts for YMCA departments
 
 ## Phase 2 scope
 
-- Add the first useful Manager View using mocked local data only.
-- Keep manager tooling read-only and focused on conflict review before publishing the Teams Shifts schedule.
-- Hide and guard Manager View for staff users in the demo experience.
-- Detect conflicts by comparing mocked shifts with mocked staff unavailable rules.
+- The first useful Manager View is mocked and local-only.
+- Manager tooling is read-only and focused on conflict review before publishing the Teams Shifts schedule.
+- Manager View is hidden and guarded for staff users in the demo experience.
+- Conflict detection currently compares mocked shifts with mocked staff unavailable rules.
+- Real department permissions, Teams SSO, persistence, and Microsoft Graph / Shifts integration remain future work.
 
 ## Default department assumptions
 

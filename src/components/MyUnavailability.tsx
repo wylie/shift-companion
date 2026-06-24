@@ -352,6 +352,7 @@ export function MyUnavailability({ currentUser }: Props) {
           <label className="field">
             Rule type
             <select
+              className="select-control"
               value={draft.type}
               onChange={(event) =>
                 handleRuleTypeChange(
@@ -372,6 +373,7 @@ export function MyUnavailability({ currentUser }: Props) {
               <label className="field">
                 Day of week
                 <select
+                  className="select-control"
                   value={draft.dayOfWeek}
                   onChange={(event) =>
                     handleDraftChange("dayOfWeek", event.target.value)

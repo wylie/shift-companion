@@ -51,6 +51,7 @@ Then open the local Vite URL in a browser. The app is structured so Teams SDK in
 - Manager View is hidden and guarded for staff users in the current demo experience.
 - Conflict detection currently runs against mocked shifts and mocked unavailable rules only.
 - Managers should only see staff and conflict data for teams they manage.
+- Real department permissions, Teams SSO, persistence, and Microsoft Graph / Shifts integration remain future work.
 - Live calendar subscriptions remain deferred until secure backend identity, authorization, token storage, revocation, and privacy controls exist.
 - This scaffold uses mocked data only and does not connect to live Shifts or Graph data.
 

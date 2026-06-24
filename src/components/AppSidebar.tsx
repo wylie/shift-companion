@@ -31,6 +31,7 @@ export function AppSidebar({
         <label className="mode-toggle">
           Demo role
           <select
+            className="select-control"
             value={currentUser.role}
             onChange={(event) =>
               onUserModeChange(event.target.value as CurrentUser["role"])

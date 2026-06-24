@@ -6,11 +6,11 @@ Mocked Teams-compatible staff experience complete with unavailability add, edit,
 
 ## Phase 2
 
-Mocked read-only manager conflict review with department filtering, weekly review, and local conflict detection
+Mocked read-only manager conflict review complete with department filtering, weekly review, local conflict detection, and staff guardrails
 
 ## Phase 3
 
-Manager conflict dashboard
+Persisted manager conflict dashboard with secure identity and department authorization
 
 ## Phase 4
 

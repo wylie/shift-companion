@@ -153,6 +153,7 @@ export function ManagerView({ currentUser }: Props) {
         <label className="field">
           Department
           <select
+            className="select-control"
             value={selectedDepartment.id}
             onChange={(event) => setSelectedDepartmentId(event.target.value)}
           >

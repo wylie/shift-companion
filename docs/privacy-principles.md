@@ -18,6 +18,7 @@
 - No YMCA source-system integration
 - No database persistence
 - Manager View is mocked, read-only, and limited to assigned departments in the demo
+- Manager tools are hidden and guarded for staff users in the demo
 
 ## Product scope notes
 
@@ -30,5 +31,6 @@
 - UI role checks are not enough on their own.
 - Manager-only access must later be enforced in server-side authorization.
 - Real department permissions should later come from secure identity, authorization, and persisted team assignments.
+- Conflict detection is currently mocked and should later run against persisted shift and unavailability data.
 - Live calendar subscriptions should not launch until identity, authorization, token storage, revocation, and privacy controls are in place.
 - Any future calendar feed must use private, revocable tokens.

@@ -115,14 +115,6 @@ h2 {
   font-size: 0.95rem;
 }
 
-.mode-toggle select {
-  padding: 0.7rem 0.85rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
-  color: #f7fbff;
-}
-
 .nav-list {
   display: grid;
   gap: 0.55rem;
@@ -222,7 +214,6 @@ h2 {
 }
 
 .field input,
-.field select,
 .field textarea {
   width: 100%;
   padding: 0.75rem 0.85rem;
@@ -235,6 +226,42 @@ h2 {
 
 .field textarea {
   resize: vertical;
+}
+
+.select-control {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.7rem 2.5rem 0.7rem 0.85rem;
+  border: 1px solid #c8d4e4;
+  border-radius: 12px;
+  background-color: #fff;
+  color: #122033;
+  font-weight: 500;
+  line-height: 1.3;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #5f7086 50%),
+    linear-gradient(135deg, #5f7086 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px);
+  background-size:
+    6px 6px,
+    6px 6px;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.sidebar .select-control {
+  background-color: rgba(255, 255, 255, 0.94);
+  border-color: rgba(255, 255, 255, 0.26);
+  color: #122033;
+}
+
+.select-control:hover {
+  border-color: #9bb6d5;
 }
 
 .field-error {
