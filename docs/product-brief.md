@@ -2,7 +2,7 @@
 
 ## Goal
 
-Build a Teams-contained companion to Microsoft Teams Shifts that helps staff manage unavailability and eventually subscribe to their own shift calendar.
+Build a Teams-contained companion to Microsoft Teams Shifts for YMCA departments that use Teams Shifts, helping staff manage unavailable times and eventually subscribe to their own shift calendar.
 
 ## Non-goals
 
@@ -18,8 +18,15 @@ Build a Teams-contained companion to Microsoft Teams Shifts that helps staff man
 
 - Teams-compatible embedded tab shell
 - Mocked current user roles: staff and manager
-- Mocked unavailability, schedules, and manager conflicts
+- Staff-entered recurring and dated unavailability using mocked local state
+- Mocked schedules and manager conflicts
 - Privacy and roadmap documentation
+
+## Default department assumptions
+
+- This app is for departments using Microsoft Teams Shifts.
+- Aquatics may use Sling and is not the default use case.
+- Neutral YMCA-style examples should be used unless a department-specific workflow is being designed.
 
 ## Design principles
 

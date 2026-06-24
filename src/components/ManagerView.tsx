@@ -8,7 +8,7 @@ type Props = {
 export function ManagerView({ currentUser }: Props) {
   if (currentUser.role !== "manager") {
     return (
-      <section>
+      <section className="screen">
         <div className="section-header">
           <div>
             <p className="eyebrow">Manager View</p>
@@ -33,7 +33,7 @@ export function ManagerView({ currentUser }: Props) {
   );
 
   return (
-    <section>
+    <section className="screen">
       <div className="section-header">
         <div>
           <p className="eyebrow">Manager View</p>

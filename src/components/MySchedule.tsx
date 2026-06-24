@@ -9,7 +9,7 @@ export function MySchedule({ currentUser }: Props) {
   const myShifts = shifts.filter((shift) => shift.userId === currentUser.id);
 
   return (
-    <section>
+    <section className="screen">
       <div className="section-header">
         <div>
           <p className="eyebrow">My Schedule</p>

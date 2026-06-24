@@ -24,7 +24,9 @@ body {
 }
 
 button,
-select {
+select,
+input,
+textarea {
   font: inherit;
 }
 
@@ -49,6 +51,11 @@ select {
 
 .content {
   padding: 2rem;
+}
+
+.screen {
+  display: grid;
+  gap: 1.5rem;
 }
 
 .eyebrow {
@@ -165,6 +172,84 @@ h2 {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.form-card,
+.rules-group,
+.rules-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-header,
+.group-header,
+.card-actions,
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.field-full {
+  grid-column: 1 / -1;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #c8d4e4;
+  border-radius: 12px;
+  background: #fff;
+  color: #122033;
+  font-weight: 400;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.primary-button,
+.ghost-button {
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.primary-button {
+  background: #224d86;
+  color: #fff;
+}
+
+.ghost-button {
+  background: #edf4ff;
+  color: #224d86;
+}
+
+.ghost-button-danger {
+  background: #fff1f0;
+  color: #9e2d22;
+}
+
+.form-error {
+  margin: 0;
+  color: #9e2d22;
+  font-weight: 600;
+}
+
 .severity-row {
   display: flex;
   align-items: center;
@@ -201,5 +286,14 @@ h2 {
 
   .content {
     padding: 1.25rem;
+  }
+
+  .section-header,
+  .form-header,
+  .group-header,
+  .card-actions,
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

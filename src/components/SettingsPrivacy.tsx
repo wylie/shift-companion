@@ -1,6 +1,6 @@
 export function SettingsPrivacy() {
   return (
-    <section>
+    <section className="screen">
       <div className="section-header">
         <div>
           <p className="eyebrow">Settings / Privacy</p>

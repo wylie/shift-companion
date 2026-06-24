@@ -1,15 +1,18 @@
 # Teams Shifts Companion
 
-Small Microsoft Teams tab app scaffold for a staff-first scheduling companion. This project is intentionally narrow: it helps staff manage unavailability and prepares for future individual schedule export, without trying to replace Microsoft Teams Shifts.
+Small Microsoft Teams tab app for YMCA departments that use Microsoft Teams Shifts. This project is intentionally narrow: it helps staff enter unavailable times now and prepares for future individual schedule export, without trying to replace Microsoft Teams Shifts.
 
 ## Product overview
 
 - Teams-contained companion app shell
+- First usable feature for staff-entered recurring and dated unavailability
 - Mocked staff and manager roles
 - Staff-first views for unavailability and personal schedule
 - Narrow manager conflict view for assigned teams only
 - Privacy-first copy and architecture
 - No Microsoft Graph, YMCA, production auth, or database integration yet
+
+Aquatics may use Sling and is not the default use case for this app. Default examples stay focused on Teams Shifts departments such as Wellness, Child Watch, Front Desk, Membership, and Facilities.
 
 ## Stack
 
@@ -39,8 +42,9 @@ Then open the local Vite URL in a browser. The app is structured so Teams SDK in
 ## Privacy notes
 
 - Staff should only see their own schedule and unavailability.
+- The first real feature is staff-entered unavailability managed in local state.
 - Managers should only see staff and conflict data for teams they manage.
-- Future calendar export is individual-only and should be revocable.
+- Calendar export remains a future individual-only and revocable feature.
 - This scaffold uses mocked data only and does not connect to live Shifts or Graph data.
 
 ## Roadmap

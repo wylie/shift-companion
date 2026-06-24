@@ -20,12 +20,22 @@ export type StaffMember = {
   role: "staff";
 };
 
+export type UnavailabilityRuleType =
+  | "weekly-recurring"
+  | "one-time-date"
+  | "date-range";
+
 export type UnavailabilityRule = {
   id: string;
   userId: string;
-  title: string;
-  recurrence: string;
-  notes: string;
+  type: UnavailabilityRuleType;
+  note: string;
+  dayOfWeek?: string;
+  startTime?: string;
+  endTime?: string;
+  date?: string;
+  startDate?: string;
+  endDate?: string;
 };
 
 export type Shift = {

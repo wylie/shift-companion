@@ -2,7 +2,7 @@
 
 ## Phase 1
 
-Mocked Teams-compatible app shell
+Mocked Teams-compatible app shell with staff-entered recurring unavailability
 
 ## Phase 2
 
