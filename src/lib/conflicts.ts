@@ -1,11 +1,15 @@
 import type { Shift, StaffMember, Team, UnavailabilityRule } from "../types";
 import {
-  formatClockTime,
   formatDateLabel,
   formatTimeRange,
   isWithinRange,
   parseLocalDateTime,
 } from "./date";
+import {
+  formatUnavailabilityRuleSummary,
+  getRuleDays,
+  normalizeUnavailabilityRule,
+} from "./unavailability";
 
 export type ManagerConflict = {
   id: string;
@@ -19,18 +23,6 @@ export type ManagerConflict = {
 
 function getDayName(value: Date): string {
   return value.toLocaleDateString("en-US", { weekday: "long" });
-}
-
-function getRuleDays(rule: UnavailabilityRule): string[] {
-  if (rule.daysOfWeek && rule.daysOfWeek.length > 0) {
-    return rule.daysOfWeek;
-  }
-
-  return rule.dayOfWeek ? [rule.dayOfWeek] : [];
-}
-
-function formatDayAbbreviation(day: string): string {
-  return day.slice(0, 3);
 }
 
 function parseTimeToMinutes(value?: string): number | null {
@@ -63,45 +55,49 @@ function shiftOverlapsTimeRange(
 }
 
 export function formatUnavailabilityRule(rule: UnavailabilityRule): string {
-  if (rule.type === "weekly-recurring") {
-    const days = getRuleDays(rule).map(formatDayAbbreviation).join(", ");
-    return `Every ${days}, ${formatClockTime(rule.startTime ?? "00:00")}-${formatClockTime(rule.endTime ?? "00:00")}`;
-  }
-
-  if (rule.type === "one-time-date") {
-    return `${formatDateLabel(new Date(`${rule.date}T12:00:00`))}, ${formatClockTime(rule.startTime ?? "00:00")}-${formatClockTime(rule.endTime ?? "00:00")}`;
-  }
-
-  return `${formatDateLabel(new Date(`${rule.startDate}T12:00:00`))} to ${formatDateLabel(new Date(`${rule.endDate}T12:00:00`))}`;
+  return formatUnavailabilityRuleSummary(rule);
 }
 
 export function ruleConflictsWithShift(
   rule: UnavailabilityRule,
   shift: Shift,
 ): boolean {
+  const normalizedRule = normalizeUnavailabilityRule(rule);
   const shiftStart = parseLocalDateTime(shift.start);
   const shiftEnd = parseLocalDateTime(shift.end);
   const shiftDate = shift.start.slice(0, 10);
 
-  if (rule.type === "weekly-recurring") {
+  if (normalizedRule.type === "weekly-recurring") {
     return (
-      getRuleDays(rule).includes(getDayName(shiftStart)) &&
-      shiftOverlapsTimeRange(shiftStart, shiftEnd, rule.startTime, rule.endTime)
+      getRuleDays(normalizedRule).includes(getDayName(shiftStart)) &&
+      shiftOverlapsTimeRange(
+        shiftStart,
+        shiftEnd,
+        normalizedRule.startTime,
+        normalizedRule.endTime,
+      )
     );
   }
 
-  if (rule.type === "one-time-date") {
+  if (normalizedRule.type === "one-time-date") {
     return (
-      rule.date === shiftDate &&
-      shiftOverlapsTimeRange(shiftStart, shiftEnd, rule.startTime, rule.endTime)
+      normalizedRule.date === shiftDate &&
+      shiftOverlapsTimeRange(
+        shiftStart,
+        shiftEnd,
+        normalizedRule.startTime,
+        normalizedRule.endTime,
+      )
     );
   }
 
-  if (!rule.startDate || !rule.endDate) {
+  if (!normalizedRule.startDate || !normalizedRule.endDate) {
     return false;
   }
 
-  return shiftDate >= rule.startDate && shiftDate <= rule.endDate;
+  return (
+    shiftDate >= normalizedRule.startDate && shiftDate <= normalizedRule.endDate
+  );
 }
 
 export function detectManagerConflicts(params: {

@@ -18,6 +18,7 @@ import type {
   UnavailabilityRule,
 } from "../../src/types";
 import type { AppDataAccess } from "./types";
+import { normalizeUnavailabilityRule } from "../../src/lib/unavailability";
 
 type MockState = {
   auditEvents: AuditEvent[];
@@ -52,10 +53,10 @@ function cloneStaffMember(staffMember: StaffMember): StaffMember {
 }
 
 function cloneRule(rule: UnavailabilityRule): UnavailabilityRule {
-  return {
+  return normalizeUnavailabilityRule({
     ...rule,
     daysOfWeek: rule.daysOfWeek ? [...rule.daysOfWeek] : undefined,
-  };
+  });
 }
 
 function cloneUser(user: CurrentUser): CurrentUser {

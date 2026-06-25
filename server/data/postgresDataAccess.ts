@@ -18,6 +18,7 @@ import type {
   Shift,
   UnavailabilityRule,
 } from "../../src/types";
+import { normalizeUnavailabilityRule } from "../../src/lib/unavailability";
 
 function toUserDepartmentsMap(
   memberships: Array<{ userId: string; departmentId: string }>,
@@ -59,7 +60,7 @@ function mapDepartment(row: typeof departmentsTable.$inferSelect): Department {
 function mapRule(
   row: typeof unavailabilityRulesTable.$inferSelect,
 ): UnavailabilityRule {
-  return {
+  return normalizeUnavailabilityRule({
     id: row.id,
     userId: row.userId,
     type: row.type as UnavailabilityRule["type"],
@@ -73,7 +74,7 @@ function mapRule(
     note: row.note,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
-  };
+  });
 }
 
 function mapShift(

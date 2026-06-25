@@ -1,6 +1,11 @@
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { apiClient } from "../data/apiClient";
+import {
+  formatUnavailabilityRuleSummary,
+  getRuleDays,
+  normalizeUnavailabilityRule,
+} from "../lib/unavailability";
 import type {
   CurrentUser,
   UnavailabilityRule,
@@ -66,28 +71,18 @@ function renderFieldMessage(message?: string, id?: string) {
   );
 }
 
-function getRuleDays(rule: UnavailabilityRule): string[] {
-  if (rule.daysOfWeek && rule.daysOfWeek.length > 0) {
-    return rule.daysOfWeek;
-  }
-
-  return rule.dayOfWeek ? [rule.dayOfWeek] : [];
-}
-
-function formatDayAbbreviation(day: string): string {
-  return day.slice(0, 3);
-}
-
 function createDraftFromRule(rule: UnavailabilityRule): RuleDraft {
+  const normalizedRule = normalizeUnavailabilityRule(rule);
+
   return {
-    type: rule.type,
-    daysOfWeek: getRuleDays(rule),
-    startTime: rule.startTime ?? "",
-    endTime: rule.endTime ?? "",
-    date: rule.date ?? "",
-    startDate: rule.startDate ?? "",
-    endDate: rule.endDate ?? "",
-    note: rule.note,
+    type: normalizedRule.type,
+    daysOfWeek: getRuleDays(normalizedRule),
+    startTime: normalizedRule.startTime ?? "",
+    endTime: normalizedRule.endTime ?? "",
+    date: normalizedRule.date ?? "",
+    startDate: normalizedRule.startDate ?? "",
+    endDate: normalizedRule.endDate ?? "",
+    note: normalizedRule.note,
   };
 }
 
@@ -147,34 +142,6 @@ function validateDraft(draft: RuleDraft): FieldErrors {
   return errors;
 }
 
-function formatTime(value: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(`2026-01-01T${value}:00`));
-}
-
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(`${value}T12:00:00`));
-}
-
-function formatRuleSummary(rule: UnavailabilityRule): string {
-  if (rule.type === "weekly-recurring") {
-    const days = getRuleDays(rule).map(formatDayAbbreviation).join(", ");
-    return `Every ${days}, ${formatTime(rule.startTime ?? "")}-${formatTime(rule.endTime ?? "")}`;
-  }
-
-  if (rule.type === "one-time-date") {
-    return `${formatDate(rule.date ?? "")}, ${formatTime(rule.startTime ?? "")}-${formatTime(rule.endTime ?? "")}`;
-  }
-
-  return `${formatDate(rule.startDate ?? "")} to ${formatDate(rule.endDate ?? "")}`;
-}
-
 export function MyUnavailability({ currentUser }: Props) {
   const [rules, setRules] = useState<UnavailabilityRule[]>([]);
   const [draft, setDraft] = useState<RuleDraft>(emptyDraft);
@@ -198,7 +165,7 @@ export function MyUnavailability({ currentUser }: Props) {
         const nextRules = await apiClient.getMyUnavailability(currentUser.id);
 
         if (!isCancelled) {
-          setRules(nextRules);
+          setRules(nextRules.map(normalizeUnavailabilityRule));
           setDraft(emptyDraft);
           setEditingRuleId(null);
           setFieldErrors({});
@@ -306,13 +273,15 @@ export function MyUnavailability({ currentUser }: Props) {
     setErrorMessage(null);
 
     try {
-      const savedRule = editingRuleId
-        ? await apiClient.updateUnavailabilityRule(
-            currentUser.id,
-            editingRuleId,
-            draft,
-          )
-        : await apiClient.createUnavailabilityRule(currentUser.id, draft);
+      const savedRule = normalizeUnavailabilityRule(
+        editingRuleId
+          ? await apiClient.updateUnavailabilityRule(
+              currentUser.id,
+              editingRuleId,
+              draft,
+            )
+          : await apiClient.createUnavailabilityRule(currentUser.id, draft),
+      );
 
       setRules((currentRules) => {
         if (editingRuleId) {
@@ -673,7 +642,7 @@ export function MyUnavailability({ currentUser }: Props) {
                 <div className="card-grid">
                   {group.rules.map((rule) => (
                     <article className="card" key={rule.id}>
-                      <h3>{formatRuleSummary(rule)}</h3>
+                      <h3>{formatUnavailabilityRuleSummary(rule)}</h3>
                       <p className="muted">
                         {rule.note ||
                           "No note added for this unavailable rule."}
