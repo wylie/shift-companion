@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { mockUsers, teams } from "../data/mockData";
+import { departments, mockUsers } from "../data/mockData";
 import {
   canAccessManagerView,
+  canDownloadOwnCalendar,
+  canManageOwnUnavailability,
+  canViewOwnSchedule,
   getManagedDepartments,
   getVisibleNavItems,
 } from "./access";
@@ -20,8 +23,11 @@ describe("access helpers", () => {
   });
 
   it("allows manager identities to access only assigned departments", () => {
-    const departments = getManagedDepartments(mockUsers[2]!, teams);
-    expect(departments.map((department) => department.name)).toEqual([
+    const managedDepartments = getManagedDepartments(
+      mockUsers[2]!,
+      departments,
+    );
+    expect(managedDepartments.map((department) => department.name)).toEqual([
       "Front Desk",
       "Membership",
     ]);
@@ -30,5 +36,18 @@ describe("access helpers", () => {
   it("detects manager access from the selected mocked identity", () => {
     expect(canAccessManagerView(mockUsers[1]!)).toBe(true);
     expect(canAccessManagerView(mockUsers[0]!)).toBe(false);
+  });
+
+  it("keeps staff routes current-user-only", () => {
+    expect(canViewOwnSchedule(mockUsers[0]!, "user-staff-1")).toBe(true);
+    expect(canManageOwnUnavailability(mockUsers[0]!, "user-staff-1")).toBe(
+      true,
+    );
+    expect(canDownloadOwnCalendar(mockUsers[0]!, "user-staff-1")).toBe(true);
+    expect(canViewOwnSchedule(mockUsers[0]!, "user-staff-2")).toBe(false);
+    expect(canManageOwnUnavailability(mockUsers[0]!, "user-staff-2")).toBe(
+      false,
+    );
+    expect(canDownloadOwnCalendar(mockUsers[0]!, "user-staff-2")).toBe(false);
   });
 });

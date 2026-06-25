@@ -1,9 +1,10 @@
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { appRepositories } from "../data/repositories";
+import { apiClient } from "../data/apiClient";
 import type {
   CurrentUser,
   UnavailabilityRule,
+  UnavailabilityRuleInput,
   UnavailabilityRuleType,
 } from "../types";
 
@@ -11,16 +12,7 @@ type Props = {
   currentUser: CurrentUser;
 };
 
-type RuleDraft = {
-  type: UnavailabilityRuleType;
-  daysOfWeek: string[];
-  startTime: string;
-  endTime: string;
-  date: string;
-  startDate: string;
-  endDate: string;
-  note: string;
-};
+type RuleDraft = UnavailabilityRuleInput;
 
 type RuleField =
   | "daysOfWeek"
@@ -96,44 +88,6 @@ function createDraftFromRule(rule: UnavailabilityRule): RuleDraft {
     startDate: rule.startDate ?? "",
     endDate: rule.endDate ?? "",
     note: rule.note,
-  };
-}
-
-function buildRuleFromDraft(
-  draft: RuleDraft,
-  userId: string,
-  existingId?: string,
-): UnavailabilityRule {
-  const baseRule: UnavailabilityRule = {
-    id: existingId ?? `ua-${Date.now()}`,
-    userId,
-    type: draft.type,
-    note: draft.note.trim(),
-  };
-
-  if (draft.type === "weekly-recurring") {
-    return {
-      ...baseRule,
-      dayOfWeek: draft.daysOfWeek[0],
-      daysOfWeek: draft.daysOfWeek,
-      startTime: draft.startTime,
-      endTime: draft.endTime,
-    };
-  }
-
-  if (draft.type === "one-time-date") {
-    return {
-      ...baseRule,
-      date: draft.date,
-      startTime: draft.startTime,
-      endTime: draft.endTime,
-    };
-  }
-
-  return {
-    ...baseRule,
-    startDate: draft.startDate,
-    endDate: draft.endDate,
   };
 }
 
@@ -222,24 +176,54 @@ function formatRuleSummary(rule: UnavailabilityRule): string {
 }
 
 export function MyUnavailability({ currentUser }: Props) {
-  const [rules, setRules] = useState(() =>
-    // Future persistence should load only the signed-in staff member's rules.
-    appRepositories.unavailabilityRules.listForUser(currentUser.id),
-  );
+  const [rules, setRules] = useState<UnavailabilityRule[]>([]);
   const [draft, setDraft] = useState<RuleDraft>(emptyDraft);
   const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [deleteCandidateId, setDeleteCandidateId] = useState<string | null>(
     null,
   );
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Future persistence and user filtering should refresh rules for the active user.
-    setRules(appRepositories.unavailabilityRules.listForUser(currentUser.id));
-    setDraft(emptyDraft);
-    setEditingRuleId(null);
-    setFieldErrors({});
-    setDeleteCandidateId(null);
+    let isCancelled = false;
+
+    async function loadRules() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const nextRules = await apiClient.getMyUnavailability(currentUser.id);
+
+        if (!isCancelled) {
+          setRules(nextRules);
+          setDraft(emptyDraft);
+          setEditingRuleId(null);
+          setFieldErrors({});
+          setDeleteCandidateId(null);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Unable to load unavailable rules.",
+          );
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadRules();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [currentUser.id]);
 
   const groupedRules = useMemo(
@@ -308,7 +292,7 @@ export function MyUnavailability({ currentUser }: Props) {
     });
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const errors = validateDraft(draft);
@@ -318,26 +302,36 @@ export function MyUnavailability({ currentUser }: Props) {
       return;
     }
 
-    const nextRule = buildRuleFromDraft(
-      draft,
-      currentUser.id,
-      editingRuleId ?? undefined,
-    );
+    setIsSaving(true);
+    setErrorMessage(null);
 
-    setRules((currentRules) => {
-      if (editingRuleId) {
-        appRepositories.unavailabilityRules.save(nextRule);
-        return currentRules.map((rule) =>
-          rule.id === editingRuleId ? nextRule : rule,
-        );
-      }
+    try {
+      const savedRule = editingRuleId
+        ? await apiClient.updateUnavailabilityRule(
+            currentUser.id,
+            editingRuleId,
+            draft,
+          )
+        : await apiClient.createUnavailabilityRule(currentUser.id, draft);
 
-      // Future persistence should write user-scoped rule changes to the backend.
-      appRepositories.unavailabilityRules.save(nextRule);
-      return [...currentRules, nextRule];
-    });
+      setRules((currentRules) => {
+        if (editingRuleId) {
+          return currentRules.map((rule) =>
+            rule.id === editingRuleId ? savedRule : rule,
+          );
+        }
 
-    resetForm();
+        return [...currentRules, savedRule];
+      });
+
+      resetForm();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Unable to save rule.",
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function handleEdit(rule: UnavailabilityRule) {
@@ -355,15 +349,26 @@ export function MyUnavailability({ currentUser }: Props) {
     setDeleteCandidateId(null);
   }
 
-  function confirmDelete(ruleId: string) {
-    appRepositories.unavailabilityRules.delete(ruleId);
-    setRules((currentRules) =>
-      currentRules.filter((rule) => rule.id !== ruleId),
-    );
-    setDeleteCandidateId(null);
+  async function confirmDelete(ruleId: string) {
+    setIsSaving(true);
+    setErrorMessage(null);
 
-    if (editingRuleId === ruleId) {
-      resetForm();
+    try {
+      await apiClient.deleteUnavailabilityRule(currentUser.id, ruleId);
+      setRules((currentRules) =>
+        currentRules.filter((rule) => rule.id !== ruleId),
+      );
+      setDeleteCandidateId(null);
+
+      if (editingRuleId === ruleId) {
+        resetForm();
+      }
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Unable to delete rule.",
+      );
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -374,13 +379,20 @@ export function MyUnavailability({ currentUser }: Props) {
           <p className="eyebrow">My Unavailability</p>
           <h2>Manage unavailable times</h2>
         </div>
-        <span className="pill">Local state only</span>
+        <span className="pill">Persisted demo data</span>
       </div>
 
       <p className="lead">
         Staff enter and manage their own unavailable times here. Manager
         visibility comes later and is intentionally excluded from this flow.
       </p>
+
+      {errorMessage && (
+        <article className="card empty-state" role="alert">
+          <h3>Unavailable rules need attention</h3>
+          <p className="muted">{errorMessage}</p>
+        </article>
+      )}
 
       <form className="card form-card" onSubmit={handleSubmit} noValidate>
         <div className="form-header">
@@ -629,7 +641,7 @@ export function MyUnavailability({ currentUser }: Props) {
         </div>
 
         <div className="form-actions">
-          <button className="primary-button" type="submit">
+          <button className="primary-button" type="submit" disabled={isSaving}>
             {editingRuleId ? "Save changes" : "Add rule"}
           </button>
           {editingRuleId && (
@@ -640,76 +652,87 @@ export function MyUnavailability({ currentUser }: Props) {
         </div>
       </form>
 
-      <div className="rules-stack">
-        {groupedRules.map((group) => (
-          <section className="rules-group" key={group.type}>
-            <div className="group-header">
-              <h3>{group.label}</h3>
-              <span className="muted">{group.rules.length} rules</span>
-            </div>
+      {isLoading ? (
+        <article className="card empty-state" aria-live="polite">
+          <h3>Loading unavailable rules</h3>
+          <p className="muted">
+            Fetching only the selected preview staff member&apos;s unavailable
+            times.
+          </p>
+        </article>
+      ) : (
+        <div className="rules-stack">
+          {groupedRules.map((group) => (
+            <section className="rules-group" key={group.type}>
+              <div className="group-header">
+                <h3>{group.label}</h3>
+                <span className="muted">{group.rules.length} rules</span>
+              </div>
 
-            {group.rules.length > 0 ? (
-              <div className="card-grid">
-                {group.rules.map((rule) => (
-                  <article className="card" key={rule.id}>
-                    <h3>{formatRuleSummary(rule)}</h3>
-                    <p className="muted">
-                      {rule.note || "No note added for this unavailable rule."}
-                    </p>
+              {group.rules.length > 0 ? (
+                <div className="card-grid">
+                  {group.rules.map((rule) => (
+                    <article className="card" key={rule.id}>
+                      <h3>{formatRuleSummary(rule)}</h3>
+                      <p className="muted">
+                        {rule.note ||
+                          "No note added for this unavailable rule."}
+                      </p>
 
-                    {deleteCandidateId === rule.id ? (
-                      <div className="inline-confirmation" role="alert">
-                        <p>Delete this unavailable rule?</p>
+                      {deleteCandidateId === rule.id ? (
+                        <div className="inline-confirmation" role="alert">
+                          <p>Delete this unavailable rule?</p>
+                          <div className="card-actions">
+                            <button
+                              className="ghost-button ghost-button-danger"
+                              type="button"
+                              onClick={() => void confirmDelete(rule.id)}
+                            >
+                              Confirm delete
+                            </button>
+                            <button
+                              className="ghost-button"
+                              type="button"
+                              onClick={cancelDelete}
+                            >
+                              Keep rule
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
                         <div className="card-actions">
-                          <button
-                            className="ghost-button ghost-button-danger"
-                            type="button"
-                            onClick={() => confirmDelete(rule.id)}
-                          >
-                            Confirm delete
-                          </button>
                           <button
                             className="ghost-button"
                             type="button"
-                            onClick={cancelDelete}
+                            onClick={() => handleEdit(rule)}
                           >
-                            Keep rule
+                            Edit
+                          </button>
+                          <button
+                            className="ghost-button ghost-button-danger"
+                            type="button"
+                            onClick={() => requestDelete(rule.id)}
+                          >
+                            Delete
                           </button>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="card-actions">
-                        <button
-                          className="ghost-button"
-                          type="button"
-                          onClick={() => handleEdit(rule)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="ghost-button ghost-button-danger"
-                          type="button"
-                          onClick={() => requestDelete(rule.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <article className="card empty-state">
-                <h3>No {group.label.toLowerCase()} rules yet</h3>
-                <p className="muted">
-                  Add one to keep your schedule aligned with the times you
-                  cannot work.
-                </p>
-              </article>
-            )}
-          </section>
-        ))}
-      </div>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <article className="card inset-card empty-state">
+                  <h4>No rules yet</h4>
+                  <p className="muted">
+                    Add unavailable times for this rule type to keep your
+                    schedule accurate.
+                  </p>
+                </article>
+              )}
+            </section>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

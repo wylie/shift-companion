@@ -26,5 +26,6 @@ describe("buildCalendarIcs", () => {
     expect(calendar).toContain("LOCATION:Main Welcome Desk");
     expect(calendar).toContain("UID:shift-1@teams-shifts-companion.local");
     expect(calendar).not.toContain("Taylor Gomez");
+    expect(calendar).toContain("\r\n");
   });
 });

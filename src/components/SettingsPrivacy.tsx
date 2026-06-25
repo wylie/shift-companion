@@ -1,14 +1,52 @@
-import { appRepositories } from "../data/repositories";
-import type { CurrentUser } from "../types";
+import { useEffect, useState } from "react";
+import { apiClient } from "../data/apiClient";
+import type { AuditEvent, CurrentUser } from "../types";
 
 type Props = {
   currentUser: CurrentUser;
 };
 
 export function SettingsPrivacy({ currentUser }: Props) {
-  const visibleAuditEvents = appRepositories.auditEvents.listForUser(
-    currentUser.id,
+  const [visibleAuditEvents, setVisibleAuditEvents] = useState<AuditEvent[]>(
+    [],
   );
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadAuditEvents() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const nextEvents = await apiClient.getAuditEvents(currentUser.id);
+
+        if (!isCancelled) {
+          setVisibleAuditEvents(nextEvents);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Unable to load the demo audit trail.",
+          );
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadAuditEvents();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentUser.id]);
 
   return (
     <section className="screen">
@@ -34,8 +72,8 @@ export function SettingsPrivacy({ currentUser }: Props) {
         <article className="card">
           <h3>Calendar export</h3>
           <p>
-            Local `.ics` downloads are individual-only now. Private subscription
-            links remain a future revocable feature.
+            Server-side `.ics` downloads are individual-only now. Private
+            subscription links remain a future revocable feature.
           </p>
         </article>
         <article className="card">
@@ -50,14 +88,28 @@ export function SettingsPrivacy({ currentUser }: Props) {
       <section className="card">
         <div className="group-header">
           <h3>Mock audit trail</h3>
-          <span className="muted">Local only</span>
+          <span className="muted">Persisted demo data</span>
         </div>
         <p className="muted">
-          These demo events are mocked in local state only and are filtered to
-          the selected preview identity.
+          These demo events are filtered to the selected preview identity. They
+          remain demo-only and are not connected to live YMCA or Teams data.
         </p>
 
-        {visibleAuditEvents.length > 0 ? (
+        {errorMessage && (
+          <article className="card inset-card empty-state" role="alert">
+            <h4>Audit trail unavailable</h4>
+            <p className="muted">{errorMessage}</p>
+          </article>
+        )}
+
+        {isLoading ? (
+          <article className="card inset-card empty-state" aria-live="polite">
+            <h4>Loading demo audit events</h4>
+            <p className="muted">
+              Fetching only the selected preview identity&apos;s audit trail.
+            </p>
+          </article>
+        ) : visibleAuditEvents.length > 0 ? (
           <div className="audit-list">
             {visibleAuditEvents.map((event) => (
               <article className="audit-row" key={event.id}>
@@ -72,7 +124,8 @@ export function SettingsPrivacy({ currentUser }: Props) {
           <article className="card inset-card empty-state">
             <h4>No demo audit events yet</h4>
             <p className="muted">
-              This preview identity has no mocked local audit entries right now.
+              This preview identity has no persisted demo audit entries right
+              now.
             </p>
           </article>
         )}

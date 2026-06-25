@@ -2,28 +2,35 @@
 
 ## Phase 1
 
-Mocked Teams-compatible staff experience complete with unavailability add, edit, delete, validation, multi-day recurring weekly rules, horizontal weekly schedule view, and local `.ics` download
+Complete. Teams-compatible staff experience with unavailability add, edit, delete, validation, multi-day recurring weekly rules, horizontal weekly schedule view, and personal calendar download.
 
 ## Phase 2
 
-Mocked read-only manager conflict review complete with identity-scoped departments, weekly review, local conflict detection, and staff guardrails
+Complete. Read-only manager conflict review with identity-scoped departments, weekly review, conflict detection, and staff guardrails.
 
 ## Phase 3
 
-Persistence preparation started with repository boundaries; next steps are saved staff and manager workflows, secure identity-backed authorization, and durable unavailability / audit data
+Complete. Persistence-ready architecture now includes:
+
+- repository and service boundaries
+- Neon/Postgres schema and migration support
+- repeatable demo seed data
+- persisted unavailability, shifts, memberships, and audit events
+- server-side calendar download generation
+- server-side department-scoped manager review queries
 
 ## Phase 4
 
-Secure personal `.ics` calendar export backend support and download hardening
+Teams packaging and Microsoft Entra / Teams SSO groundwork
 
 ## Phase 5
 
-Teams SSO
+Read-only Microsoft Graph / Teams Shifts integration
 
 ## Phase 6
 
-Read-only Microsoft Graph / Shifts integration
+Private revocable calendar subscription feed
 
 ## Phase 7
 
-Private revocable calendar subscription feed
+Hardening for production authorization, persistence operations, and admin controls

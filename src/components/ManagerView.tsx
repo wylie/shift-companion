@@ -1,19 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { appRepositories } from "../data/repositories";
+import { useEffect, useState } from "react";
+import { apiClient } from "../data/apiClient";
 import { canAccessManagerView } from "../lib/access";
-import {
-  detectManagerConflicts,
-  formatManagerConflictTiming,
-} from "../lib/conflicts";
-import {
-  addDays,
-  addWeeks,
-  formatWeekRange,
-  isWithinRange,
-  parseLocalDateTime,
-  startOfWeek,
-} from "../lib/date";
-import type { CurrentUser } from "../types";
+import { formatManagerConflictTiming } from "../lib/conflicts";
+import { addWeeks, formatWeekRange, startOfWeek } from "../lib/date";
+import type { CurrentUser, ManagerReviewData } from "../types";
 
 type Props = {
   currentUser: CurrentUser;
@@ -22,27 +12,72 @@ type Props = {
 const today = new Date("2026-06-24T12:00:00");
 
 export function ManagerView({ currentUser }: Props) {
-  const allDepartments = appRepositories.departments.listAll();
-  const allShifts = appRepositories.shifts.listAll();
-  const allStaffMembers = appRepositories.staff.listAll();
-  const allRules = appRepositories.unavailabilityRules.listAll();
-  const managedDepartments = useMemo(
-    () =>
-      canAccessManagerView(currentUser)
-        ? appRepositories.departments.listForUser(currentUser.id)
-        : [],
-    [currentUser],
-  );
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState(
-    managedDepartments[0]?.id ?? "",
-  );
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
+  const [reviewData, setReviewData] = useState<ManagerReviewData | null>(null);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggingReview, setIsLoggingReview] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [reviewMessage, setReviewMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!managedDepartments.some((team) => team.id === selectedDepartmentId)) {
-      setSelectedDepartmentId(managedDepartments[0]?.id ?? "");
+    let isCancelled = false;
+
+    async function loadReviewData() {
+      if (!canAccessManagerView(currentUser)) {
+        setReviewData(null);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const nextReviewData = await apiClient.getManagerReview(
+          currentUser.id,
+          {
+            departmentId: selectedDepartmentId || undefined,
+            weekStart: weekStart.toISOString().slice(0, 10),
+          },
+        );
+
+        if (isCancelled) {
+          return;
+        }
+
+        setReviewData(nextReviewData);
+
+        if (
+          nextReviewData.selectedDepartment &&
+          nextReviewData.selectedDepartment.id !== selectedDepartmentId
+        ) {
+          setSelectedDepartmentId(nextReviewData.selectedDepartment.id);
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Unable to load manager review data.",
+          );
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
     }
-  }, [managedDepartments, selectedDepartmentId]);
+
+    void loadReviewData();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentUser, selectedDepartmentId, weekStart]);
+
+  const departmentOptions = reviewData?.managedDepartments ?? [];
+  const selectedDepartment = reviewData?.selectedDepartment ?? null;
 
   if (!canAccessManagerView(currentUser)) {
     return (
@@ -55,18 +90,14 @@ export function ManagerView({ currentUser }: Props) {
           <span className="pill">Manager only</span>
         </div>
         <p className="lead">
-          Staff cannot access manager review tooling. Future server-side
-          authorization must enforce this as well.
+          Staff cannot access manager review tooling. The server also scopes
+          manager data to assigned departments only.
         </p>
       </section>
     );
   }
 
-  const selectedDepartment =
-    managedDepartments.find((team) => team.id === selectedDepartmentId) ??
-    managedDepartments[0];
-
-  if (!selectedDepartment) {
+  if (!isLoading && !selectedDepartment) {
     return (
       <section className="screen">
         <div className="section-header">
@@ -77,64 +108,50 @@ export function ManagerView({ currentUser }: Props) {
           <span className="pill">Read-only</span>
         </div>
         <p className="lead">
-          No mocked departments are assigned to this manager profile yet.
+          No persisted demo departments are assigned to this manager profile
+          yet.
         </p>
       </section>
     );
   }
 
-  const weekEnd = addDays(weekStart, 7);
-  const reviewedShifts = allShifts
-    .filter(
-      (shift) =>
-        shift.department === selectedDepartment.name &&
-        isWithinRange(parseLocalDateTime(shift.start), weekStart, weekEnd),
-    )
-    .slice()
-    .sort((left, right) => left.start.localeCompare(right.start));
+  async function handleLogReview() {
+    if (!selectedDepartment) {
+      return;
+    }
 
-  const conflicts = detectManagerConflicts({
-    departmentId: selectedDepartment.id,
-    shifts: allShifts,
-    staffMembers: allStaffMembers,
-    teams: allDepartments,
-    unavailabilityRules: allRules,
-    weekStart,
-    weekEnd,
-  });
+    setIsLoggingReview(true);
+    setReviewMessage(null);
+    setErrorMessage(null);
 
-  const departmentStaff = appRepositories.staff.listForDepartment(
-    selectedDepartment.id,
-  );
-  const staffSummaries = departmentStaff.map((staffMember) => {
-    const unavailableRuleCount = allRules.filter(
-      (rule) => rule.userId === staffMember.id,
-    ).length;
-    const staffConflictCount = conflicts.filter(
-      (conflict) => conflict.staff.id === staffMember.id,
-    ).length;
-
-    return {
-      staffMember,
-      unavailableRuleCount,
-      staffConflictCount,
-    };
-  });
-
-  const staffWithConflictsCount = new Set(
-    conflicts.map((conflict) => conflict.staff.id),
-  ).size;
+    try {
+      await apiClient.logManagerReview(currentUser.id, {
+        departmentId: selectedDepartment.id,
+        weekStart: weekStart.toISOString().slice(0, 10),
+      });
+      setReviewMessage("Review logged to the demo audit trail.");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Unable to log review.",
+      );
+    } finally {
+      setIsLoggingReview(false);
+    }
+  }
 
   function goToPreviousWeek() {
     setWeekStart((currentWeekStart) => addWeeks(currentWeekStart, -1));
+    setReviewMessage(null);
   }
 
   function goToNextWeek() {
     setWeekStart((currentWeekStart) => addWeeks(currentWeekStart, 1));
+    setReviewMessage(null);
   }
 
   function goToThisWeek() {
     setWeekStart(startOfWeek(today));
+    setReviewMessage(null);
   }
 
   return (
@@ -149,28 +166,37 @@ export function ManagerView({ currentUser }: Props) {
 
       <p className="lead">
         Review conflicts before publishing the Teams Shifts schedule. This
-        manager tooling is mocked, local-only, and read-only for now.
+        manager tooling remains read-only and is scoped to the selected preview
+        manager&apos;s assigned departments.
       </p>
+
+      {errorMessage && (
+        <article className="card empty-state" role="alert">
+          <h3>Manager review needs attention</h3>
+          <p className="muted">{errorMessage}</p>
+        </article>
+      )}
 
       <div className="card manager-controls">
         <label className="field">
           Department
           <select
             className="select-control"
-            disabled={managedDepartments.length <= 1}
-            aria-disabled={managedDepartments.length <= 1}
-            value={selectedDepartment.id}
+            disabled={departmentOptions.length <= 1}
+            aria-disabled={departmentOptions.length <= 1}
+            value={selectedDepartment?.id ?? ""}
             onChange={(event) => setSelectedDepartmentId(event.target.value)}
           >
-            {managedDepartments.map((department) => (
+            {departmentOptions.map((department) => (
               <option key={department.id} value={department.id}>
                 {department.name}
               </option>
             ))}
           </select>
-          {managedDepartments.length <= 1 && (
+          {departmentOptions.length <= 1 && (
             <span className="field-help">
-              This mocked manager identity is assigned to one department.
+              This persisted demo manager identity is assigned to one
+              department.
             </span>
           )}
         </label>
@@ -183,8 +209,8 @@ export function ManagerView({ currentUser }: Props) {
           <div>
             <h3>{formatWeekRange(weekStart)}</h3>
             <p className="muted">
-              Compare mocked shifts against mocked staff unavailable rules for{" "}
-              {selectedDepartment.name}.
+              Compare persisted demo shifts against persisted unavailable rules
+              for {selectedDepartment?.name ?? "this department"}.
             </p>
           </div>
 
@@ -214,88 +240,113 @@ export function ManagerView({ currentUser }: Props) {
         </div>
       </div>
 
-      <div className="card-grid summary-grid">
-        <article className="card inset-card">
-          <h3>{reviewedShifts.length}</h3>
-          <p className="muted">Shifts reviewed</p>
+      {reviewMessage && (
+        <article className="card empty-state" role="status">
+          <p className="success-message">{reviewMessage}</p>
         </article>
-        <article className="card inset-card">
-          <h3>{conflicts.length}</h3>
-          <p className="muted">Conflicts found</p>
-        </article>
-        <article className="card inset-card">
-          <h3>{staffWithConflictsCount}</h3>
-          <p className="muted">Staff with conflicts</p>
-        </article>
-      </div>
+      )}
 
-      <div className="manager-layout">
-        <section className="card manager-panel">
-          <div className="group-header">
-            <h3>Conflict review</h3>
-            <span className="muted">{selectedDepartment.name}</span>
-          </div>
-
-          {conflicts.length > 0 ? (
-            <div className="manager-conflicts">
-              {conflicts.map((conflict) => (
-                <article className="card inset-card" key={conflict.id}>
-                  <div className="group-header">
-                    <h4>{conflict.staff.name}</h4>
-                    <span className="severity severity-high">Conflict</span>
-                  </div>
-                  <p>{conflict.shift.title}</p>
-                  <p className="muted">
-                    {formatManagerConflictTiming(conflict.shift)}
-                  </p>
-                  <p className="muted">{conflict.shift.location}</p>
-                  <p>
-                    Conflicting unavailable rule:{" "}
-                    <strong>{conflict.ruleSummary}</strong>
-                  </p>
-                  {conflict.rule.note && (
-                    <p className="muted">Note: {conflict.rule.note}</p>
-                  )}
-                </article>
-              ))}
-            </div>
-          ) : (
-            <article className="card inset-card empty-state">
-              <h4>No conflicts found</h4>
-              <p className="muted">
-                This department has no mocked scheduling conflicts for the
-                selected week.
-              </p>
+      {isLoading || !reviewData ? (
+        <article className="card empty-state" aria-live="polite">
+          <h3>Loading manager review</h3>
+          <p className="muted">
+            Fetching only the selected manager&apos;s assigned department data.
+          </p>
+        </article>
+      ) : (
+        <>
+          <div className="card-grid summary-grid">
+            <article className="card inset-card">
+              <h3>{reviewData.reviewedShiftCount}</h3>
+              <p className="muted">Shifts reviewed</p>
             </article>
-          )}
-        </section>
-
-        <section className="card manager-panel">
-          <div className="group-header">
-            <h3>Department staff</h3>
-            <span className="muted">{staffSummaries.length} staff</span>
+            <article className="card inset-card">
+              <h3>{reviewData.conflictCount}</h3>
+              <p className="muted">Conflicts found</p>
+            </article>
+            <article className="card inset-card">
+              <h3>{reviewData.staffWithConflictsCount}</h3>
+              <p className="muted">Staff with conflicts</p>
+            </article>
           </div>
 
-          <div className="staff-list">
-            {staffSummaries.map(
-              ({ staffMember, unavailableRuleCount, staffConflictCount }) => (
-                <article className="staff-row" key={staffMember.id}>
-                  <div>
-                    <h4>{staffMember.name}</h4>
-                    <p className="muted">{selectedDepartment.name}</p>
-                  </div>
-                  <div className="staff-stats">
-                    <p>{unavailableRuleCount} unavailable rules</p>
-                    <p className="muted">
-                      {staffConflictCount} conflicts this week
-                    </p>
-                  </div>
+          <div className="manager-layout">
+            <section className="card manager-panel">
+              <div className="group-header">
+                <h3>Conflict review</h3>
+                <span className="muted">{selectedDepartment?.name}</span>
+              </div>
+
+              {reviewData.conflicts.length > 0 ? (
+                <div className="manager-conflicts">
+                  {reviewData.conflicts.map((conflict) => (
+                    <article className="card inset-card" key={conflict.id}>
+                      <div className="group-header">
+                        <h4>{conflict.staff.name}</h4>
+                        <span className="severity severity-high">Conflict</span>
+                      </div>
+                      <p>{conflict.shift.title}</p>
+                      <p className="muted">
+                        {formatManagerConflictTiming(conflict.shift)}
+                      </p>
+                      <p className="muted">{conflict.shift.location}</p>
+                      <p>
+                        Conflicting unavailable rule:{" "}
+                        <strong>{conflict.ruleSummary}</strong>
+                      </p>
+                      {conflict.rule.note && (
+                        <p className="muted">Note: {conflict.rule.note}</p>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <article className="card inset-card empty-state">
+                  <h4>No conflicts this week</h4>
+                  <p className="muted">
+                    This department has no detected conflicts in the displayed
+                    week.
+                  </p>
                 </article>
-              ),
-            )}
+              )}
+            </section>
+
+            <section className="card manager-panel">
+              <div className="group-header">
+                <h3>Department staff</h3>
+                <button
+                  className="ghost-button"
+                  type="button"
+                  disabled={isLoggingReview || !selectedDepartment}
+                  onClick={() => void handleLogReview()}
+                >
+                  Log review
+                </button>
+              </div>
+
+              <p className="muted">
+                Review conflicts before publishing the Teams Shifts schedule.
+              </p>
+
+              <div className="staff-list">
+                {reviewData.staffSummaries.map((summary) => (
+                  <article className="staff-row" key={summary.staffMember.id}>
+                    <div>
+                      <h4>{summary.staffMember.name}</h4>
+                    </div>
+                    <div className="staff-stats">
+                      <p>{summary.unavailableRuleCount} unavailable rules</p>
+                      <p className="muted">
+                        {summary.staffConflictCount} conflicts this week
+                      </p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
           </div>
-        </section>
-      </div>
+        </>
+      )}
     </section>
   );
 }

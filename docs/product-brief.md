@@ -2,48 +2,55 @@
 
 ## Goal
 
-Build a Teams-contained companion to Microsoft Teams Shifts for YMCA departments that use Teams Shifts, helping staff manage unavailable times and eventually subscribe to their own shift calendar.
+Build a Teams-contained companion to Microsoft Teams Shifts for YMCA departments that use Teams Shifts, helping staff manage unavailable times and access their own shift calendars without replacing Teams Shifts.
 
 ## Non-goals
 
 - Public scheduling website
-- Full Shifts replacement
+- Full Teams Shifts replacement
 - Payroll
 - Shift swaps
 - Time clocks
 - PTO balances
 - Chat or notifications
 
-## First version scope
+## Current scope
 
-- Teams-compatible embedded tab shell
-- Mocked current user roles: staff and manager
-- Staff-entered recurring and dated unavailability using mocked local state
-- Mocked weekly schedules with local `.ics` calendar downloads
-- Mocked manager conflicts
-- Privacy and roadmap documentation
+- Teams-compatible tab shell
+- Demo-only Preview identity selector
+- Persisted staff unavailability with recurring, one-time, and date-range rules
+- Persisted weekly personal schedule view
+- Server-side personal `.ics` calendar download
+- Persisted read-only manager conflict review
+- Privacy, database, and roadmap documentation
 
 ## Phase 1 completion
 
-- Phase 1 staff experience is complete in mocked local form.
-- Staff can manage recurring unavailable times and download a personal `.ics` file of mocked shifts.
-- Live calendar subscriptions remain intentionally deferred until secure backend identity and privacy controls exist.
+- Staff can manage unavailable times.
+- Staff can review a weekly schedule.
+- Staff can download a personal calendar file.
+- The app remains browser-previewable and Teams-compatible in structure.
 
-## Phase 2 scope
+## Phase 2 completion
 
-- Phase 2 is complete in mocked and local-only form.
-- Identity and role handling are still mocked through preview identities.
-- The first useful Manager View is read-only and focused on conflict review before publishing the Teams Shifts schedule.
-- Manager tools are hidden and guarded for staff users and scoped to assigned mocked departments.
-- Conflict detection currently compares mocked shifts with mocked staff unavailable rules.
-- Real authorization must later be enforced server-side after Teams SSO and persistence exist.
-- Real department permissions, Teams SSO, persistence, and Microsoft Graph / Shifts integration remain future work.
+- Manager View is read-only and scoped to assigned departments.
+- Manager tools are hidden and guarded for staff users.
+- Conflict detection compares shifts with unavailable rules.
 
-## Phase 3 start
+## Phase 3 completion
 
-- Phase 3 has started with a persistence-ready repository and data-access layer.
-- The app still runs with mocked and local data by default for browser preview.
-- A real database should be introduced next only after repository boundaries are stable.
+- Repository and service boundaries are in place.
+- Neon/Postgres persistence is supported.
+- Demo organization, users, departments, memberships, shifts, unavailability rules, and audit events can be migrated and seeded.
+- Current UI behavior now runs through persisted or fallback server-backed data.
+- Calendar download is generated server-side and scoped to the selected preview identity.
+
+## Current limits
+
+- Preview identity remains a demo/developer tool, not real authentication.
+- Real authorization still needs Teams SSO and Microsoft Entra identity later.
+- No Microsoft Graph, Teams Shifts, or YMCA data is connected yet.
+- Live calendar subscriptions remain deferred until secure backend token and revocation support exist.
 
 ## Default department assumptions
 
@@ -56,5 +63,5 @@ Build a Teams-contained companion to Microsoft Teams Shifts for YMCA departments
 - Staff-first experience
 - Privacy by default
 - Minimal permissions
-- Mocked data first
+- Mocked and demo data first
 - Future compatibility with Teams SDK and app packaging

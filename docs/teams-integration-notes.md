@@ -2,22 +2,31 @@
 
 ## Current approach
 
-- Use `@microsoft/teams-js` now so the client shell stays aligned with a future Teams tab app.
-- Keep local browser preview working without requiring a Teams host.
-- Avoid auth and Graph integration until the product scope is validated with mocked data.
+- Use `@microsoft/teams-js` so the client shell stays aligned with a future Teams tab app.
+- Keep browser preview working outside Teams.
+- Use a small Express API for persisted demo data, authorization checks, and server-side calendar downloads.
+- Keep real auth and Graph integration out of scope until the product boundary is stable.
+
+## Current implementation boundaries
+
+- `src/App.tsx` owns app-shell state and preview identity switching.
+- `src/data/apiClient.ts` is the client-side service layer used by React components.
+- `server/data/*` owns repository implementations for Postgres and fallback mock data.
+- `server/services/appService.ts` owns authorization-aware application behavior.
+- `server/app.ts` owns HTTP routes and safe error handling.
+- `src/lib/conflicts.ts` and `src/lib/calendar.ts` remain reusable domain utilities.
+
+## Demo identity model
+
+- Preview identity is still a demo/developer tool.
+- The selected preview identity is sent to the server and resolved through the same user and membership services as the rest of the app.
+- This is not real authentication and must later be replaced by Teams SSO and Entra-backed authorization.
 
 ## Future integration points
 
 - Add Teams app manifest and packaging assets
-- Wire Teams theme/context handling
-- Add Teams SSO once product scope is stable
-- Keep calendar subscription work deferred until backend identity and revocable token support exist
-- Keep mocked repositories as the local default until a real database boundary is introduced after Phase 3 prep
-- Introduce read-only Graph / Shifts integration after role and privacy boundaries are enforced
-
-## Notes for implementation
-
-- `src/lib/teams.ts` is the placeholder for Teams SDK initialization.
-- `src/App.tsx` is the main place to extend host context, theming, and future auth bootstrapping.
-- Manager-only UI in `src/components/ManagerView.tsx` must eventually be backed by server-side authorization.
-- Preview identity and role handling are mocked only and should later be replaced with Teams SSO plus persisted authorization records.
+- Wire Teams theme and host context handling
+- Replace preview identity with Teams SSO
+- Add persisted authorization records tied to real identities
+- Introduce read-only Graph / Teams Shifts integration after role and privacy boundaries are enforced
+- Keep live calendar subscription work deferred until backend identity, revocable token support, and privacy controls exist

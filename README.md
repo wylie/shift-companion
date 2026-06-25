@@ -1,39 +1,56 @@
 # Teams Shifts Companion
 
-Small Microsoft Teams tab app for YMCA departments that use Microsoft Teams Shifts. This project is intentionally narrow: it helps staff enter unavailable times now and prepares for future individual schedule export, without trying to replace Microsoft Teams Shifts.
+Small Microsoft Teams tab companion for YMCA departments that use Microsoft Teams Shifts. The app stays intentionally narrow: staff manage unavailable times, review their own schedules, and download personal shift calendars without trying to replace Teams Shifts.
 
 ## Product overview
 
-- Teams-contained companion app shell
-- Mocked identity preview selector for developer/demo use
-- Mocked staff unavailability flow with add, edit, delete, inline validation, and multi-day recurring weekly rules
-- Mocked horizontal weekly schedule view with local `.ics` calendar download
-- Mocked read-only Manager View for department conflict review
-- Persistence-ready repository and data-access layer backed by mocked local data
-- Mocked staff and manager roles
-- Staff-first views for unavailability and personal schedule
-- Narrow manager conflict view for assigned teams only
-- Privacy-first copy and architecture
-- No Microsoft Graph, YMCA, production auth, or database integration yet
+- Teams-compatible embedded tab shell for browser preview today
+- Demo-only Preview identity selector for switching among persisted demo users
+- Persisted staff unavailability flow with add, edit, delete, validation, and multi-day weekly recurring rules
+- Persisted personal weekly schedule view scoped to the selected preview user
+- Server-side `.ics` calendar download that exports only the selected preview user’s shifts
+- Persisted read-only Manager View scoped to assigned departments only
+- Centralized server-side repository, service, and authorization layers
+- Neon/Postgres migration and seed path for the demo organization
+- In-memory fallback only when `DATABASE_URL` is absent, so visual development is still possible without a live database
 
-Aquatics may use Sling and is not the default use case for this app. Default examples stay focused on Teams Shifts departments such as Wellness, Child Watch, Front Desk, Membership, and Facilities.
+Aquatics may use Sling and is not the default use case. Default examples stay focused on Teams Shifts departments such as Wellness, Child Watch, Front Desk, Membership, and Facilities.
 
 ## Stack
 
 - TypeScript
 - React
 - Vite
+- Express
+- Drizzle ORM
+- Neon/Postgres
 - `@microsoft/teams-js`
-- Local mocked data only
 
 ## Local setup
 
+### Normal development path
+
+1. Copy `.env.example` to `.env`.
+2. Set `DATABASE_URL` to a Neon or compatible Postgres database.
+3. Run:
+
 ```bash
 npm install
+npm run db:migrate
+npm run db:seed
 npm run dev
 ```
 
-Then open the local Vite URL in a browser. The app is structured so Teams SDK initialization can be expanded later for a real Teams tab package.
+The app runs with:
+
+- Vite on `http://localhost:5173`
+- Express API on `http://localhost:8787`
+
+The Vite dev server proxies `/api` requests to the Express API.
+
+### Visual-only fallback
+
+If `DATABASE_URL` is not set, the server falls back to an in-memory demo repository. This keeps browser preview working, but data will not persist between restarts and does not represent the normal Phase 3 path.
 
 ## Scripts
 
@@ -42,33 +59,36 @@ Then open the local Vite URL in a browser. The app is structured so Teams SDK in
 - `npm run preview`
 - `npm run lint`
 - `npm run format`
-- `npm test`
+- `npm run test`
+- `npm run typecheck`
+- `npm run db:generate`
+- `npm run db:migrate`
+- `npm run db:seed`
 
-## Privacy notes
+## Privacy and authorization notes
 
-- Staff should only see their own schedule and unavailability.
-- Phase 2 is complete in mocked/local form.
-- Phase 3 has started with a persistence-ready data access layer.
-- The current mocked staff unavailability flow supports add, edit, delete, and validation in local state.
-- The mocked Phase 1 staff experience now includes local `.ics` downloads for the current staff member's shifts.
-- Manager View is mocked, local-only, and read-only.
-- Manager View is hidden and guarded for staff users in the current demo experience.
-- Manager tools are scoped by mocked identity and assigned departments.
-- Conflict detection currently runs against mocked shifts and mocked unavailable rules only.
-- Managers should only see staff and conflict data for teams they manage.
-- Identity and role handling are still mocked for preview purposes.
-- The app still runs with mocked/local data by default.
-- A real database will come next after the repository boundaries are stable.
-- Real department permissions, Teams SSO, persistence, and Microsoft Graph / Shifts integration remain future work.
-- Real authorization must later be enforced server-side after Teams SSO and persistence exist.
-- Live calendar subscriptions remain deferred until secure backend identity, authorization, token storage, revocation, and privacy controls exist.
-- This scaffold uses mocked data only and does not connect to live Shifts or Graph data.
+- Staff can only view and edit their own unavailability.
+- Staff can only view and export their own shifts.
+- Managers can only view assigned departments in Manager View.
+- Manager View remains read-only.
+- Calendar download includes only the selected preview staff member’s shifts.
+- Coworker schedules, unavailability notes, and manager-only data are not exposed through staff routes or calendar downloads.
+- Server-side queries are scoped by the selected preview identity and department permissions.
+- The Preview identity selector is still a demo/developer tool only.
+- Real Teams SSO, Microsoft Entra authorization, Microsoft Graph, Teams Shifts integration, and YMCA system integration are still future work.
+- Live calendar subscriptions remain intentionally deferred until secure identity, token storage, revocation, and privacy controls exist.
 
-## Roadmap
+## Phase status
 
-See:
+- Phase 1: complete in browser-previewable form
+- Phase 2: complete in persisted demo form
+- Phase 3: complete with repository/service architecture, Neon/Postgres support, persisted demo data, and server-side calendar downloads
+- Phase 4 next: Teams packaging and Entra SSO groundwork
+
+## Additional docs
 
 - [`docs/data-model.md`](docs/data-model.md)
+- [`docs/database-setup.md`](docs/database-setup.md)
 - [`docs/product-brief.md`](docs/product-brief.md)
 - [`docs/privacy-principles.md`](docs/privacy-principles.md)
 - [`docs/roadmap.md`](docs/roadmap.md)

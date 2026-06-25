@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { appRepositories } from "./data/repositories";
-import { initializeTeamsSdk } from "./lib/teams";
-import type { NavItem } from "./types";
 import { AppSidebar } from "./components/AppSidebar";
 import { ManagerView } from "./components/ManagerView";
 import { MySchedule } from "./components/MySchedule";
 import { MyUnavailability } from "./components/MyUnavailability";
 import { SettingsPrivacy } from "./components/SettingsPrivacy";
+import { apiClient } from "./data/apiClient";
 import { canAccessManagerView, getVisibleNavItems } from "./lib/access";
+import { initializeTeamsSdk } from "./lib/teams";
+import type { AppBootstrap, NavItem } from "./types";
 
 const navItems: NavItem[] = [
   { id: "unavailability", label: "My Unavailability" },
@@ -18,17 +18,12 @@ const navItems: NavItem[] = [
 
 export default function App() {
   const [activeView, setActiveView] = useState<NavItem["id"]>("unavailability");
-  const previewUsers = appRepositories.users.listPreviewUsers();
-  const [currentUserId, setCurrentUserId] = useState(previewUsers[0]!.id);
+  const [selectedPreviewUserId, setSelectedPreviewUserId] = useState<string>();
+  const [bootstrap, setBootstrap] = useState<AppBootstrap | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isTeamsContext, setIsTeamsContext] = useState(false);
-
-  const currentUser =
-    appRepositories.users.getById(currentUserId) ?? previewUsers[0]!;
-  const visibleNavItems = getVisibleNavItems(navItems, currentUser);
-  const currentUserDepartmentLabel = appRepositories.departments
-    .listForUser(currentUser.id)
-    .map((department) => department.name)
-    .join(" + ");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     // Future Teams context, theme, and SSO wiring belongs here.
@@ -36,10 +31,102 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!canAccessManagerView(currentUser) && activeView === "manager") {
+    let isCancelled = false;
+
+    async function loadBootstrap() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const nextBootstrap = await apiClient.getBootstrap(
+          selectedPreviewUserId,
+        );
+
+        if (isCancelled) {
+          return;
+        }
+
+        setBootstrap(nextBootstrap);
+
+        if (!selectedPreviewUserId) {
+          setSelectedPreviewUserId(nextBootstrap.currentUser.id);
+        }
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        setErrorMessage(
+          error instanceof Error ? error.message : "Unable to load demo data.",
+        );
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadBootstrap();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [reloadKey, selectedPreviewUserId]);
+
+  const currentUser = bootstrap?.currentUser;
+
+  useEffect(() => {
+    if (
+      currentUser &&
+      !canAccessManagerView(currentUser) &&
+      activeView === "manager"
+    ) {
       setActiveView("unavailability");
     }
   }, [activeView, currentUser]);
+
+  if (isLoading && !bootstrap) {
+    return (
+      <main className="content">
+        <section className="screen">
+          <article className="card empty-state" aria-live="polite">
+            <h2>Loading demo workspace</h2>
+            <p className="muted">
+              Connecting to the current preview data source for demo identities,
+              schedules, and unavailable rules.
+            </p>
+          </article>
+        </section>
+      </main>
+    );
+  }
+
+  if (!bootstrap || !currentUser) {
+    return (
+      <main className="content">
+        <section className="screen">
+          <article className="card empty-state" role="alert">
+            <h2>Unable to load demo workspace</h2>
+            <p className="muted">
+              {errorMessage ?? "Try refreshing the page."}
+            </p>
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => setReloadKey((current) => current + 1)}
+            >
+              Retry
+            </button>
+          </article>
+        </section>
+      </main>
+    );
+  }
+
+  const visibleNavItems = getVisibleNavItems(navItems, currentUser);
+  const currentUserDepartmentLabel = bootstrap.currentUserDepartments
+    .map((department) => department.name)
+    .join(" + ");
 
   return (
     <div className="app-shell">
@@ -48,13 +135,20 @@ export default function App() {
         currentUser={currentUser}
         currentUserDepartmentLabel={currentUserDepartmentLabel}
         isTeamsContext={isTeamsContext}
-        mockUsers={previewUsers}
+        mockUsers={bootstrap.previewUsers}
         navItems={visibleNavItems}
         onSelectView={setActiveView}
-        onUserChange={setCurrentUserId}
+        onUserChange={setSelectedPreviewUserId}
       />
 
       <main className="content">
+        {errorMessage && (
+          <article className="card empty-state" role="status">
+            <h3>Demo data fallback notice</h3>
+            <p className="muted">{errorMessage}</p>
+          </article>
+        )}
+
         {activeView === "unavailability" && (
           <MyUnavailability currentUser={currentUser} />
         )}

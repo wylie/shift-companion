@@ -1,11 +1,11 @@
-import type { CurrentUser, NavItem } from "../types";
+import type { CurrentUser, NavItem, PreviewUser } from "../types";
 
 type Props = {
   activeView: NavItem["id"];
   currentUser: CurrentUser;
   currentUserDepartmentLabel: string;
   isTeamsContext: boolean;
-  mockUsers: CurrentUser[];
+  mockUsers: PreviewUser[];
   navItems: NavItem[];
   onSelectView: (view: NavItem["id"]) => void;
   onUserChange: (userId: string) => void;

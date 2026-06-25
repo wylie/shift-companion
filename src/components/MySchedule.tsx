@@ -1,6 +1,5 @@
-import { useMemo, useState } from "react";
-import { appRepositories } from "../data/repositories";
-import { buildCalendarIcs } from "../lib/calendar";
+import { useEffect, useMemo, useState } from "react";
+import { apiClient } from "../data/apiClient";
 import {
   addDays,
   addWeeks,
@@ -14,7 +13,7 @@ import {
   parseLocalDateTime,
   startOfWeek,
 } from "../lib/date";
-import type { CurrentUser } from "../types";
+import type { CurrentUser, Shift } from "../types";
 
 type Props = {
   currentUser: CurrentUser;
@@ -22,8 +21,7 @@ type Props = {
 
 const today = new Date("2026-06-24T12:00:00");
 
-function downloadFile(filename: string, content: string, type: string) {
-  const blob = new Blob([content], { type });
+function downloadBlob(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -35,19 +33,54 @@ function downloadFile(filename: string, content: string, type: string) {
 export function MySchedule({ currentUser }: Props) {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
   const [downloadMessage, setDownloadMessage] = useState<string | null>(null);
+  const [myShifts, setMyShifts] = useState<Shift[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const myShifts = useMemo(
-    () =>
-      appRepositories.shifts
-        .listForUser(currentUser.id)
-        .slice()
-        .sort((left, right) => left.start.localeCompare(right.start)),
-    [currentUser.id],
-  );
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadSchedule() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const nextShifts = await apiClient.getMySchedule(currentUser.id);
+
+        if (!isCancelled) {
+          setMyShifts(
+            nextShifts
+              .slice()
+              .sort((left, right) => left.start.localeCompare(right.start)),
+          );
+        }
+      } catch (error) {
+        if (!isCancelled) {
+          setErrorMessage(
+            error instanceof Error ? error.message : "Unable to load shifts.",
+          );
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadSchedule();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentUser.id]);
 
   const weekEnd = addDays(weekStart, 7);
-  const visibleShifts = myShifts.filter((shift) =>
-    isWithinRange(parseLocalDateTime(shift.start), weekStart, weekEnd),
+  const visibleShifts = useMemo(
+    () =>
+      myShifts.filter((shift) =>
+        isWithinRange(parseLocalDateTime(shift.start), weekStart, weekEnd),
+      ),
+    [myShifts, weekEnd, weekStart],
   );
 
   const scheduleDays = Array.from({ length: 7 }, (_, index) => {
@@ -64,13 +97,6 @@ export function MySchedule({ currentUser }: Props) {
 
   const exportRangeStart = addWeeks(weekStart, -1);
   const exportRangeEnd = addWeeks(weekStart, 2);
-  const exportableShifts = myShifts.filter((shift) =>
-    isWithinRange(
-      parseLocalDateTime(shift.start),
-      exportRangeStart,
-      exportRangeEnd,
-    ),
-  );
 
   function goToPreviousWeek() {
     setWeekStart((currentWeekStart) => addWeeks(currentWeekStart, -1));
@@ -87,14 +113,24 @@ export function MySchedule({ currentUser }: Props) {
     setDownloadMessage(null);
   }
 
-  function handleDownloadCalendar() {
-    const ics = buildCalendarIcs(exportableShifts);
-    downloadFile("my-shifts.ics", ics, "text/calendar;charset=utf-8");
-    setDownloadMessage(
-      `Downloaded my-shifts.ics with ${exportableShifts.length} shifts from ${formatDateLabel(
-        exportRangeStart,
-      )} through ${formatDateLabel(addDays(exportRangeEnd, -1))}.`,
-    );
+  async function handleDownloadCalendar() {
+    try {
+      setErrorMessage(null);
+      const blob = await apiClient.downloadCalendar(
+        currentUser.id,
+        weekStart.toISOString().slice(0, 10),
+      );
+      downloadBlob("my-shifts.ics", blob);
+      setDownloadMessage(
+        `Downloaded my-shifts.ics with your shifts from ${formatDateLabel(
+          exportRangeStart,
+        )} through ${formatDateLabel(addDays(exportRangeEnd, -1))}.`,
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Calendar download failed.",
+      );
+    }
   }
 
   return (
@@ -104,13 +140,21 @@ export function MySchedule({ currentUser }: Props) {
           <p className="eyebrow">My Schedule</p>
           <h2>Weekly schedule</h2>
         </div>
-        <span className="pill">Local calendar export</span>
+        <span className="pill">Server-side calendar export</span>
       </div>
 
       <p className="lead">
-        View only your own mocked shifts here. The schedule stays browser-only
-        for now, and calendar download exports just your shifts.
+        View only your own persisted demo shifts here. Calendar download stays
+        scoped to the selected preview identity and exports only that
+        user&apos;s shifts.
       </p>
+
+      {errorMessage && (
+        <article className="card empty-state" role="alert">
+          <h3>Schedule needs attention</h3>
+          <p className="muted">{errorMessage}</p>
+        </article>
+      )}
 
       <div
         className="card schedule-toolbar"
@@ -141,7 +185,15 @@ export function MySchedule({ currentUser }: Props) {
         </div>
       </div>
 
-      {visibleShifts.length > 0 ? (
+      {isLoading ? (
+        <article className="card empty-state" aria-live="polite">
+          <h3>Loading your schedule</h3>
+          <p className="muted">
+            Fetching only the selected preview staff member&apos;s persisted
+            demo shifts.
+          </p>
+        </article>
+      ) : visibleShifts.length > 0 ? (
         <div className="schedule-week">
           {scheduleDays.map(({ date, shifts: dayShifts }) => (
             <section className="card day-column" key={date.toISOString()}>
@@ -190,7 +242,7 @@ export function MySchedule({ currentUser }: Props) {
           <h3>No shifts scheduled for this week</h3>
           <p className="muted">
             Try another week, or return to This week to review the current
-            mocked schedule window.
+            persisted demo schedule window.
           </p>
         </article>
       )}
@@ -204,16 +256,16 @@ export function MySchedule({ currentUser }: Props) {
         </div>
 
         <p className="muted">
-          Download calendar (.ics) is available now as a one-time file. Each
-          download includes only your shifts from the displayed week, plus one
-          week before and one week after for a useful import window.
+          Download calendar (.ics) is available now as a one-time server-backed
+          file. Each download includes only your shifts from the displayed week,
+          plus one week before and one week after for a useful import window.
         </p>
 
         <div className="calendar-actions">
           <button
             className="primary-button"
             type="button"
-            onClick={handleDownloadCalendar}
+            onClick={() => void handleDownloadCalendar()}
           >
             Download calendar (.ics)
           </button>

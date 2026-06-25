@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  departments,
   shifts,
   staffMembers,
-  teams,
   unavailabilityRules,
 } from "../data/mockData";
 import { detectManagerConflicts, ruleConflictsWithShift } from "./conflicts";
@@ -11,7 +11,7 @@ import { addDays, startOfWeek } from "./date";
 describe("ruleConflictsWithShift", () => {
   it("matches weekly recurring unavailable times when shift times overlap", () => {
     const rule = unavailabilityRules.find((item) => item.id === "ua-6");
-    const shift = shifts.find((item) => item.id === "shift-6");
+    const shift = shifts.find((item) => item.id === "shift-4");
 
     expect(rule && shift ? ruleConflictsWithShift(rule, shift) : false).toBe(
       true,
@@ -37,7 +37,7 @@ describe("detectManagerConflicts", () => {
       departmentId: "membership",
       shifts,
       staffMembers,
-      teams,
+      teams: departments,
       unavailabilityRules,
       weekStart,
       weekEnd,
