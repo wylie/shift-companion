@@ -19,7 +19,14 @@ type Props = {
   currentUser: CurrentUser;
 };
 
+type ScheduleViewMode = "week" | "four-week";
+
 const today = new Date("2026-06-24T12:00:00");
+const weekdayCount = 7;
+
+function getShiftCountLabel(count: number): string {
+  return `${count} ${count === 1 ? "shift" : "shifts"}`;
+}
 
 function downloadBlob(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob);
@@ -32,6 +39,7 @@ function downloadBlob(filename: string, blob: Blob) {
 
 export function MySchedule({ currentUser }: Props) {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
+  const [viewMode, setViewMode] = useState<ScheduleViewMode>("week");
   const [downloadMessage, setDownloadMessage] = useState<string | null>(null);
   const [myShifts, setMyShifts] = useState<Shift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -74,29 +82,46 @@ export function MySchedule({ currentUser }: Props) {
     };
   }, [currentUser.id]);
 
-  const weekEnd = addDays(weekStart, 7);
+  const visibleWeekCount = viewMode === "four-week" ? 4 : 1;
+  const visibleRangeEnd = addWeeks(weekStart, visibleWeekCount);
   const visibleShifts = useMemo(
     () =>
       myShifts.filter((shift) =>
-        isWithinRange(parseLocalDateTime(shift.start), weekStart, weekEnd),
+        isWithinRange(
+          parseLocalDateTime(shift.start),
+          weekStart,
+          visibleRangeEnd,
+        ),
       ),
-    [myShifts, weekEnd, weekStart],
+    [myShifts, visibleRangeEnd, weekStart],
   );
 
-  const scheduleDays = Array.from({ length: 7 }, (_, index) => {
-    const day = addDays(weekStart, index);
-    const dayShifts = visibleShifts.filter((shift) =>
-      isSameDay(parseLocalDateTime(shift.start), day),
-    );
+  const scheduleWeeks = useMemo(
+    () =>
+      Array.from({ length: visibleWeekCount }, (_, weekIndex) => {
+        const currentWeekStart = addWeeks(weekStart, weekIndex);
+        const days = Array.from({ length: weekdayCount }, (_, dayIndex) => {
+          const day = addDays(currentWeekStart, dayIndex);
+          const dayShifts = visibleShifts.filter((shift) =>
+            isSameDay(parseLocalDateTime(shift.start), day),
+          );
 
-    return {
-      date: day,
-      shifts: dayShifts,
-    };
-  });
+          return {
+            date: day,
+            shifts: dayShifts,
+          };
+        });
 
-  const exportRangeStart = addWeeks(weekStart, -1);
-  const exportRangeEnd = addWeeks(weekStart, 2);
+        return {
+          weekStart: currentWeekStart,
+          days,
+        };
+      }),
+    [visibleShifts, visibleWeekCount, weekStart],
+  );
+
+  const exportRangeStart = weekStart;
+  const exportRangeEnd = addDays(visibleRangeEnd, -1);
 
   function goToPreviousWeek() {
     setWeekStart((currentWeekStart) => addWeeks(currentWeekStart, -1));
@@ -119,12 +144,13 @@ export function MySchedule({ currentUser }: Props) {
       const blob = await apiClient.downloadCalendar(
         currentUser.id,
         weekStart.toISOString().slice(0, 10),
+        visibleWeekCount,
       );
       downloadBlob("my-shifts.ics", blob);
       setDownloadMessage(
         `Downloaded my-shifts.ics with your shifts from ${formatDateLabel(
           exportRangeStart,
-        )} through ${formatDateLabel(addDays(exportRangeEnd, -1))}.`,
+        )} through ${formatDateLabel(exportRangeEnd)}.`,
       );
     } catch (error) {
       setErrorMessage(
@@ -138,7 +164,7 @@ export function MySchedule({ currentUser }: Props) {
       <div className="section-header">
         <div>
           <p className="eyebrow">My Schedule</p>
-          <h2>Weekly schedule</h2>
+          <h2>Schedule</h2>
         </div>
         <span className="pill">Server-side calendar export</span>
       </div>
@@ -146,7 +172,8 @@ export function MySchedule({ currentUser }: Props) {
       <p className="lead">
         View only your own persisted demo shifts here. Calendar download stays
         scoped to the selected preview identity and exports only that
-        user&apos;s shifts.
+        user&apos;s shifts. Switch between a focused week and a broader four
+        week planning window.
       </p>
 
       {errorMessage && (
@@ -159,29 +186,66 @@ export function MySchedule({ currentUser }: Props) {
       <div
         className="card schedule-toolbar"
         role="group"
-        aria-label="Week navigation"
+        aria-label="Schedule controls"
       >
         <div>
           <h3>{formatWeekRange(weekStart)}</h3>
           <p className="muted">
-            Use week controls to review past and upcoming shifts.
+            {viewMode === "week"
+              ? "Use week controls to review past and upcoming shifts."
+              : `Showing four consecutive weeks from ${formatDateLabel(
+                  weekStart,
+                )} through ${formatDateLabel(exportRangeEnd)}.`}
           </p>
         </div>
 
-        <div className="toolbar-actions">
-          <button
-            className="ghost-button"
-            type="button"
-            onClick={goToPreviousWeek}
-          >
-            Previous week
-          </button>
-          <button className="ghost-button" type="button" onClick={goToThisWeek}>
-            This week
-          </button>
-          <button className="ghost-button" type="button" onClick={goToNextWeek}>
-            Next week
-          </button>
+        <div className="toolbar-side">
+          <div className="view-toggle" role="group" aria-label="Schedule view">
+            <button
+              className={`toggle-button ${
+                viewMode === "week" ? "active" : ""
+              }`}
+              type="button"
+              onClick={() => setViewMode("week")}
+              aria-pressed={viewMode === "week"}
+            >
+              Week view
+            </button>
+            <button
+              className={`toggle-button ${
+                viewMode === "four-week" ? "active" : ""
+              }`}
+              type="button"
+              onClick={() => setViewMode("four-week")}
+              aria-pressed={viewMode === "four-week"}
+            >
+              4-week view
+            </button>
+          </div>
+
+          <div className="toolbar-actions">
+            <button
+              className="ghost-button"
+              type="button"
+              onClick={goToPreviousWeek}
+            >
+              Previous week
+            </button>
+            <button
+              className="ghost-button"
+              type="button"
+              onClick={goToThisWeek}
+            >
+              This week
+            </button>
+            <button
+              className="ghost-button"
+              type="button"
+              onClick={goToNextWeek}
+            >
+              Next week
+            </button>
+          </div>
         </div>
       </div>
 
@@ -194,55 +258,77 @@ export function MySchedule({ currentUser }: Props) {
           </p>
         </article>
       ) : visibleShifts.length > 0 ? (
-        <div className="schedule-week">
-          {scheduleDays.map(({ date, shifts: dayShifts }) => (
-            <section className="card day-column" key={date.toISOString()}>
-              <div className="day-column-header">
-                <h3
-                  aria-label={formatDayLabel(date)}
-                  className="day-column-title"
-                  title={formatDayLabel(date)}
-                >
-                  {formatShortDayLabel(date)}
-                </h3>
-                <span className="muted">{dayShifts.length} shifts</span>
-              </div>
-
-              {dayShifts.length > 0 ? (
-                <div className="day-column-shifts">
-                  {dayShifts.map((shift) => (
-                    <article className="shift-card" key={shift.id}>
-                      <h4>{shift.title}</h4>
-                      <p className="muted">
-                        {formatDateLabel(parseLocalDateTime(shift.start))}
-                      </p>
-                      <p>
-                        {formatTimeRange(
-                          parseLocalDateTime(shift.start),
-                          parseLocalDateTime(shift.end),
-                        )}
-                      </p>
-                      {shift.department && (
-                        <p className="muted">{shift.department}</p>
-                      )}
-                      <p className="muted">{shift.location}</p>
-                    </article>
-                  ))}
+        <div className="schedule-weeks-stack">
+          {scheduleWeeks.map((scheduleWeek, index) => (
+            <section className="schedule-week-block" key={scheduleWeek.weekStart.toISOString()}>
+              {viewMode === "four-week" && (
+                <div className="week-block-header">
+                  <h3>{formatWeekRange(scheduleWeek.weekStart)}</h3>
+                  <p className="muted">
+                    Week {index + 1} of 4 in your current planning window.
+                  </p>
                 </div>
-              ) : (
-                <article className="day-empty-state">
-                  <p className="muted">No shifts scheduled.</p>
-                </article>
               )}
+
+              <div className="schedule-week">
+                {scheduleWeek.days.map(({ date, shifts: dayShifts }) => (
+                  <section className="card day-column" key={date.toISOString()}>
+                    <div className="day-column-header">
+                      <h3
+                        aria-label={formatDayLabel(date)}
+                        className="day-column-title"
+                        title={formatDayLabel(date)}
+                      >
+                        {formatShortDayLabel(date)}
+                      </h3>
+                      <span className="muted day-column-count">
+                        {getShiftCountLabel(dayShifts.length)}
+                      </span>
+                    </div>
+
+                    {dayShifts.length > 0 ? (
+                      <div className="day-column-shifts">
+                        {dayShifts.map((shift) => (
+                          <article className="shift-card" key={shift.id}>
+                            <h4>{shift.title}</h4>
+                            <p className="muted">
+                              {formatDateLabel(parseLocalDateTime(shift.start))}
+                            </p>
+                            <p>
+                              {formatTimeRange(
+                                parseLocalDateTime(shift.start),
+                                parseLocalDateTime(shift.end),
+                              )}
+                            </p>
+                            {shift.department && (
+                              <p className="muted">{shift.department}</p>
+                            )}
+                            <p className="muted">{shift.location}</p>
+                          </article>
+                        ))}
+                      </div>
+                    ) : (
+                      <article className="day-empty-state">
+                        <p className="muted">No shifts scheduled.</p>
+                      </article>
+                    )}
+                  </section>
+                ))}
+              </div>
             </section>
           ))}
         </div>
       ) : (
         <article className="card empty-state">
-          <h3>No shifts scheduled for this week</h3>
+          <h3>
+            {viewMode === "week"
+              ? "No shifts scheduled for this week"
+              : "No shifts scheduled for these four weeks"}
+          </h3>
           <p className="muted">
-            Try another week, or return to This week to review the current
-            persisted demo schedule window.
+            {viewMode === "week"
+              ? "Try another week, or return to This week to review the current persisted demo schedule window."
+              : "Try another starting week, or return to This week to review the current four week persisted demo schedule window."}
           </p>
         </article>
       )}
@@ -257,8 +343,11 @@ export function MySchedule({ currentUser }: Props) {
 
         <p className="muted">
           Download calendar (.ics) is available now as a one-time server-backed
-          file. Each download includes only your shifts from the displayed week,
-          plus one week before and one week after for a useful import window.
+          file. Each download includes only your shifts for the currently
+          displayed {viewMode === "week" ? "week" : "4-week"} window:
+          {" "}
+          {formatDateLabel(exportRangeStart)} through{" "}
+          {formatDateLabel(exportRangeEnd)}.
         </p>
 
         <div className="calendar-actions">

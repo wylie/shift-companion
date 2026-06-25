@@ -123,9 +123,15 @@ export const apiClient = {
       body: input,
     });
   },
-  async downloadCalendar(previewUserId: string, weekStart: string) {
+  async downloadCalendar(
+    previewUserId: string,
+    weekStart: string,
+    weeks: 1 | 4,
+  ) {
     const response = await fetch(
-      `/api/calendar.ics?weekStart=${encodeURIComponent(weekStart)}`,
+      `/api/calendar.ics?weekStart=${encodeURIComponent(
+        weekStart,
+      )}&weeks=${weeks}`,
       {
         headers: previewUserId
           ? {

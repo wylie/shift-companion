@@ -433,7 +433,12 @@ h2 {
 }
 
 .schedule-toolbar,
+.toolbar-side,
+.view-toggle,
 .toolbar-actions,
+.schedule-weeks-stack,
+.schedule-week-block,
+.week-block-header,
 .schedule-week,
 .day-column,
 .day-column-shifts,
@@ -458,6 +463,39 @@ h2 {
   align-items: center;
 }
 
+.toolbar-side {
+  justify-items: end;
+}
+
+.view-toggle {
+  grid-template-columns: repeat(2, auto);
+  justify-content: end;
+}
+
+.toggle-button {
+  border: 1px solid #c8d4e4;
+  border-radius: 12px;
+  padding: 0.7rem 0.95rem;
+  background: #f7fbff;
+  color: #224d86;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.toggle-button.active {
+  background: #d9e9ff;
+  border-color: #8ab0e8;
+}
+
+.schedule-weeks-stack,
+.schedule-week-block {
+  gap: 1.25rem;
+}
+
+.week-block-header {
+  gap: 0.35rem;
+}
+
 .schedule-week {
   grid-template-columns: repeat(7, minmax(180px, 1fr));
   align-items: start;
@@ -467,16 +505,25 @@ h2 {
 
 .day-column {
   min-height: 100%;
+  align-content: start;
   gap: 0.85rem;
 }
 
 .day-column-header {
   display: grid;
   gap: 0.25rem;
+  align-content: start;
+  min-height: 3.75rem;
 }
 
 .day-column-title {
+  margin-bottom: 0;
   white-space: nowrap;
+}
+
+.day-column-count {
+  display: block;
+  min-height: 1.5rem;
 }
 
 .day-column-shifts {
@@ -640,6 +687,8 @@ select[aria-invalid="true"] {
   }
 
   .schedule-toolbar,
+  .toolbar-side,
+  .view-toggle,
   .toolbar-actions,
   .calendar-actions,
   .summary-grid,
@@ -653,6 +702,10 @@ select[aria-invalid="true"] {
   .checkbox-grid,
   .day-checkbox-grid {
     grid-template-columns: 1fr;
+  }
+
+  .toolbar-side {
+    justify-items: stretch;
   }
 
   .staff-stats {

@@ -353,7 +353,11 @@ export class AppService {
     });
   }
 
-  async getOwnCalendarShifts(currentUser: CurrentUser, weekStart: Date) {
+  async getOwnCalendarShifts(
+    currentUser: CurrentUser,
+    weekStart: Date,
+    weeks: 1 | 4 = 1,
+  ) {
     if (!canDownloadOwnCalendar(currentUser, currentUser.id)) {
       throw new HttpError(
         403,
@@ -361,8 +365,8 @@ export class AppService {
       );
     }
 
-    const exportRangeStart = addDays(weekStart, -7);
-    const exportRangeEnd = addDays(weekStart, 14);
+    const exportRangeStart = weekStart;
+    const exportRangeEnd = addDays(weekStart, weeks * 7);
     const shifts = await this.dataAccess.shifts.listForUser(currentUser.id);
     const exportableShifts = shifts.filter((shift) =>
       isWithinRange(

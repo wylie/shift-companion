@@ -32,6 +32,10 @@ function parseWeekStart(value: unknown): Date {
   return startOfWeek(new Date(`${value}T12:00:00`));
 }
 
+function parseCalendarWeeks(value: unknown): 1 | 4 {
+  return value === "4" ? 4 : 1;
+}
+
 export function createApp() {
   const app = express();
   const dataAccess = createDataAccess();
@@ -181,6 +185,7 @@ export function createApp() {
       const shifts = await appService.getOwnCalendarShifts(
         currentUser,
         parseWeekStart(request.query.weekStart),
+        parseCalendarWeeks(request.query.weeks),
       );
       const ics = buildCalendarIcs(shifts);
 

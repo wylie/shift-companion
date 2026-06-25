@@ -10,6 +10,7 @@ describe("AppService calendar export", () => {
     const shifts = await service.getOwnCalendarShifts(
       currentUser,
       new Date("2026-06-22T00:00:00"),
+      1,
     );
 
     expect(shifts.length).toBeGreaterThan(0);
@@ -23,6 +24,7 @@ describe("AppService calendar export", () => {
     const shifts = await service.getOwnCalendarShifts(
       currentUser,
       new Date("2026-06-22T00:00:00"),
+      1,
     );
     const ics = buildCalendarIcs(shifts, {
       generatedAt: new Date("2026-06-24T12:00:00Z"),
@@ -33,6 +35,20 @@ describe("AppService calendar export", () => {
     expect(ics).toContain("SUMMARY:Wellness Attendant");
     expect(ics).not.toContain("Membership Support");
     expect(ics).not.toContain("Taylor Gomez");
+  });
+
+  it("limits calendar export to the selected displayed window", async () => {
+    const service = new AppService(createMockDataAccess());
+    const currentUser = await service.getPreviewUser("user-staff-1");
+    const shifts = await service.getOwnCalendarShifts(
+      currentUser,
+      new Date("2026-06-22T00:00:00"),
+      1,
+    );
+
+    expect(shifts.every((shift) => shift.start < "2026-06-29T00:00:00")).toBe(
+      true,
+    );
   });
 });
 
