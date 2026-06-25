@@ -199,7 +199,7 @@ export function createApp() {
 
   app.use(express.static(distPath));
 
-  app.get("*", (request, response, next) => {
+  app.use((request, response, next) => {
     if (request.path.startsWith("/api/")) {
       next(new HttpError(404, "Not found."));
       return;
