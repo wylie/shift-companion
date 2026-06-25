@@ -1,6 +1,7 @@
 node_modules
 dist
 server-dist
+teams-app/dist
 .DS_Store
 *.tsbuildinfo
 .env

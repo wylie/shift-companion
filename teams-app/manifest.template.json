@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.29/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.29",
+  "version": "1.0.0",
+  "id": "{{TEAMS_APP_ID}}",
+  "developer": {
+    "name": "{{TEAMS_DEVELOPER_NAME}}",
+    "websiteUrl": "{{TEAMS_DEVELOPER_WEBSITE_URL}}",
+    "privacyUrl": "{{TEAMS_PRIVACY_POLICY_URL}}",
+    "termsOfUseUrl": "{{TEAMS_TERMS_OF_USE_URL}}"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "{{TEAMS_APP_NAME_SHORT}}",
+    "full": "{{TEAMS_APP_NAME_FULL}}"
+  },
+  "description": {
+    "short": "Staff-first Microsoft Teams Shifts companion tab.",
+    "full": "Teams-contained companion for staff unavailability, personal schedules, and read-only manager conflict review."
+  },
+  "accentColor": "#224D86",
+  "staticTabs": [
+    {
+      "entityId": "personal-home",
+      "name": "Home",
+      "contentUrl": "{{TEAMS_TAB_CONTENT_URL}}",
+      "websiteUrl": "{{TEAMS_TAB_WEBSITE_URL}}",
+      "scopes": ["personal"]
+    }
+  ],
+  "validDomains": {{TEAMS_VALID_DOMAINS_JSON}}
+}

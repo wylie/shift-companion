@@ -6,7 +6,7 @@ import { MyUnavailability } from "./components/MyUnavailability";
 import { SettingsPrivacy } from "./components/SettingsPrivacy";
 import { apiClient } from "./data/apiClient";
 import { canAccessManagerView, getVisibleNavItems } from "./lib/access";
-import { initializeTeamsSdk } from "./lib/teams";
+import { useTeamsRuntime } from "./lib/teams";
 import type { AppBootstrap, NavItem } from "./types";
 
 const navItems: NavItem[] = [
@@ -22,13 +22,9 @@ export default function App() {
   const [bootstrap, setBootstrap] = useState<AppBootstrap | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isTeamsContext, setIsTeamsContext] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
-
-  useEffect(() => {
-    // Future Teams context, theme, and SSO wiring belongs here.
-    void initializeTeamsSdk().then(setIsTeamsContext);
-  }, []);
+  const teamsRuntime = useTeamsRuntime();
+  const isBrowserPreview = teamsRuntime.mode === "browserPreview";
 
   useEffect(() => {
     let isCancelled = false;
@@ -48,7 +44,7 @@ export default function App() {
 
         setBootstrap(nextBootstrap);
 
-        if (!selectedPreviewUserId) {
+        if (!selectedPreviewUserId && isBrowserPreview) {
           setSelectedPreviewUserId(nextBootstrap.currentUser.id);
         }
       } catch (error) {
@@ -71,7 +67,7 @@ export default function App() {
     return () => {
       isCancelled = true;
     };
-  }, [reloadKey, selectedPreviewUserId]);
+  }, [isBrowserPreview, reloadKey, selectedPreviewUserId]);
 
   const currentUser = bootstrap?.currentUser;
 
@@ -134,7 +130,7 @@ export default function App() {
         activeView={activeView}
         currentUser={currentUser}
         currentUserDepartmentLabel={currentUserDepartmentLabel}
-        isTeamsContext={isTeamsContext}
+        teamsRuntime={teamsRuntime}
         mockUsers={bootstrap.previewUsers}
         navItems={visibleNavItems}
         onSelectView={setActiveView}
@@ -142,6 +138,37 @@ export default function App() {
       />
 
       <main className="content">
+        {teamsRuntime.mode === "teamsInitializing" && (
+          <article className="card empty-state" aria-live="polite">
+            <h3>Connecting to Teams workspace</h3>
+            <p className="muted">
+              Initializing the Microsoft Teams tab runtime for host context.
+            </p>
+          </article>
+        )}
+
+        {teamsRuntime.mode === "teamsReady" && (
+          <article className="card empty-state" role="note">
+            <h3>Teams mode detected</h3>
+            <p className="muted">
+              This tab is running inside Teams, but Entra SSO and server-side
+              identity mapping are not configured yet. The current build remains
+              demo-data-backed for layout and packaging work.
+            </p>
+          </article>
+        )}
+
+        {teamsRuntime.mode === "teamsUnavailable" && (
+          <article className="card empty-state" role="status">
+            <h3>Teams host unavailable</h3>
+            <p className="muted">
+              Teams context could not be established. Browser preview behavior
+              remains available, but real Teams identity and authorization are
+              not active in this build.
+            </p>
+          </article>
+        )}
+
         {errorMessage && (
           <article className="card empty-state" role="status">
             <h3>Demo data fallback notice</h3>

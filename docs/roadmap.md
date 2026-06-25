@@ -21,7 +21,10 @@ Complete. Persistence-ready architecture now includes:
 
 ## Phase 4
 
-Teams packaging and Microsoft Entra / Teams SSO groundwork
+In progress.
+
+- Prompt 1 complete: Teams runtime detection, app packaging groundwork, manifest template, and browser-preview versus Teams-mode boundary
+- Prompt 2 next: Microsoft Entra SSO and server-side identity mapping
 
 ## Phase 5
 

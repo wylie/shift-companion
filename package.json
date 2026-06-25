@@ -13,7 +13,9 @@
     "typecheck": "tsc -b",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx server/db/migrate.ts",
-    "db:seed": "tsx server/db/seed.ts"
+    "db:seed": "tsx server/db/seed.ts",
+    "teams:validate": "node scripts/validate-teams-manifest.mjs",
+    "teams:package": "node scripts/build-teams-package.mjs"
   },
   "dependencies": {
     "@microsoft/teams-js": "^2.33.0",

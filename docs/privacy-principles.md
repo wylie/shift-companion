@@ -22,6 +22,14 @@
 - No Microsoft Graph integration
 - No YMCA source-system integration
 
+## Phase 4 Prompt 1 additions
+
+- The app can now detect Teams host runtime and initialize the Teams SDK safely.
+- Browser preview remains the primary development mode.
+- Preview identity remains development-only and is hidden when the app detects a Teams host.
+- Teams runtime context is used only for host-aware UX and setup messaging right now, not authorization.
+- No Teams, Entra, Graph, Shifts, or YMCA identity/data connection is active yet.
+
 ## Product scope notes
 
 - This app is a Teams Shifts companion for departments using Teams Shifts.
@@ -34,6 +42,7 @@
 - Staff routes do not accept arbitrary target user IDs.
 - Server-side queries scope schedule, unavailability, calendar export, and manager review data.
 - Real authorization must later be enforced with Teams SSO, Entra identity, and durable authorization records.
+- Client-provided Teams context must not be treated as proof of identity.
 
 ## Calendar privacy notes
 

@@ -142,3 +142,27 @@ export type ManagerReviewData = {
 export type AppErrorResponse = {
   error: string;
 };
+
+export type TeamsRuntimeMode =
+  | "browserPreview"
+  | "teamsInitializing"
+  | "teamsReady"
+  | "teamsUnavailable";
+
+export type TeamsContextSummary = {
+  clientType?: string;
+  frameContext?: string;
+  hostName?: string;
+  locale?: string;
+  tenantId?: string;
+  theme?: string;
+  userDisplayName?: string;
+  userPrincipalName?: string;
+};
+
+export type TeamsRuntimeState = {
+  context?: TeamsContextSummary;
+  errorMessage?: string;
+  isEmbedded: boolean;
+  mode: TeamsRuntimeMode;
+};
