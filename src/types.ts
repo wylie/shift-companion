@@ -25,6 +25,10 @@ export type CurrentUser = {
   role: UserRole;
   teamIds: string[];
   isDemo: boolean;
+  email?: string;
+  entraObjectId?: string;
+  tenantId?: string;
+  userPrincipalName?: string;
 };
 
 export type PreviewUser = Pick<
@@ -143,6 +147,8 @@ export type AppErrorResponse = {
   error: string;
 };
 
+export type AppRuntimeMode = "browserPreview" | "teams";
+
 export type TeamsRuntimeMode =
   | "browserPreview"
   | "teamsInitializing"
@@ -165,4 +171,18 @@ export type TeamsRuntimeState = {
   errorMessage?: string;
   isEmbedded: boolean;
   mode: TeamsRuntimeMode;
+  sso: {
+    errorCode?:
+      | "sso_not_configured"
+      | "token_request_failed"
+      | "token_unavailable";
+    errorMessage?: string;
+    status:
+      | "idle"
+      | "requestingToken"
+      | "setupRequired"
+      | "tokenReady"
+      | "tokenUnavailable";
+    token?: string;
+  };
 };

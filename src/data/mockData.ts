@@ -16,6 +16,8 @@ export const demoOrganization: Organization = {
   isDemo: true,
 };
 
+const demoTenantId = "11111111-2222-3333-4444-555555555555";
+
 export const departments: Department[] = [
   {
     id: "wellness",
@@ -57,6 +59,10 @@ export const mockUsers: CurrentUser[] = [
     role: "staff",
     teamIds: ["wellness"],
     isDemo: true,
+    email: "jordan.lee@exampleymca.org",
+    entraObjectId: "aaaaaaaa-bbbb-cccc-dddd-000000000001",
+    tenantId: demoTenantId,
+    userPrincipalName: "jordan.lee@exampleymca.org",
   },
   {
     id: "user-manager-1",
@@ -65,6 +71,10 @@ export const mockUsers: CurrentUser[] = [
     role: "manager",
     teamIds: ["wellness"],
     isDemo: true,
+    email: "morgan.smith@exampleymca.org",
+    entraObjectId: "aaaaaaaa-bbbb-cccc-dddd-000000000002",
+    tenantId: demoTenantId,
+    userPrincipalName: "morgan.smith@exampleymca.org",
   },
   {
     id: "user-manager-2",
@@ -73,6 +83,10 @@ export const mockUsers: CurrentUser[] = [
     role: "manager",
     teamIds: ["front-desk", "membership"],
     isDemo: true,
+    email: "avery.patel@exampleymca.org",
+    entraObjectId: "aaaaaaaa-bbbb-cccc-dddd-000000000003",
+    tenantId: demoTenantId,
+    userPrincipalName: "avery.patel@exampleymca.org",
   },
 ];
 

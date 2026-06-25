@@ -3,23 +3,33 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildCalendarIcs } from "../src/lib/calendar";
 import { startOfWeek } from "../src/lib/date";
-import type { UnavailabilityRuleInput } from "../src/types";
+import type { AppRuntimeMode, UnavailabilityRuleInput } from "../src/types";
 import { createDataAccess } from "./data";
 import { HttpError } from "./http/errors";
 import { AppService } from "./services/appService";
 
 type RequestContext = {
+  appRuntime: AppRuntimeMode;
+  bearerToken?: string;
   previewUserId?: string;
 };
 
 function getRequestContext(request: express.Request): RequestContext {
+  const authorizationHeader = request.header("authorization");
   const headerUserId = request.header("x-preview-user-id");
+  const runtimeHeader = request.header("x-app-runtime");
   const queryUserId =
     typeof request.query.previewUserId === "string"
       ? request.query.previewUserId
       : undefined;
+  const bearerToken =
+    authorizationHeader?.startsWith("Bearer ")
+      ? authorizationHeader.slice("Bearer ".length).trim()
+      : undefined;
 
   return {
+    appRuntime: runtimeHeader === "teams" ? "teams" : "browserPreview",
+    bearerToken: bearerToken || undefined,
     previewUserId: headerUserId || queryUserId,
   };
 }
@@ -47,9 +57,7 @@ export function createApp() {
 
   app.get("/api/bootstrap", async (request, response, next) => {
     try {
-      const bootstrap = await appService.getBootstrap(
-        getRequestContext(request).previewUserId,
-      );
+      const bootstrap = await appService.getBootstrap(getRequestContext(request));
       response.json(bootstrap);
     } catch (error) {
       next(error);
@@ -58,8 +66,8 @@ export function createApp() {
 
   app.get("/api/unavailability", async (request, response, next) => {
     try {
-      const currentUser = await appService.getPreviewUser(
-        getRequestContext(request).previewUserId,
+      const currentUser = await appService.getCurrentUserForRequest(
+        getRequestContext(request),
       );
       response.json(await appService.listOwnUnavailability(currentUser));
     } catch (error) {
@@ -69,8 +77,8 @@ export function createApp() {
 
   app.post("/api/unavailability", async (request, response, next) => {
     try {
-      const currentUser = await appService.getPreviewUser(
-        getRequestContext(request).previewUserId,
+      const currentUser = await appService.getCurrentUserForRequest(
+        getRequestContext(request),
       );
       response
         .status(201)
@@ -87,8 +95,8 @@ export function createApp() {
 
   app.put("/api/unavailability/:ruleId", async (request, response, next) => {
     try {
-      const currentUser = await appService.getPreviewUser(
-        getRequestContext(request).previewUserId,
+      const currentUser = await appService.getCurrentUserForRequest(
+        getRequestContext(request),
       );
       response.json(
         await appService.updateOwnUnavailability(
@@ -104,8 +112,8 @@ export function createApp() {
 
   app.delete("/api/unavailability/:ruleId", async (request, response, next) => {
     try {
-      const currentUser = await appService.getPreviewUser(
-        getRequestContext(request).previewUserId,
+      const currentUser = await appService.getCurrentUserForRequest(
+        getRequestContext(request),
       );
       await appService.deleteOwnUnavailability(
         currentUser,
@@ -119,8 +127,8 @@ export function createApp() {
 
   app.get("/api/schedule", async (request, response, next) => {
     try {
-      const currentUser = await appService.getPreviewUser(
-        getRequestContext(request).previewUserId,
+      const currentUser = await appService.getCurrentUserForRequest(
+        getRequestContext(request),
       );
       response.json(await appService.listOwnShifts(currentUser));
     } catch (error) {
@@ -130,8 +138,8 @@ export function createApp() {
 
   app.get("/api/manager-review", async (request, response, next) => {
     try {
-      const currentUser = await appService.getPreviewUser(
-        getRequestContext(request).previewUserId,
+      const currentUser = await appService.getCurrentUserForRequest(
+        getRequestContext(request),
       );
       response.json(
         await appService.getManagerReview(
@@ -149,8 +157,8 @@ export function createApp() {
 
   app.post("/api/manager-review/log", async (request, response, next) => {
     try {
-      const currentUser = await appService.getPreviewUser(
-        getRequestContext(request).previewUserId,
+      const currentUser = await appService.getCurrentUserForRequest(
+        getRequestContext(request),
       );
       response
         .status(201)
@@ -168,8 +176,8 @@ export function createApp() {
 
   app.get("/api/settings/audit-events", async (request, response, next) => {
     try {
-      const currentUser = await appService.getPreviewUser(
-        getRequestContext(request).previewUserId,
+      const currentUser = await appService.getCurrentUserForRequest(
+        getRequestContext(request),
       );
       response.json(await appService.listOwnAuditEvents(currentUser));
     } catch (error) {
@@ -179,8 +187,8 @@ export function createApp() {
 
   app.get("/api/calendar.ics", async (request, response, next) => {
     try {
-      const currentUser = await appService.getPreviewUser(
-        getRequestContext(request).previewUserId,
+      const currentUser = await appService.getCurrentUserForRequest(
+        getRequestContext(request),
       );
       const shifts = await appService.getOwnCalendarShifts(
         currentUser,

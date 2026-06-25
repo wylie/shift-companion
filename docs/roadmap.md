@@ -21,10 +21,15 @@ Complete. Persistence-ready architecture now includes:
 
 ## Phase 4
 
-In progress.
+Complete.
 
-- Prompt 1 complete: Teams runtime detection, app packaging groundwork, manifest template, and browser-preview versus Teams-mode boundary
-- Prompt 2 next: Microsoft Entra SSO and server-side identity mapping
+- Teams runtime detection and safe browser-preview fallback
+- Teams app packaging and manifest template with `webApplicationInfo`
+- Teams tab SSO token request flow
+- Server-side Entra token verification
+- Persisted Teams-user to app-user mapping
+- Teams-mode server authorization using the mapped persisted user
+- Browser preview preserved with the existing Preview identity selector
 
 ## Phase 5
 

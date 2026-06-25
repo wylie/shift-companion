@@ -63,9 +63,9 @@ export function AppSidebar({
           <div className="runtime-indicator" role="note">
             <strong>Teams workspace</strong>
             <span className="sidebar-helper">
-              Teams host context is available for tab runtime behavior. Preview
-              identity switching stays browser-only until Entra SSO and server
-              identity mapping are added.
+              Teams host context is active. Preview identity switching stays
+              browser-only, and app access is resolved from verified Teams and
+              Entra identity on the server.
             </span>
           </div>
         )}
@@ -92,7 +92,7 @@ export function AppSidebar({
           </div>
         ) : (
           <div className="demo-notice" role="note">
-            <strong>Tab-ready build.</strong> No Microsoft Graph, live Teams
+            <strong>Teams SSO only.</strong> No Microsoft Graph, live Teams
             Shifts, or YMCA data is connected yet.
           </div>
         )}
@@ -110,14 +110,20 @@ export function AppSidebar({
           </>
         ) : (
           <>
-            <strong>Teams workspace</strong>
-            <span>{teamsRuntime.context?.hostName ?? "Microsoft Teams"}</span>
+            <strong>
+              {teamsRuntime.context?.userDisplayName ??
+                teamsRuntime.context?.userPrincipalName ??
+                currentUser.name}
+            </strong>
+            <span>{currentUser.name}</span>
             <span>
               {teamsRuntime.context?.clientType
                 ? `Client: ${teamsRuntime.context.clientType}`
                 : "Client context pending"}
             </span>
-            <span>Identity mapping not configured yet</span>
+            <span>
+              {teamsRuntime.context?.hostName ?? "Microsoft Teams"} workspace
+            </span>
           </>
         )}
       </div>

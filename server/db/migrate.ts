@@ -1,21 +1,24 @@
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createPool, closePool } from "./connection";
 
 async function main() {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const migrationPath = path.join(
-    __dirname,
-    "migrations",
-    "0000_phase3_persistence.sql",
-  );
-  const sql = await readFile(migrationPath, "utf8");
+  const migrationsDir = path.join(__dirname, "migrations");
+  const migrationFiles = (await readdir(migrationsDir))
+    .filter((fileName) => fileName.endsWith(".sql"))
+    .sort();
   const pool = createPool();
 
-  await pool.query(sql);
+  for (const migrationFile of migrationFiles) {
+    const migrationPath = path.join(migrationsDir, migrationFile);
+    const sql = await readFile(migrationPath, "utf8");
+    await pool.query(sql);
+    console.log(`Applied migration ${migrationFile}`);
+  }
+
   await closePool();
-  console.log("Applied migration 0000_phase3_persistence.sql");
 }
 
 main().catch(async (error) => {

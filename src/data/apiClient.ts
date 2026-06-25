@@ -1,4 +1,5 @@
 import type {
+  AppRuntimeMode,
   AppBootstrap,
   AuditEvent,
   ManagerReviewData,
@@ -13,21 +14,46 @@ type RequestOptions = {
   previewUserId: string;
 };
 
+type ApiClientSession = {
+  previewUserId?: string;
+  runtimeMode: AppRuntimeMode;
+  teamsAuthToken?: string;
+};
+
+let apiClientSession: ApiClientSession = {
+  runtimeMode: "browserPreview",
+};
+
+function buildHeaders(previewUserId: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "x-app-runtime": apiClientSession.runtimeMode,
+  };
+
+  if (
+    apiClientSession.runtimeMode === "browserPreview" &&
+    (previewUserId || apiClientSession.previewUserId)
+  ) {
+    headers["x-preview-user-id"] = previewUserId || apiClientSession.previewUserId!;
+  }
+
+  if (
+    apiClientSession.runtimeMode === "teams" &&
+    apiClientSession.teamsAuthToken
+  ) {
+    headers.authorization = `Bearer ${apiClientSession.teamsAuthToken}`;
+  }
+
+  return headers;
+}
+
 async function requestJson<T>(
   path: string,
   options: RequestOptions,
 ): Promise<T> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  if (options.previewUserId) {
-    headers["x-preview-user-id"] = options.previewUserId;
-  }
-
   const response = await fetch(path, {
     method: options.method ?? "GET",
-    headers,
+    headers: buildHeaders(options.previewUserId),
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
@@ -46,6 +72,9 @@ async function requestJson<T>(
 }
 
 export const apiClient = {
+  configureSession(session: ApiClientSession) {
+    apiClientSession = session;
+  },
   deleteUnavailabilityRule(previewUserId: string, ruleId: string) {
     return requestJson<void>(`/api/unavailability/${ruleId}`, {
       method: "DELETE",
@@ -133,11 +162,7 @@ export const apiClient = {
         weekStart,
       )}&weeks=${weeks}`,
       {
-        headers: previewUserId
-          ? {
-              "x-preview-user-id": previewUserId,
-            }
-          : undefined,
+        headers: buildHeaders(previewUserId),
       },
     );
 

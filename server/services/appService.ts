@@ -8,6 +8,7 @@ import {
 } from "../../src/lib/access";
 import { detectManagerConflicts } from "../../src/lib/conflicts";
 import type {
+  AppRuntimeMode,
   AppBootstrap,
   AuditEvent,
   CurrentUser,
@@ -19,6 +20,11 @@ import type {
   UnavailabilityRuleInput,
 } from "../../src/types";
 import type { AppDataAccess } from "../data/types";
+import {
+  TeamsIdentityError,
+  verifyEntraSsoToken,
+  type VerifiedEntraIdentity,
+} from "../auth/entra";
 import { HttpError } from "../http/errors";
 import {
   addDays,
@@ -79,6 +85,12 @@ function describeRule(rule: UnavailabilityRule): string {
   return "unavailable date range";
 }
 
+export type RequestIdentityContext = {
+  appRuntime: AppRuntimeMode;
+  bearerToken?: string;
+  previewUserId?: string;
+};
+
 export class AppService {
   constructor(private readonly dataAccess: AppDataAccess) {}
 
@@ -99,21 +111,73 @@ export class AppService {
     return user;
   }
 
-  async getBootstrap(previewUserId?: string): Promise<AppBootstrap> {
-    const [organization, previewUsers, currentUser] = await Promise.all([
+  private toHttpError(error: unknown): HttpError {
+    if (error instanceof HttpError) {
+      return error;
+    }
+
+    if (error instanceof TeamsIdentityError) {
+      return new HttpError(error.statusCode, error.message);
+    }
+
+    return new HttpError(500, "Unable to resolve the current user.");
+  }
+
+  async getCurrentUserForRequest(
+    requestContext: RequestIdentityContext,
+  ): Promise<CurrentUser> {
+    if (requestContext.appRuntime === "teams") {
+      if (!requestContext.bearerToken) {
+        throw new HttpError(401, "Teams SSO token is unavailable.");
+      }
+
+      let verifiedIdentity: VerifiedEntraIdentity;
+
+      try {
+        verifiedIdentity = await verifyEntraSsoToken(requestContext.bearerToken);
+      } catch (error) {
+        throw this.toHttpError(error);
+      }
+
+      const currentUser = await this.dataAccess.users.getByEntraIdentity({
+        email: verifiedIdentity.email,
+        entraObjectId: verifiedIdentity.entraObjectId,
+        tenantId: verifiedIdentity.tenantId,
+        userPrincipalName: verifiedIdentity.userPrincipalName,
+      });
+
+      if (!currentUser) {
+        throw new HttpError(
+          404,
+          "Signed-in Teams user is not mapped to an app user yet.",
+        );
+      }
+
+      return currentUser;
+    }
+
+    return this.getPreviewUser(requestContext.previewUserId);
+  }
+
+  async getBootstrap(
+    requestContext: RequestIdentityContext,
+  ): Promise<AppBootstrap> {
+    const [organization, currentUser] = await Promise.all([
       this.dataAccess.organizations.getDemoOrganization(),
-      this.dataAccess.users.listPreviewUsers(),
-      this.getPreviewUser(previewUserId),
+      this.getCurrentUserForRequest(requestContext),
     ]);
 
-    const previewUsersWithDepartments = await Promise.all(
-      previewUsers.map(async (user) =>
-        toPreviewUser(
-          user,
-          await this.dataAccess.departments.listForUser(user.id),
-        ),
-      ),
-    );
+    const previewUsersWithDepartments =
+      requestContext.appRuntime === "browserPreview"
+        ? await Promise.all(
+            (await this.dataAccess.users.listPreviewUsers()).map(async (user) =>
+              toPreviewUser(
+                user,
+                await this.dataAccess.departments.listForUser(user.id),
+              ),
+            ),
+          )
+        : [];
     const currentUserDepartments =
       await this.dataAccess.departments.listForUser(currentUser.id);
 

@@ -24,6 +24,12 @@ export type DepartmentsRepository = {
 };
 
 export type UsersRepository = {
+  getByEntraIdentity(params: {
+    email?: string;
+    entraObjectId?: string;
+    tenantId: string;
+    userPrincipalName?: string;
+  }): Promise<CurrentUser | undefined>;
   getById(userId: string): Promise<CurrentUser | undefined>;
   listPreviewUsers(): Promise<CurrentUser[]>;
 };

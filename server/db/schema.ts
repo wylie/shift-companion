@@ -59,6 +59,10 @@ export const usersTable = pgTable(
       .references(() => organizationsTable.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     role: text("role").notNull(),
+    tenantId: text("tenant_id"),
+    entraObjectId: text("entra_object_id"),
+    email: text("email"),
+    userPrincipalName: text("user_principal_name"),
     isDemo: boolean("is_demo").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -69,6 +73,18 @@ export const usersTable = pgTable(
   },
   (table) => ({
     organizationIndex: index("users_organization_idx").on(table.organizationId),
+    tenantEmailIndex: index("users_tenant_email_idx").on(
+      table.tenantId,
+      table.email,
+    ),
+    tenantObjectIndex: uniqueIndex("users_tenant_entra_object_uidx").on(
+      table.tenantId,
+      table.entraObjectId,
+    ),
+    tenantUpnIndex: index("users_tenant_upn_idx").on(
+      table.tenantId,
+      table.userPrincipalName,
+    ),
   }),
 );
 

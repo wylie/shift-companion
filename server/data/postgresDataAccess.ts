@@ -39,12 +39,16 @@ function mapUser(
   teamIds: string[],
 ): CurrentUser {
   return {
+    email: row.email ?? undefined,
+    entraObjectId: row.entraObjectId ?? undefined,
     id: row.id,
+    isDemo: row.isDemo,
     organizationId: row.organizationId,
     name: row.name,
     role: row.role as CurrentUser["role"],
     teamIds,
-    isDemo: row.isDemo,
+    tenantId: row.tenantId ?? undefined,
+    userPrincipalName: row.userPrincipalName ?? undefined,
   };
 }
 
@@ -451,6 +455,73 @@ export function createPostgresDataAccess(): AppDataAccess {
           userRow,
           membershipRows.map((membership) => membership.departmentId),
         );
+      },
+      async getByEntraIdentity({
+        email,
+        entraObjectId,
+        tenantId,
+        userPrincipalName,
+      }) {
+        const membershipRows = await db
+          .select()
+          .from(departmentMembershipsTable);
+        const teamIdsByUser = toUserDepartmentsMap(membershipRows);
+
+        if (entraObjectId) {
+          const [userRow] = await db
+            .select()
+            .from(usersTable)
+            .where(
+              and(
+                eq(usersTable.tenantId, tenantId),
+                eq(usersTable.entraObjectId, entraObjectId),
+              ),
+            )
+            .limit(1);
+
+          if (userRow) {
+            return mapUser(userRow, teamIdsByUser.get(userRow.id) ?? []);
+          }
+        }
+
+        const normalizedUserPrincipalName = userPrincipalName?.toLowerCase();
+        const normalizedEmail = email?.toLowerCase();
+
+        if (normalizedUserPrincipalName) {
+          const [userRow] = await db
+            .select()
+            .from(usersTable)
+            .where(
+              and(
+                eq(usersTable.tenantId, tenantId),
+                eq(usersTable.userPrincipalName, normalizedUserPrincipalName),
+              ),
+            )
+            .limit(1);
+
+          if (userRow) {
+            return mapUser(userRow, teamIdsByUser.get(userRow.id) ?? []);
+          }
+        }
+
+        if (normalizedEmail) {
+          const [userRow] = await db
+            .select()
+            .from(usersTable)
+            .where(
+              and(
+                eq(usersTable.tenantId, tenantId),
+                eq(usersTable.email, normalizedEmail),
+              ),
+            )
+            .limit(1);
+
+          if (userRow) {
+            return mapUser(userRow, teamIdsByUser.get(userRow.id) ?? []);
+          }
+        }
+
+        return undefined;
       },
       async listPreviewUsers() {
         const userRows = await db

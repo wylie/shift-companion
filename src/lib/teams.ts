@@ -1,4 +1,4 @@
-import { app } from "@microsoft/teams-js";
+import { app, authentication } from "@microsoft/teams-js";
 import { useEffect, useState } from "react";
 import type { TeamsContextSummary, TeamsRuntimeState } from "../types";
 
@@ -11,6 +11,9 @@ type FrameProbe = {
 const initialBrowserRuntime: TeamsRuntimeState = {
   isEmbedded: false,
   mode: "browserPreview",
+  sso: {
+    status: "idle",
+  },
 };
 
 function getFrameProbe(): FrameProbe | undefined {
@@ -75,6 +78,52 @@ export function isTeamsInitializationErrorSafeToTreatAsBrowserPreview(
   );
 }
 
+function classifySsoError(error: unknown): TeamsRuntimeState["sso"] {
+  const message = getErrorMessage(error);
+  const normalizedMessage = message.toLowerCase();
+
+  if (
+    normalizedMessage.includes("webapplicationinfo") ||
+    normalizedMessage.includes("resource") ||
+    normalizedMessage.includes("manifest") ||
+    normalizedMessage.includes("application with identifier") ||
+    normalizedMessage.includes("aadsts500011") ||
+    normalizedMessage.includes("aadsts65001") ||
+    normalizedMessage.includes("consent")
+  ) {
+    return {
+      errorCode: "sso_not_configured",
+      errorMessage:
+        "Teams SSO is not configured for this tab yet. Check the Teams manifest, Entra app registration, and local environment values.",
+      status: "setupRequired",
+    };
+  }
+
+  return {
+    errorCode: "token_unavailable",
+    errorMessage: message,
+    status: "tokenUnavailable",
+  };
+}
+
+async function acquireTeamsToken(
+  tenantId?: string,
+): Promise<TeamsRuntimeState["sso"]> {
+  try {
+    const token = await authentication.getAuthToken({
+      silent: false,
+      tenantId,
+    });
+
+    return {
+      status: "tokenReady",
+      token,
+    };
+  } catch (error) {
+    return classifySsoError(error);
+  }
+}
+
 export async function initializeTeamsRuntime(): Promise<TeamsRuntimeState> {
   const frameProbe = getFrameProbe();
 
@@ -85,11 +134,14 @@ export async function initializeTeamsRuntime(): Promise<TeamsRuntimeState> {
   try {
     await app.initialize();
     const context = await app.getContext();
+    const contextSummary = toContextSummary(context);
+    const sso = await acquireTeamsToken(contextSummary.tenantId);
 
     return {
-      context: toContextSummary(context),
+      context: contextSummary,
       isEmbedded: true,
       mode: "teamsReady",
+      sso,
     };
   } catch (error) {
     if (isTeamsInitializationErrorSafeToTreatAsBrowserPreview(error)) {
@@ -100,11 +152,16 @@ export async function initializeTeamsRuntime(): Promise<TeamsRuntimeState> {
       errorMessage: getErrorMessage(error),
       isEmbedded: true,
       mode: "teamsUnavailable",
+      sso: {
+        errorCode: "token_request_failed",
+        errorMessage: getErrorMessage(error),
+        status: "tokenUnavailable",
+      },
     };
   }
 }
 
-export function useTeamsRuntime(): TeamsRuntimeState {
+export function useTeamsRuntime(reloadKey = 0): TeamsRuntimeState {
   const [runtimeState, setRuntimeState] = useState<TeamsRuntimeState>(() => {
     const frameProbe = getFrameProbe();
 
@@ -112,6 +169,9 @@ export function useTeamsRuntime(): TeamsRuntimeState {
       return {
         isEmbedded: false,
         mode: "teamsInitializing",
+        sso: {
+          status: "requestingToken",
+        },
       };
     }
 
@@ -119,6 +179,9 @@ export function useTeamsRuntime(): TeamsRuntimeState {
       ? {
           isEmbedded: true,
           mode: "teamsInitializing",
+          sso: {
+            status: "requestingToken",
+          },
         }
       : initialBrowserRuntime;
   });
@@ -136,6 +199,9 @@ export function useTeamsRuntime(): TeamsRuntimeState {
     setRuntimeState({
       isEmbedded: true,
       mode: "teamsInitializing",
+      sso: {
+        status: "requestingToken",
+      },
     });
 
     void initializeTeamsRuntime().then((nextState) => {
@@ -147,7 +213,7 @@ export function useTeamsRuntime(): TeamsRuntimeState {
     return () => {
       isCancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   return runtimeState;
 }

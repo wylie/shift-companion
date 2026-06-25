@@ -16,6 +16,11 @@ export function getOptionalEnv(name: string): string | undefined {
 }
 
 export const appConfig = {
+  appBaseUrl: getOptionalEnv("APP_BASE_URL"),
   databaseUrl: getOptionalEnv("DATABASE_URL"),
+  entraAppIdUri: getOptionalEnv("ENTRA_APP_ID_URI"),
+  entraClientId: getOptionalEnv("ENTRA_CLIENT_ID"),
+  entraTenantId: getOptionalEnv("ENTRA_TENANT_ID"),
   port: Number(process.env.PORT ?? "8787"),
+  teamsAppId: getOptionalEnv("TEAMS_APP_ID"),
 };

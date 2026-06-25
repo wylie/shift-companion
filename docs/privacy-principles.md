@@ -22,13 +22,16 @@
 - No Microsoft Graph integration
 - No YMCA source-system integration
 
-## Phase 4 Prompt 1 additions
+## Phase 4 additions
 
-- The app can now detect Teams host runtime and initialize the Teams SDK safely.
+- The app can now detect Teams host runtime, initialize the Teams SDK safely, and request a Teams SSO token.
 - Browser preview remains the primary development mode.
 - Preview identity remains development-only and is hidden when the app detects a Teams host.
-- Teams runtime context is used only for host-aware UX and setup messaging right now, not authorization.
-- No Teams, Entra, Graph, Shifts, or YMCA identity/data connection is active yet.
+- Teams runtime context alone is not treated as proof of identity.
+- Teams mode sends the Teams SSO token to the server for verification before app data is returned.
+- Verified Teams or Entra users must map to a persisted app user before schedule, unavailability, or manager data is shown.
+- Unmapped Teams users see a setup-needed message and no staff or manager data.
+- No Graph, Shifts, or YMCA data connection is active yet.
 
 ## Product scope notes
 
@@ -41,8 +44,9 @@
 - UI guards improve usability but are not treated as the security boundary.
 - Staff routes do not accept arbitrary target user IDs.
 - Server-side queries scope schedule, unavailability, calendar export, and manager review data.
-- Real authorization must later be enforced with Teams SSO, Entra identity, and durable authorization records.
+- Teams mode now verifies Microsoft Entra tokens server-side before resolving the current app user.
 - Client-provided Teams context must not be treated as proof of identity.
+- Real production authorization still needs further hardening, operational controls, and eventual non-demo user lifecycle management.
 
 ## Calendar privacy notes
 
@@ -59,4 +63,6 @@
 - Staff only export their own calendar.
 - Staff only edit their own unavailability.
 - Managers only see assigned departments.
-- Live Teams, Shifts, Graph, and YMCA data are not connected yet.
+- Teams mode requires a server-verified mapped user before app data loads.
+- Unmapped Teams users do not see staff or manager data.
+- Live Teams Shifts, Graph, and YMCA data are not connected yet.

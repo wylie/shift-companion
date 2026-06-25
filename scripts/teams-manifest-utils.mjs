@@ -2,13 +2,15 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 const defaultTeamsEnv = {
+  APP_BASE_URL: "https://localhost:53000",
+  ENTRA_APP_ID_URI: "api://00000000-0000-4000-8000-000000000002",
+  ENTRA_CLIENT_ID: "00000000-0000-4000-8000-000000000002",
   TEAMS_APP_ID: "00000000-0000-4000-8000-000000000001",
   TEAMS_APP_NAME_FULL: "Teams Shifts Companion",
   TEAMS_APP_NAME_SHORT: "Shifts Companion",
   TEAMS_DEVELOPER_NAME: "Example YMCA Developer",
   TEAMS_DEVELOPER_WEBSITE_URL: "https://example.com",
   TEAMS_PRIVACY_POLICY_URL: "https://example.com/privacy",
-  TEAMS_TAB_BASE_URL: "https://localhost:53000",
   TEAMS_TERMS_OF_USE_URL: "https://example.com/terms",
   TEAMS_VALID_DOMAINS: "localhost,127.0.0.1",
 };
@@ -19,7 +21,7 @@ function escapeForRegExp(value) {
 
 export function getTeamsManifestConfig() {
   const baseUrl =
-    process.env.TEAMS_TAB_BASE_URL ?? defaultTeamsEnv.TEAMS_TAB_BASE_URL;
+    process.env.APP_BASE_URL ?? defaultTeamsEnv.APP_BASE_URL;
   const normalizedBaseUrl = baseUrl.replace(/\/+$/, "");
   const configuredDomains = (
     process.env.TEAMS_VALID_DOMAINS ?? defaultTeamsEnv.TEAMS_VALID_DOMAINS
@@ -39,6 +41,10 @@ export function getTeamsManifestConfig() {
       defaultTeamsEnv.TEAMS_DEVELOPER_WEBSITE_URL,
     fullName:
       process.env.TEAMS_APP_NAME_FULL ?? defaultTeamsEnv.TEAMS_APP_NAME_FULL,
+    entraAppIdUri:
+      process.env.ENTRA_APP_ID_URI ?? defaultTeamsEnv.ENTRA_APP_ID_URI,
+    entraClientId:
+      process.env.ENTRA_CLIENT_ID ?? defaultTeamsEnv.ENTRA_CLIENT_ID,
     privacyPolicyUrl:
       process.env.TEAMS_PRIVACY_POLICY_URL ??
       defaultTeamsEnv.TEAMS_PRIVACY_POLICY_URL,
@@ -61,6 +67,8 @@ export function buildManifest() {
     TEAMS_APP_ID: config.appId,
     TEAMS_APP_NAME_FULL: config.fullName,
     TEAMS_APP_NAME_SHORT: config.shortName,
+    ENTRA_APP_ID_URI: config.entraAppIdUri,
+    ENTRA_CLIENT_ID: config.entraClientId,
     TEAMS_DEVELOPER_NAME: config.developerName,
     TEAMS_DEVELOPER_WEBSITE_URL: config.developerWebsiteUrl,
     TEAMS_PRIVACY_POLICY_URL: config.privacyPolicyUrl,
@@ -89,6 +97,10 @@ export function validateManifest(manifest) {
 
   if (!manifest.staticTabs?.length) {
     errors.push("Manifest must include at least one static tab.");
+  }
+
+  if (!manifest.webApplicationInfo?.id || !manifest.webApplicationInfo?.resource) {
+    errors.push("Manifest must include webApplicationInfo id and resource for Teams SSO.");
   }
 
   if (!manifest.icons?.color || !manifest.icons?.outline) {

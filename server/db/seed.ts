@@ -67,10 +67,26 @@ async function main() {
 
   await db.insert(usersTable).values(
     userRecords.map((user) => ({
+      email:
+        "email" in user && typeof user.email === "string"
+          ? user.email.toLowerCase()
+          : null,
+      entraObjectId:
+        "entraObjectId" in user && typeof user.entraObjectId === "string"
+          ? user.entraObjectId
+          : null,
       id: user.id,
       organizationId: user.organizationId,
       name: user.name,
       role: user.role,
+      tenantId:
+        "tenantId" in user && typeof user.tenantId === "string"
+          ? user.tenantId
+          : null,
+      userPrincipalName:
+        "userPrincipalName" in user && typeof user.userPrincipalName === "string"
+          ? user.userPrincipalName.toLowerCase()
+          : null,
       isDemo: user.isDemo,
     })),
   );

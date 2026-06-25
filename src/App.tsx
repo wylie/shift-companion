@@ -23,10 +23,35 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
-  const teamsRuntime = useTeamsRuntime();
+  const [teamsReloadKey, setTeamsReloadKey] = useState(0);
+  const teamsRuntime = useTeamsRuntime(teamsReloadKey);
   const isBrowserPreview = teamsRuntime.mode === "browserPreview";
+  const teamsToken = teamsRuntime.sso.status === "tokenReady"
+    ? teamsRuntime.sso.token
+    : undefined;
+  const canLoadBootstrap = isBrowserPreview || Boolean(teamsToken);
 
   useEffect(() => {
+    apiClient.configureSession(
+      isBrowserPreview
+        ? {
+            previewUserId: selectedPreviewUserId,
+            runtimeMode: "browserPreview",
+          }
+        : {
+            runtimeMode: "teams",
+            teamsAuthToken: teamsToken,
+          },
+    );
+  }, [isBrowserPreview, selectedPreviewUserId, teamsToken]);
+
+  useEffect(() => {
+    if (!canLoadBootstrap) {
+      setIsLoading(false);
+      setBootstrap(null);
+      return;
+    }
+
     let isCancelled = false;
 
     async function loadBootstrap() {
@@ -35,7 +60,7 @@ export default function App() {
 
       try {
         const nextBootstrap = await apiClient.getBootstrap(
-          selectedPreviewUserId,
+          isBrowserPreview ? selectedPreviewUserId : undefined,
         );
 
         if (isCancelled) {
@@ -52,6 +77,7 @@ export default function App() {
           return;
         }
 
+        setBootstrap(null);
         setErrorMessage(
           error instanceof Error ? error.message : "Unable to load demo data.",
         );
@@ -67,7 +93,13 @@ export default function App() {
     return () => {
       isCancelled = true;
     };
-  }, [isBrowserPreview, reloadKey, selectedPreviewUserId]);
+  }, [
+    canLoadBootstrap,
+    isBrowserPreview,
+    reloadKey,
+    selectedPreviewUserId,
+    teamsToken,
+  ]);
 
   const currentUser = bootstrap?.currentUser;
 
@@ -86,11 +118,101 @@ export default function App() {
       <main className="content">
         <section className="screen">
           <article className="card empty-state" aria-live="polite">
-            <h2>Loading demo workspace</h2>
+            <h2>
+              {isBrowserPreview
+                ? "Loading demo workspace"
+                : "Loading Teams workspace"}
+            </h2>
             <p className="muted">
-              Connecting to the current preview data source for demo identities,
-              schedules, and unavailable rules.
+              {isBrowserPreview
+                ? "Connecting to the current preview data source for demo identities, schedules, and unavailable rules."
+                : "Verifying the Teams tab identity and loading only the mapped app user's data."}
             </p>
+          </article>
+        </section>
+      </main>
+    );
+  }
+
+  if (teamsRuntime.mode === "teamsInitializing") {
+    return (
+      <main className="content">
+        <section className="screen">
+          <article className="card empty-state" aria-live="polite">
+            <h2>Connecting to Teams workspace</h2>
+            <p className="muted">
+              Initializing the Microsoft Teams runtime and requesting a
+              tab-scoped sign-in token.
+            </p>
+          </article>
+        </section>
+      </main>
+    );
+  }
+
+  if (teamsRuntime.mode === "teamsUnavailable") {
+    return (
+      <main className="content">
+        <section className="screen">
+          <article className="card empty-state" role="alert">
+            <h2>Teams host unavailable</h2>
+            <p className="muted">
+              {teamsRuntime.errorMessage ??
+                "Teams context could not be established for this tab."}
+            </p>
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => setTeamsReloadKey((current) => current + 1)}
+            >
+              Retry Teams setup
+            </button>
+          </article>
+        </section>
+      </main>
+    );
+  }
+
+  if (!isBrowserPreview && teamsRuntime.sso.status === "setupRequired") {
+    return (
+      <main className="content">
+        <section className="screen">
+          <article className="card empty-state" role="alert">
+            <h2>Teams SSO setup needed</h2>
+            <p className="muted">
+              {teamsRuntime.sso.errorMessage ??
+                "Teams tab SSO is not configured yet for this environment."}
+            </p>
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => setTeamsReloadKey((current) => current + 1)}
+            >
+              Retry Teams sign-in
+            </button>
+          </article>
+        </section>
+      </main>
+    );
+  }
+
+  if (!isBrowserPreview && teamsRuntime.sso.status === "tokenUnavailable") {
+    return (
+      <main className="content">
+        <section className="screen">
+          <article className="card empty-state" role="alert">
+            <h2>Teams sign-in token unavailable</h2>
+            <p className="muted">
+              {teamsRuntime.sso.errorMessage ??
+                "The Teams host didn't provide an auth token for this tab."}
+            </p>
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => setTeamsReloadKey((current) => current + 1)}
+            >
+              Retry Teams sign-in
+            </button>
           </article>
         </section>
       </main>
@@ -102,14 +224,23 @@ export default function App() {
       <main className="content">
         <section className="screen">
           <article className="card empty-state" role="alert">
-            <h2>Unable to load demo workspace</h2>
+            <h2>
+              {isBrowserPreview
+                ? "Unable to load demo workspace"
+                : "Teams user access not ready"}
+            </h2>
             <p className="muted">
               {errorMessage ?? "Try refreshing the page."}
             </p>
             <button
               className="primary-button"
               type="button"
-              onClick={() => setReloadKey((current) => current + 1)}
+              onClick={() => {
+                setReloadKey((current) => current + 1);
+                if (!isBrowserPreview) {
+                  setTeamsReloadKey((current) => current + 1);
+                }
+              }}
             >
               Retry
             </button>
@@ -138,40 +269,25 @@ export default function App() {
       />
 
       <main className="content">
-        {teamsRuntime.mode === "teamsInitializing" && (
-          <article className="card empty-state" aria-live="polite">
-            <h3>Connecting to Teams workspace</h3>
-            <p className="muted">
-              Initializing the Microsoft Teams tab runtime for host context.
-            </p>
-          </article>
-        )}
-
-        {teamsRuntime.mode === "teamsReady" && (
+        {!isBrowserPreview && teamsRuntime.mode === "teamsReady" && (
           <article className="card empty-state" role="note">
-            <h3>Teams mode detected</h3>
+            <h3>Teams identity verified</h3>
             <p className="muted">
-              This tab is running inside Teams, but Entra SSO and server-side
-              identity mapping are not configured yet. The current build remains
-              demo-data-backed for layout and packaging work.
-            </p>
-          </article>
-        )}
-
-        {teamsRuntime.mode === "teamsUnavailable" && (
-          <article className="card empty-state" role="status">
-            <h3>Teams host unavailable</h3>
-            <p className="muted">
-              Teams context could not be established. Browser preview behavior
-              remains available, but real Teams identity and authorization are
-              not active in this build.
+              This tab is running in Teams with a server-verified identity
+              mapping. Authorization still stays inside the existing app service
+              and repository boundaries, and Microsoft Graph or Teams Shifts
+              data is not connected yet.
             </p>
           </article>
         )}
 
         {errorMessage && (
           <article className="card empty-state" role="status">
-            <h3>Demo data fallback notice</h3>
+            <h3>
+              {isBrowserPreview
+                ? "Demo data fallback notice"
+                : "Teams workspace notice"}
+            </h3>
             <p className="muted">{errorMessage}</p>
           </article>
         )}

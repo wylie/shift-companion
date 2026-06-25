@@ -224,6 +224,31 @@ export function createMockDataAccess(): AppDataAccess {
         const user = state.users.find((item) => item.id === userId);
         return user ? cloneUser(user) : undefined;
       },
+      async getByEntraIdentity({
+        email,
+        entraObjectId,
+        tenantId,
+        userPrincipalName,
+      }) {
+        const normalizedEmail = email?.toLowerCase();
+        const normalizedUpn = userPrincipalName?.toLowerCase();
+        const user = state.users.find((item) => {
+          if (item.tenantId !== tenantId) {
+            return false;
+          }
+
+          if (entraObjectId && item.entraObjectId === entraObjectId) {
+            return true;
+          }
+
+          return (
+            (normalizedUpn && item.userPrincipalName === normalizedUpn) ||
+            (normalizedEmail && item.email === normalizedEmail)
+          );
+        });
+
+        return user ? cloneUser(user) : undefined;
+      },
       async listPreviewUsers() {
         return state.users.map(cloneUser);
       },

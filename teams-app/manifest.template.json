@@ -31,5 +31,9 @@
       "scopes": ["personal"]
     }
   ],
+  "webApplicationInfo": {
+    "id": "{{ENTRA_CLIENT_ID}}",
+    "resource": "{{ENTRA_APP_ID_URI}}"
+  },
   "validDomains": {{TEAMS_VALID_DOMAINS_JSON}}
 }
