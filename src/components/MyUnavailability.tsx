@@ -376,7 +376,12 @@ export function MyUnavailability({ currentUser }: Props) {
             </p>
           </div>
           {editingRuleId && (
-            <button className="ghost-button" type="button" onClick={resetForm}>
+            <button
+              className="ghost-button"
+              type="button"
+              onClick={resetForm}
+              disabled={isSaving}
+            >
               Cancel
             </button>
           )}
@@ -611,10 +616,21 @@ export function MyUnavailability({ currentUser }: Props) {
 
         <div className="form-actions">
           <button className="primary-button" type="submit" disabled={isSaving}>
-            {editingRuleId ? "Save changes" : "Add rule"}
+            {isSaving
+              ? editingRuleId
+                ? "Saving changes..."
+                : "Adding rule..."
+              : editingRuleId
+                ? "Save changes"
+                : "Add rule"}
           </button>
           {editingRuleId && (
-            <button className="ghost-button" type="button" onClick={resetForm}>
+            <button
+              className="ghost-button"
+              type="button"
+              onClick={resetForm}
+              disabled={isSaving}
+            >
               Cancel
             </button>
           )}
@@ -655,6 +671,7 @@ export function MyUnavailability({ currentUser }: Props) {
                             <button
                               className="ghost-button ghost-button-danger"
                               type="button"
+                              disabled={isSaving}
                               onClick={() => void confirmDelete(rule.id)}
                             >
                               Confirm delete
@@ -662,6 +679,7 @@ export function MyUnavailability({ currentUser }: Props) {
                             <button
                               className="ghost-button"
                               type="button"
+                              disabled={isSaving}
                               onClick={cancelDelete}
                             >
                               Keep rule
@@ -673,6 +691,7 @@ export function MyUnavailability({ currentUser }: Props) {
                           <button
                             className="ghost-button"
                             type="button"
+                            disabled={isSaving}
                             onClick={() => handleEdit(rule)}
                           >
                             Edit
@@ -680,6 +699,7 @@ export function MyUnavailability({ currentUser }: Props) {
                           <button
                             className="ghost-button ghost-button-danger"
                             type="button"
+                            disabled={isSaving}
                             onClick={() => requestDelete(rule.id)}
                           >
                             Delete

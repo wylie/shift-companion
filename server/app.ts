@@ -1,11 +1,15 @@
 import express from "express";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildCalendarIcs } from "../src/lib/calendar";
+import type { AppErrorResponse } from "../src/types";
 import { startOfWeek } from "../src/lib/date";
 import type { AppRuntimeMode, UnavailabilityRuleInput } from "../src/types";
+import { getHealthSnapshot } from "./health";
 import { createDataAccess } from "./data";
 import { HttpError } from "./http/errors";
+import { logError, logInfo, logWarn } from "./logger";
 import { AppService } from "./services/appService";
 
 type RequestContext = {
@@ -54,6 +58,42 @@ export function createApp() {
   const distPath = path.resolve(__dirname, "../dist");
 
   app.use(express.json());
+  app.use((request, response, next) => {
+    const requestId = randomUUID();
+    const startedAt = Date.now();
+
+    response.locals.requestId = requestId;
+    response.setHeader("x-request-id", requestId);
+
+    response.on("finish", () => {
+      const eventName =
+        response.statusCode >= 500
+          ? "request.failed"
+          : response.statusCode >= 400
+            ? "request.rejected"
+            : "request.completed";
+      const log = response.statusCode >= 400 ? logWarn : logInfo;
+
+      log(eventName, {
+        durationMs: Date.now() - startedAt,
+        method: request.method,
+        path: request.originalUrl,
+        requestId,
+        statusCode: response.statusCode,
+      });
+    });
+
+    next();
+  });
+
+  app.get("/api/health", async (_request, response, next) => {
+    try {
+      const snapshot = await getHealthSnapshot();
+      response.status(snapshot.status === "ok" ? 200 : 503).json(snapshot);
+    } catch (error) {
+      next(error);
+    }
+  });
 
   app.get("/api/bootstrap", async (request, response, next) => {
     try {
@@ -222,19 +262,29 @@ export function createApp() {
   });
 
   app.use(
-    (error: Error, _request: express.Request, response: express.Response) => {
+    (error: Error, request: express.Request, response: express.Response) => {
       const statusCode = error instanceof HttpError ? error.statusCode : 500;
+      const requestId = response.locals.requestId as string | undefined;
 
       if (statusCode >= 500) {
-        console.error(error);
+        logError("request.exception", error, {
+          method: request.method,
+          path: request.originalUrl,
+          requestId,
+          statusCode,
+        });
       }
 
-      response.status(statusCode).json({
+      const payload: AppErrorResponse = {
         error:
           statusCode >= 500
             ? "Something went wrong. Please try again."
             : error.message,
-      });
+        requestId,
+        statusCode,
+      };
+
+      response.status(statusCode).json(payload);
     },
   );
 

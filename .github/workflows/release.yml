@@ -1,0 +1,53 @@
+name: Release Validation
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate release metadata
+        run: npm run version:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - name: Validate Teams manifest
+        run: npm run teams:validate
+
+      - name: Build Teams app package
+        run: npm run teams:package
+
+      - name: Upload Teams app package
+        uses: actions/upload-artifact@v4
+        with:
+          name: teams-app-package
+          path: teams-app/dist/*.zip
+          if-no-files-found: error

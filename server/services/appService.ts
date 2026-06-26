@@ -32,6 +32,7 @@ import {
   isWithinRange,
   parseLocalDateTime,
 } from "../../src/lib/date";
+import { appConfig } from "../config";
 
 function toPreviewUser(
   user: CurrentUser,
@@ -182,6 +183,8 @@ export class AppService {
       await this.dataAccess.departments.listForUser(currentUser.id);
 
     return {
+      appVersion: appConfig.version,
+      feedbackEmail: appConfig.feedbackEmail,
       previewUsers: previewUsersWithDepartments,
       currentUser,
       currentUserDepartments,

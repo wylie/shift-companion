@@ -1,6 +1,7 @@
 import type {
   AppRuntimeMode,
   AppBootstrap,
+  AppErrorResponse,
   AuditEvent,
   ManagerReviewData,
   Shift,
@@ -19,6 +20,18 @@ type ApiClientSession = {
   runtimeMode: AppRuntimeMode;
   teamsAuthToken?: string;
 };
+
+class ApiClientError extends Error {
+  requestId?: string;
+  statusCode?: number;
+
+  constructor(message: string, options?: Pick<ApiClientError, "requestId" | "statusCode">) {
+    super(message);
+    this.name = "ApiClientError";
+    this.requestId = options?.requestId;
+    this.statusCode = options?.statusCode;
+  }
+}
 
 let apiClientSession: ApiClientSession = {
   runtimeMode: "browserPreview",
@@ -51,17 +64,32 @@ async function requestJson<T>(
   path: string,
   options: RequestOptions,
 ): Promise<T> {
-  const response = await fetch(path, {
-    method: options.method ?? "GET",
-    headers: buildHeaders(options.previewUserId),
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(path, {
+      method: options.method ?? "GET",
+      headers: buildHeaders(options.previewUserId),
+      body: options.body ? JSON.stringify(options.body) : undefined,
+    });
+  } catch {
+    throw new ApiClientError(
+      "Unable to reach the API. Start the local server and try again.",
+    );
+  }
 
   if (!response.ok) {
-    const payload = (await response.json().catch(() => null)) as {
-      error?: string;
-    } | null;
-    throw new Error(payload?.error ?? "Request failed.");
+    const payload = (await response.json().catch(() => null)) as
+      | AppErrorResponse
+      | null;
+    const message = payload?.requestId
+      ? `${payload.error ?? "Request failed."} Reference: ${payload.requestId}.`
+      : payload?.error ?? "Request failed.";
+
+    throw new ApiClientError(message, {
+      requestId: payload?.requestId,
+      statusCode: payload?.statusCode ?? response.status,
+    });
   }
 
   if (response.status === 204) {
@@ -157,20 +185,35 @@ export const apiClient = {
     weekStart: string,
     weeks: 1 | 4,
   ) {
-    const response = await fetch(
-      `/api/calendar.ics?weekStart=${encodeURIComponent(
-        weekStart,
-      )}&weeks=${weeks}`,
-      {
-        headers: buildHeaders(previewUserId),
-      },
-    );
+    let response: Response;
+
+    try {
+      response = await fetch(
+        `/api/calendar.ics?weekStart=${encodeURIComponent(
+          weekStart,
+        )}&weeks=${weeks}`,
+        {
+          headers: buildHeaders(previewUserId),
+        },
+      );
+    } catch {
+      throw new ApiClientError(
+        "Unable to reach the API. Start the local server and try again.",
+      );
+    }
 
     if (!response.ok) {
-      const payload = (await response.json().catch(() => null)) as {
-        error?: string;
-      } | null;
-      throw new Error(payload?.error ?? "Calendar download failed.");
+      const payload = (await response.json().catch(() => null)) as
+        | AppErrorResponse
+        | null;
+      const message = payload?.requestId
+        ? `${payload.error ?? "Calendar download failed."} Reference: ${payload.requestId}.`
+        : payload?.error ?? "Calendar download failed.";
+
+      throw new ApiClientError(message, {
+        requestId: payload?.requestId,
+        statusCode: payload?.statusCode ?? response.status,
+      });
     }
 
     return response.blob();

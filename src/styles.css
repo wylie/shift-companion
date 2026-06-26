@@ -398,10 +398,15 @@ h2 {
 }
 
 .primary-button,
-.ghost-button {
+.ghost-button,
+.button-link {
   border-radius: 12px;
   padding: 0.75rem 1rem;
   border: 1px solid transparent;
+}
+
+.primary-button,
+.ghost-button {
   cursor: pointer;
 }
 
@@ -413,6 +418,13 @@ h2 {
 .ghost-button {
   background: #edf4ff;
   color: #224d86;
+}
+
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
 .ghost-button:disabled {
@@ -452,6 +464,7 @@ h2 {
 .audit-row,
 .calendar-section,
 .calendar-actions,
+.feedback-stack,
 .privacy-grid,
 .privacy-list {
   display: grid;

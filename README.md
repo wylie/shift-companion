@@ -1,47 +1,139 @@
 # Teams Shifts Companion
 
-Small Microsoft Teams tab companion for YMCA departments that use Microsoft Teams Shifts. The app stays intentionally narrow: staff manage unavailable times, review their own schedules, and download personal shift calendars without trying to replace Teams Shifts.
+Teams Shifts Companion is a narrow Microsoft Teams tab companion for YMCA-style departments that already use Microsoft Teams Shifts. It helps staff manage unavailable times, review only their own schedules, and export a personal shift calendar without trying to replace Teams, Shifts, payroll, or messaging.
 
-## Product overview
+## Project overview
 
-- Teams-compatible embedded tab shell for browser preview today
-- Teams-tab-ready runtime boundary with browser preview, Teams host detection, and Teams SSO token flow
-- Demo-only Preview identity selector for switching among persisted demo users
-- Persisted staff unavailability flow with add, edit, delete, validation, and multi-day weekly recurring rules
-- Persisted personal weekly schedule view scoped to the selected preview user
-- Server-side `.ics` calendar download that exports only the selected preview user’s shifts
-- Persisted read-only Manager View scoped to assigned departments only
-- Centralized server-side repository, service, and authorization layers
-- Neon/Postgres migration and seed path for the demo organization
-- Teams manifest template with `webApplicationInfo`, placeholder icons, and package assembly scripts
-- Server-side Microsoft Entra token verification and persisted Teams-user mapping
-- In-memory fallback only when `DATABASE_URL` is absent, so visual development is still possible without a live database
+The product exists because Teams Shifts is strong at manager-owned schedule publishing, but lightweight staff self-service still benefits from a focused companion surface. This app is that surface. It stays small on purpose.
 
-Aquatics may use Sling and is not the default use case. Default examples stay focused on Teams Shifts departments such as Wellness, Child Watch, Front Desk, Membership, and Facilities.
+## Goals and non-goals
 
-## Stack
+### Goals
+
+- Give staff a simple place to manage their own unavailable times
+- Let staff view only their own shifts
+- Let staff export only their own schedule as a one-time calendar file
+- Give managers a read-only conflict review surface for departments they manage
+- Preserve a clean path toward future Teams tab deployment and identity-backed access
+
+### Non-goals
+
+- Replacing Microsoft Teams Shifts
+- Team chat, announcements, or collaboration tooling
+- Payroll, time clocks, PTO tracking, or HR workflows
+- Shift swaps, approvals, or full workforce management
+- Public scheduling or consumer-facing calendars
+
+## Current MVP scope
+
+The current MVP includes:
+
+- React + Vite client with a Teams-compatible tab shell
+- Express API with repository/service boundaries
+- Browser preview mode with demo identity switching for development only
+- Persisted staff unavailability rules
+- Persisted personal schedule view
+- Personal `.ics` calendar download
+- Read-only manager conflict review
+- Teams runtime detection and Entra SSO validation scaffolding
+- Postgres persistence through Neon, with in-memory fallback when `DATABASE_URL` is absent
+
+The MVP intentionally does not connect to Microsoft Graph, live Teams Shifts data, or external calendar subscriptions yet.
+
+## Architecture overview
+
+At a high level:
+
+- `src/` contains the React client, Teams runtime detection, and UI state
+- `server/` contains the Express API, auth checks, config validation, logging, health reporting, database access, and application services
+- `server/services/appService.ts` is the main application boundary for authorization-aware behavior
+- `server/data/` contains repository implementations for Postgres and the in-memory demo fallback
+- `server/db/` contains schema, migrations, and seed logic
+- `teams-app/` contains the Teams app manifest template and icons
+- `scripts/` contains project automation such as Teams packaging and version validation
+
+More detail lives in [docs/architecture.md](docs/architecture.md).
+
+## Tech stack
 
 - TypeScript
-- React
-- Vite
-- Express
+- React 18
+- Vite 5
+- Express 5
 - Drizzle ORM
-- Neon/Postgres
-- `@microsoft/teams-js`
+- Neon / Postgres
+- Vitest
+- ESLint
+- Microsoft Teams JavaScript SDK
 
-## Local setup
+## Local development
 
-### Normal development path
+### Prerequisites
 
-1. Copy `.env.example` to `.env`.
-2. Set `DATABASE_URL` to a Neon or compatible Postgres database.
-3. Set `APP_BASE_URL` to the browser or tunnel URL you want the tab manifest to use.
-4. For Teams SSO testing, also set:
-   - `TEAMS_APP_ID`
-   - `ENTRA_CLIENT_ID`
-   - `ENTRA_TENANT_ID`
-   - `ENTRA_APP_ID_URI`
-5. Run:
+- Node.js 22.x recommended
+- npm 10+
+- Optional Neon project or another Postgres-compatible database
+
+### Environment variables
+
+Copy `.env.example` to `.env` and set values as needed.
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `PORT` | No | Express API port. Defaults to `8787`. |
+| `DATABASE_URL` | No | Neon or Postgres connection string. If omitted, the app uses in-memory demo data. |
+| `APP_BASE_URL` | No for browser preview, Yes for Teams packaging | Base URL used by Teams manifest tooling and local Teams testing. |
+| `FEEDBACK_EMAIL` | Recommended | Email address used by the Settings feedback links. |
+| `TEAMS_APP_ID` | Required for Teams packaging | Teams app ID used in the manifest. |
+| `ENTRA_CLIENT_ID` | Required for Teams SSO | Entra app registration client ID. |
+| `ENTRA_TENANT_ID` | Required for Teams SSO | Entra tenant ID. |
+| `ENTRA_APP_ID_URI` | Required for Teams SSO | App ID URI / resource expected by server-side token validation. |
+| `TEAMS_APP_NAME_SHORT` | Required for Teams packaging | Short Teams app display name. |
+| `TEAMS_APP_NAME_FULL` | Required for Teams packaging | Full Teams app display name. |
+| `TEAMS_DEVELOPER_NAME` | Required for Teams packaging | Developer display name in the manifest. |
+| `TEAMS_DEVELOPER_WEBSITE_URL` | Required for Teams packaging | Developer website URL in the manifest. |
+| `TEAMS_PRIVACY_POLICY_URL` | Required for Teams packaging | Privacy policy URL in the manifest. |
+| `TEAMS_TERMS_OF_USE_URL` | Required for Teams packaging | Terms URL in the manifest. |
+| `TEAMS_VALID_DOMAINS` | Required for Teams packaging | Comma-separated domains allowed by the manifest. |
+
+Startup validation now checks `PORT`, `APP_BASE_URL`, `DATABASE_URL`, `FEEDBACK_EMAIL`, and partial Teams SSO configuration.
+
+## Neon setup
+
+1. Create a Neon project and database.
+2. Copy the pooled connection string into `DATABASE_URL`.
+3. Keep SSL enabled in the connection string.
+4. Run migrations and seed data before starting the app.
+
+Detailed notes live in [docs/database.md](docs/database.md) and the older setup reference at [docs/database-setup.md](docs/database-setup.md).
+
+## Database migrations
+
+Run migrations with:
+
+```bash
+npm run db:migrate
+```
+
+Generate a new migration after schema changes with:
+
+```bash
+npm run db:generate
+```
+
+## Seed data
+
+Seed the demo organization with:
+
+```bash
+npm run db:seed
+```
+
+The seed data exists to preserve the browser preview workflow. It is not production data and should not be treated as a real tenant model.
+
+## Running locally
+
+Standard persisted flow:
 
 ```bash
 npm install
@@ -50,97 +142,103 @@ npm run db:seed
 npm run dev
 ```
 
-The app runs with:
+This starts:
 
 - Vite on `http://localhost:5173`
-- Express API on `http://localhost:8787`
+- Express on `http://localhost:8787`
 
-The Vite dev server proxies `/api` requests to the Express API.
+Browser-only fallback flow:
 
-### Visual-only fallback
+```bash
+npm install
+npm run dev
+```
 
-If `DATABASE_URL` is not set, the server falls back to an in-memory demo repository. This keeps browser preview working, but data will not persist between restarts and does not represent the normal Phase 3 path.
+Without `DATABASE_URL`, the API uses in-memory demo data. That mode is acceptable for UI development but not for persistence or release validation.
 
-## Runtime modes
+## Testing
 
-### Browser preview
+Run the full test suite with:
 
-- Primary development mode
-- Shows the Preview identity selector
-- Keeps the existing demo-data framing
-- Uses persisted or fallback demo data through the API
+```bash
+npm run test
+```
 
-### Teams mode
+Run linting with:
 
-- Initializes the Microsoft Teams JavaScript SDK only when the app is embedded
-- Hides the Preview identity selector
-- Requests a Teams tab SSO token through the Teams SDK
-- Sends that token to the server for verification before any app-user identity is trusted
-- Maps the verified Teams or Entra identity to a persisted app user
-- Shows a setup-needed message if SSO is not configured, token validation fails, or the signed-in Teams user is not mapped
-- Keeps Microsoft Graph, Teams Shifts, and YMCA data disconnected
+```bash
+npm run lint
+```
 
-## Scripts
+Run type-aware production build validation with:
 
-- `npm run dev`
-- `npm run build`
-- `npm run preview`
-- `npm run lint`
-- `npm run format`
-- `npm run test`
-- `npm run typecheck`
-- `npm run db:generate`
-- `npm run db:migrate`
-- `npm run db:seed`
-- `npm run teams:validate`
-- `npm run teams:package`
+```bash
+npm run build
+```
 
-## Privacy and authorization notes
+## Build commands
 
-- Staff can only view and edit their own unavailability.
-- Staff can only view and export their own shifts.
-- Managers can only view assigned departments in Manager View.
-- Manager View remains read-only.
-- Calendar download includes only the selected preview staff member’s shifts.
-- Coworker schedules, unavailability notes, and manager-only data are not exposed through staff routes or calendar downloads.
-- Server-side queries are scoped by the selected preview identity and department permissions.
-- The Preview identity selector is still a demo/developer tool only.
-- Preview identity is hidden when the app is running inside Teams.
-- Teams runtime context alone is not treated as proof of identity.
-- Teams mode uses a server-verified Entra token before app data is returned.
-- Real Microsoft Graph, Teams Shifts integration, and YMCA system integration are still future work.
-- Live calendar subscriptions remain intentionally deferred until secure identity, token storage, revocation, and privacy controls exist.
+- `npm run dev` starts the API and Vite dev server
+- `npm run build` compiles TypeScript and builds the Vite app
+- `npm run preview` starts the Express server against the built client
+- `npm run test` runs Vitest
+- `npm run lint` runs ESLint with `--max-warnings 0`
+- `npm run teams:validate` validates the Teams manifest inputs
+- `npm run teams:package` builds the local Teams app package
+- `npm run version:current` prints the current application version
+- `npm run version:check` validates SemVer and changelog structure
+- `npm run release:verify` runs release-oriented validation, build, and Teams packaging
 
-## Teams packaging
+## Deployment overview
 
-- `teams-app/manifest.template.json` contains the manifest template.
-- `teams-app/color.png` and `teams-app/outline.png` are placeholder icons that are easy to replace later.
-- `npm run teams:validate` checks the current manifest configuration and required files.
-- `npm run teams:package` assembles a local app package zip in `teams-app/dist/`.
-- The manifest now includes `webApplicationInfo` placeholders for Teams SSO.
+Deployment has two parts:
 
-## What is still needed before testing inside Teams
+1. The web app and API
+2. The Teams manifest package that points at that deployment
 
-- A Microsoft 365 developer/test tenant or organization admin support
-- A reachable HTTPS URL or tunnel for the tab content when Teams needs to load the app
-- Real manifest values for app ID, developer info, URLs, valid domains, and `webApplicationInfo`
-- A matching Microsoft Entra app registration and persisted user mapping
+For deployment guidance, release flow, environment expectations, and health checks, see [docs/deployment.md](docs/deployment.md).
 
-## Phase status
+## Roadmap
 
-- Phase 1: complete in browser-previewable form
-- Phase 2: complete in persisted demo form
-- Phase 3: complete with repository/service architecture, Neon/Postgres support, persisted demo data, and server-side calendar downloads
-- Phase 4: complete with Teams packaging, runtime detection, Entra SSO token handling, and server-side identity mapping
-- Phase 5 next: read-only Microsoft Graph and Teams Shifts integration
+The near-term direction stays narrow:
+
+- Harden runtime validation, release, and operations
+- Keep manager workflows read-only
+- Add identity-backed integrations before any scope expansion
+- Introduce Microsoft Graph and Teams Shifts in read-only form first
+- Evaluate calendar subscriptions only after secure revocation and privacy controls exist
+
+See [docs/roadmap.md](docs/roadmap.md) for the fuller phased plan.
+
+## Feedback philosophy
+
+Feature growth should not happen through ad hoc scope creep. New feature requests should come through the in-app Settings feedback entry so they can be reviewed against the app's lightweight companion philosophy:
+
+- If a workflow belongs naturally in Teams, keep it in Teams
+- If a workflow needs only narrow personal self-service, it may belong here
+- If a feature expands the app toward a Shifts replacement, it is probably out of scope
+
+## Semantic Versioning strategy
+
+This project follows Semantic Versioning.
+
+- Patch releases are for fixes, maintenance, and non-breaking hardening
+- Minor releases are for backward-compatible product additions that still fit the companion philosophy
+- Major releases are for intentional breaking changes in API contracts, data model expectations, or runtime behavior
+
+Release metadata is tracked in [CHANGELOG.md](CHANGELOG.md). The release workflows use:
+
+- `npm run version:check` to validate version and changelog structure
+- `.github/workflows/ci.yml` for pull request and branch validation
+- `.github/workflows/release.yml` for tag-based release validation and Teams package artifacts
 
 ## Additional docs
 
-- [`docs/data-model.md`](docs/data-model.md)
-- [`docs/database-setup.md`](docs/database-setup.md)
-- [`docs/product-brief.md`](docs/product-brief.md)
-- [`docs/privacy-principles.md`](docs/privacy-principles.md)
-- [`docs/roadmap.md`](docs/roadmap.md)
-- [`docs/entra-sso-setup.md`](docs/entra-sso-setup.md)
-- [`docs/teams-integration-notes.md`](docs/teams-integration-notes.md)
-- [`docs/teams-local-testing.md`](docs/teams-local-testing.md)
+- [docs/architecture.md](docs/architecture.md)
+- [docs/database.md](docs/database.md)
+- [docs/deployment.md](docs/deployment.md)
+- [docs/roadmap.md](docs/roadmap.md)
+- [docs/contributing.md](docs/contributing.md)
+- [docs/entra-sso-setup.md](docs/entra-sso-setup.md)
+- [docs/teams-local-testing.md](docs/teams-local-testing.md)
+- [docs/privacy-principles.md](docs/privacy-principles.md)

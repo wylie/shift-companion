@@ -3,10 +3,52 @@ import { apiClient } from "../data/apiClient";
 import type { AuditEvent, CurrentUser } from "../types";
 
 type Props = {
+  appVersion: string;
   currentUser: CurrentUser;
+  feedbackEmail?: string;
 };
 
-export function SettingsPrivacy({ currentUser }: Props) {
+function buildFeedbackHref(params: {
+  appVersion: string;
+  currentUserName: string;
+  feedbackEmail: string;
+  type: "bug" | "feature";
+}) {
+  const subject =
+    params.type === "feature"
+      ? `Feature request for Teams Shifts Companion v${params.appVersion}`
+      : `Bug report for Teams Shifts Companion v${params.appVersion}`;
+  const body =
+    params.type === "feature"
+      ? [
+          "What should change?",
+          "",
+          "Why does it matter for your workflow?",
+          "",
+          `Current app version: ${params.appVersion}`,
+          `Current app user: ${params.currentUserName}`,
+        ].join("\n")
+      : [
+          "What happened?",
+          "",
+          "What did you expect to happen?",
+          "",
+          "How can this be reproduced?",
+          "",
+          `Current app version: ${params.appVersion}`,
+          `Current app user: ${params.currentUserName}`,
+        ].join("\n");
+
+  return `mailto:${params.feedbackEmail}?subject=${encodeURIComponent(
+    subject,
+  )}&body=${encodeURIComponent(body)}`;
+}
+
+export function SettingsPrivacy({
+  appVersion,
+  currentUser,
+  feedbackEmail,
+}: Props) {
   const [visibleAuditEvents, setVisibleAuditEvents] = useState<AuditEvent[]>(
     [],
   );
@@ -83,7 +125,64 @@ export function SettingsPrivacy({ currentUser }: Props) {
             connected yet.
           </p>
         </article>
+        <article className="card">
+          <h3>App version</h3>
+          <p>Current release: v{appVersion}</p>
+        </article>
       </div>
+
+      <section className="card">
+        <div className="group-header">
+          <h3>Feedback</h3>
+          <span className="muted">Settings entry point</span>
+        </div>
+        <p className="muted">
+          New feature requests should be submitted here so product scope stays
+          intentional and traceable. Bugs should use the same path so support
+          has the current version and workflow context.
+        </p>
+
+        {feedbackEmail ? (
+          <div className="feedback-stack">
+            <div className="calendar-actions">
+              <a
+                className="primary-button button-link"
+                href={buildFeedbackHref({
+                  appVersion,
+                  currentUserName: currentUser.name,
+                  feedbackEmail,
+                  type: "feature",
+                })}
+              >
+                Request a feature
+              </a>
+              <a
+                className="ghost-button button-link"
+                href={buildFeedbackHref({
+                  appVersion,
+                  currentUserName: currentUser.name,
+                  feedbackEmail,
+                  type: "bug",
+                })}
+              >
+                Report a bug
+              </a>
+            </div>
+            <p className="muted">
+              Opens your mail app to {feedbackEmail}. Include screenshots or
+              steps when reporting bugs.
+            </p>
+          </div>
+        ) : (
+          <article className="card inset-card empty-state" role="alert">
+            <h4>Feedback email not configured</h4>
+            <p className="muted">
+              Set `FEEDBACK_EMAIL` on the server to enable feature request and
+              bug report links from Settings.
+            </p>
+          </article>
+        )}
+      </section>
 
       <section className="card">
         <div className="group-header">

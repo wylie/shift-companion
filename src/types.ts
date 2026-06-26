@@ -102,9 +102,11 @@ export type AuditEvent = {
 };
 
 export type AppBootstrap = {
+  appVersion: string;
   previewUsers: PreviewUser[];
   currentUser: CurrentUser;
   currentUserDepartments: Department[];
+  feedbackEmail?: string;
   organization: Organization;
 };
 
@@ -145,6 +147,26 @@ export type ManagerReviewData = {
 
 export type AppErrorResponse = {
   error: string;
+  requestId?: string;
+  statusCode?: number;
+};
+
+export type HealthCheck = {
+  details: string;
+  name: "database";
+  status: "error" | "ok" | "skipped";
+};
+
+export type AppHealthResponse = {
+  checks: HealthCheck[];
+  runtime: {
+    dataSource: "in-memory" | "postgres";
+    feedbackConfigured: boolean;
+    teamsSsoConfigured: boolean;
+  };
+  status: "error" | "ok";
+  timestamp: string;
+  version: string;
 };
 
 export type AppRuntimeMode = "browserPreview" | "teams";

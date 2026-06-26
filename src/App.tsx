@@ -298,7 +298,11 @@ export default function App() {
         {activeView === "schedule" && <MySchedule currentUser={currentUser} />}
         {activeView === "manager" && <ManagerView currentUser={currentUser} />}
         {activeView === "settings" && (
-          <SettingsPrivacy currentUser={currentUser} />
+          <SettingsPrivacy
+            appVersion={bootstrap.appVersion}
+            currentUser={currentUser}
+            feedbackEmail={bootstrap.feedbackEmail}
+          />
         )}
       </main>
     </div>

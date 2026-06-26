@@ -41,6 +41,7 @@ export function MySchedule({ currentUser }: Props) {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
   const [viewMode, setViewMode] = useState<ScheduleViewMode>("week");
   const [downloadMessage, setDownloadMessage] = useState<string | null>(null);
+  const [isDownloadingCalendar, setIsDownloadingCalendar] = useState(false);
   const [myShifts, setMyShifts] = useState<Shift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -140,7 +141,9 @@ export function MySchedule({ currentUser }: Props) {
 
   async function handleDownloadCalendar() {
     try {
+      setIsDownloadingCalendar(true);
       setErrorMessage(null);
+      setDownloadMessage(null);
       const blob = await apiClient.downloadCalendar(
         currentUser.id,
         weekStart.toISOString().slice(0, 10),
@@ -156,6 +159,8 @@ export function MySchedule({ currentUser }: Props) {
       setErrorMessage(
         error instanceof Error ? error.message : "Calendar download failed.",
       );
+    } finally {
+      setIsDownloadingCalendar(false);
     }
   }
 
@@ -354,9 +359,12 @@ export function MySchedule({ currentUser }: Props) {
           <button
             className="primary-button"
             type="button"
+            disabled={isDownloadingCalendar}
             onClick={() => void handleDownloadCalendar()}
           >
-            Download calendar (.ics)
+            {isDownloadingCalendar
+              ? "Preparing calendar..."
+              : "Download calendar (.ics)"}
           </button>
           <button
             className="ghost-button"
