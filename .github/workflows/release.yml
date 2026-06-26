@@ -30,6 +30,9 @@ jobs:
       - name: Validate release metadata
         run: npm run version:check
 
+      - name: Typecheck
+        run: npm run typecheck
+
       - name: Lint
         run: npm run lint
 

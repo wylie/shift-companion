@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { apiClient } from "../data/apiClient";
+import { toErrorMessage } from "../lib/errors";
 import {
   addDays,
   addWeeks,
@@ -65,9 +66,7 @@ export function MySchedule({ currentUser }: Props) {
         }
       } catch (error) {
         if (!isCancelled) {
-          setErrorMessage(
-            error instanceof Error ? error.message : "Unable to load shifts.",
-          );
+          setErrorMessage(toErrorMessage(error, "Unable to load shifts."));
         }
       } finally {
         if (!isCancelled) {
@@ -156,9 +155,7 @@ export function MySchedule({ currentUser }: Props) {
         )} through ${formatDateLabel(exportRangeEnd)}.`,
       );
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Calendar download failed.",
-      );
+      setErrorMessage(toErrorMessage(error, "Calendar download failed."));
     } finally {
       setIsDownloadingCalendar(false);
     }

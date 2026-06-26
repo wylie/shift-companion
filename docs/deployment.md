@@ -17,6 +17,7 @@ Recommended deployment variables:
 - `DATABASE_URL`
 - `APP_BASE_URL`
 - `FEEDBACK_EMAIL`
+- `APP_DOCUMENTATION_URL`
 - `ENTRA_CLIENT_ID`
 - `ENTRA_TENANT_ID`
 - `ENTRA_APP_ID_URI`
@@ -38,6 +39,7 @@ On startup the API now validates:
 
 - `PORT`
 - `APP_BASE_URL` format
+- `APP_DOCUMENTATION_URL` format
 - `DATABASE_URL` format
 - `FEEDBACK_EMAIL` format
 - partial Teams SSO configuration
@@ -70,6 +72,7 @@ Use this endpoint for deployment smoke checks and external uptime probes.
 It performs:
 
 - `npm ci`
+- `npm run typecheck`
 - `npm run lint`
 - `npm run test`
 - `npm run build`
@@ -84,6 +87,7 @@ It performs:
 
 - `npm ci`
 - `npm run version:check`
+- `npm run typecheck`
 - `npm run lint`
 - `npm run test`
 - `npm run build`
@@ -114,5 +118,6 @@ This repo now includes local and CI checks for version metadata, but it does not
 
 Additional setup references:
 
+- [release-checklist.md](release-checklist.md)
 - [entra-sso-setup.md](entra-sso-setup.md)
 - [teams-local-testing.md](teams-local-testing.md)

@@ -84,6 +84,7 @@ Copy `.env.example` to `.env` and set values as needed.
 | `DATABASE_URL` | No | Neon or Postgres connection string. If omitted, the app uses in-memory demo data. |
 | `APP_BASE_URL` | No for browser preview, Yes for Teams packaging | Base URL used by Teams manifest tooling and local Teams testing. |
 | `FEEDBACK_EMAIL` | Recommended | Email address used by the Settings feedback links. |
+| `APP_DOCUMENTATION_URL` | Optional | Public documentation URL shown in Settings when configured. |
 | `TEAMS_APP_ID` | Required for Teams packaging | Teams app ID used in the manifest. |
 | `ENTRA_CLIENT_ID` | Required for Teams SSO | Entra app registration client ID. |
 | `ENTRA_TENANT_ID` | Required for Teams SSO | Entra tenant ID. |
@@ -102,7 +103,7 @@ Startup validation now checks `PORT`, `APP_BASE_URL`, `DATABASE_URL`, `FEEDBACK_
 
 1. Create a Neon project and database.
 2. Copy the pooled connection string into `DATABASE_URL`.
-3. Keep SSL enabled in the connection string.
+3. Keep SSL enabled in the connection string and prefer `sslmode=verify-full`.
 4. Run migrations and seed data before starting the app.
 
 Detailed notes live in [docs/database.md](docs/database.md) and the older setup reference at [docs/database-setup.md](docs/database-setup.md).
@@ -170,6 +171,12 @@ Run linting with:
 npm run lint
 ```
 
+Run type checking with:
+
+```bash
+npm run typecheck
+```
+
 Run type-aware production build validation with:
 
 ```bash
@@ -182,6 +189,7 @@ npm run build
 - `npm run build` compiles TypeScript and builds the Vite app
 - `npm run preview` starts the Express server against the built client
 - `npm run test` runs Vitest
+- `npm run typecheck` runs TypeScript project checks
 - `npm run lint` runs ESLint with `--max-warnings 0`
 - `npm run teams:validate` validates the Teams manifest inputs
 - `npm run teams:package` builds the local Teams app package
@@ -239,6 +247,7 @@ Release metadata is tracked in [CHANGELOG.md](CHANGELOG.md). The release workflo
 - [docs/deployment.md](docs/deployment.md)
 - [docs/roadmap.md](docs/roadmap.md)
 - [docs/contributing.md](docs/contributing.md)
+- [docs/release-checklist.md](docs/release-checklist.md)
 - [docs/entra-sso-setup.md](docs/entra-sso-setup.md)
 - [docs/teams-local-testing.md](docs/teams-local-testing.md)
 - [docs/privacy-principles.md](docs/privacy-principles.md)

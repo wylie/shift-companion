@@ -49,7 +49,7 @@ npm run db:seed
 1. Create a Neon project.
 2. Create a database for the app.
 3. Copy the connection string into `.env` as `DATABASE_URL`.
-4. Keep SSL enabled in the connection string.
+4. Keep SSL enabled in the connection string and prefer `sslmode=verify-full`.
 5. Run migrations and seed data.
 
 ## Migrations

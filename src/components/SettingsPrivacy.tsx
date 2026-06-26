@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "../data/apiClient";
+import { toErrorMessage } from "../lib/errors";
 import type { AuditEvent, CurrentUser } from "../types";
 
 type Props = {
   appVersion: string;
+  buildEnvironment: "development" | "production" | "test";
   currentUser: CurrentUser;
+  dataSource: "in-memory" | "postgres";
+  documentationUrl?: string;
   feedbackEmail?: string;
 };
 
@@ -46,7 +50,10 @@ function buildFeedbackHref(params: {
 
 export function SettingsPrivacy({
   appVersion,
+  buildEnvironment,
   currentUser,
+  dataSource,
+  documentationUrl,
   feedbackEmail,
 }: Props) {
   const [visibleAuditEvents, setVisibleAuditEvents] = useState<AuditEvent[]>(
@@ -70,11 +77,7 @@ export function SettingsPrivacy({
         }
       } catch (error) {
         if (!isCancelled) {
-          setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : "Unable to load the demo audit trail.",
-          );
+          setErrorMessage(toErrorMessage(error, "Unable to load the demo audit trail."));
         }
       } finally {
         if (!isCancelled) {
@@ -129,6 +132,14 @@ export function SettingsPrivacy({
           <h3>App version</h3>
           <p>Current release: v{appVersion}</p>
         </article>
+        <article className="card">
+          <h3>Build environment</h3>
+          <p>{buildEnvironment}</p>
+        </article>
+        <article className="card">
+          <h3>Data source</h3>
+          <p>{dataSource === "postgres" ? "Postgres / Neon" : "In-memory demo data"}</p>
+        </article>
       </div>
 
       <section className="card">
@@ -179,6 +190,41 @@ export function SettingsPrivacy({
             <p className="muted">
               Set `FEEDBACK_EMAIL` on the server to enable feature request and
               bug report links from Settings.
+            </p>
+          </article>
+        )}
+      </section>
+
+      <section className="card">
+        <div className="group-header">
+          <h3>Documentation</h3>
+          <span className="muted">MVP guidance</span>
+        </div>
+        <p className="muted">
+          The project documentation explains setup, release flow, and the
+          lightweight companion boundaries that keep this app from expanding
+          into a full workflow manager.
+        </p>
+        {documentationUrl ? (
+          <div className="feedback-stack">
+            <div className="calendar-actions">
+              <a
+                className="ghost-button button-link"
+                href={documentationUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open project documentation
+              </a>
+            </div>
+            <p className="muted">Opens the configured public documentation URL.</p>
+          </div>
+        ) : (
+          <article className="card inset-card empty-state">
+            <h4>Documentation lives in the repository</h4>
+            <p className="muted">
+              Keep README and the `docs/` folder current as part of release
+              preparation and maintenance work.
             </p>
           </article>
         )}

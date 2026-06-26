@@ -18,7 +18,7 @@
     "teams:package": "node scripts/build-teams-package.mjs",
     "version:current": "node scripts/version.mjs current",
     "version:check": "node scripts/version.mjs check",
-    "release:verify": "npm run version:check && npm run lint && npm run test && npm run build && npm run teams:validate && npm run teams:package"
+    "release:verify": "npm run version:check && npm run typecheck && npm run lint && npm run test && npm run build && npm run teams:validate && npm run teams:package"
   },
   "dependencies": {
     "@microsoft/teams-js": "^2.33.0",

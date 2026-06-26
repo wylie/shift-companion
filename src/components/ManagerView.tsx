@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "../data/apiClient";
+import { toErrorMessage } from "../lib/errors";
 import { canAccessManagerView } from "../lib/access";
 import { formatManagerConflictTiming } from "../lib/conflicts";
 import { addWeeks, formatWeekRange, startOfWeek } from "../lib/date";
@@ -57,9 +58,7 @@ export function ManagerView({ currentUser }: Props) {
       } catch (error) {
         if (!isCancelled) {
           setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : "Unable to load manager review data.",
+            toErrorMessage(error, "Unable to load manager review data."),
           );
         }
       } finally {
@@ -131,9 +130,7 @@ export function ManagerView({ currentUser }: Props) {
       });
       setReviewMessage("Review logged to the demo audit trail.");
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Unable to log review.",
-      );
+      setErrorMessage(toErrorMessage(error, "Unable to log review."));
     } finally {
       setIsLoggingReview(false);
     }

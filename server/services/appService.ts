@@ -32,7 +32,7 @@ import {
   isWithinRange,
   parseLocalDateTime,
 } from "../../src/lib/date";
-import { appConfig } from "../config";
+import { appConfig, getOptionalEnv } from "../config";
 
 function toPreviewUser(
   user: CurrentUser,
@@ -184,7 +184,16 @@ export class AppService {
 
     return {
       appVersion: appConfig.version,
-      feedbackEmail: appConfig.feedbackEmail,
+      buildEnvironment:
+        process.env.NODE_ENV === "production"
+          ? "production"
+          : process.env.NODE_ENV === "test"
+            ? "test"
+            : "development",
+      dataSource: appConfig.databaseUrl ? "postgres" : "in-memory",
+      documentationUrl:
+        getOptionalEnv("APP_DOCUMENTATION_URL") ?? appConfig.documentationUrl,
+      feedbackEmail: getOptionalEnv("FEEDBACK_EMAIL") ?? appConfig.feedbackEmail,
       previewUsers: previewUsersWithDepartments,
       currentUser,
       currentUserDepartments,

@@ -30,6 +30,10 @@ textarea {
   font: inherit;
 }
 
+a {
+  color: #224d86;
+}
+
 #root {
   min-height: 100vh;
 }
@@ -161,7 +165,8 @@ h2 {
 }
 
 .nav-item:hover,
-.nav-item.active {
+.nav-item.active,
+.nav-item:focus-visible {
   background: rgba(77, 148, 255, 0.22);
   transform: translateX(2px);
 }
@@ -410,6 +415,11 @@ h2 {
   cursor: pointer;
 }
 
+.empty-state {
+  display: grid;
+  gap: 0.75rem;
+}
+
 .primary-button {
   background: #224d86;
   color: #fff;
@@ -427,7 +437,13 @@ h2 {
   text-decoration: none;
 }
 
+.primary-button:disabled,
 .ghost-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.toggle-button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }

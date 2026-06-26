@@ -20,6 +20,7 @@ Does this keep the app a lightweight companion, or does it push the app toward r
 Before merging changes, run:
 
 ```bash
+npm run typecheck
 npm run lint
 npm run test
 npm run build

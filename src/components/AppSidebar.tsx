@@ -35,7 +35,8 @@ export function AppSidebar({
           <p className="eyebrow">Teams Shifts Companion</p>
           <h1>Staff scheduling companion</h1>
           <p className="muted sidebar-muted">
-            Mocked tab experience designed for future Microsoft Teams packaging.
+            Lightweight Teams-ready companion for personal schedule and
+            unavailability workflows.
           </p>
         </div>
 
@@ -75,6 +76,7 @@ export function AppSidebar({
             <button
               key={item.id}
               type="button"
+              aria-current={item.id === activeView ? "page" : undefined}
               className={
                 item.id === activeView ? "nav-item active" : "nav-item"
               }

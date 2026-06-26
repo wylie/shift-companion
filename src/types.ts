@@ -103,6 +103,9 @@ export type AuditEvent = {
 
 export type AppBootstrap = {
   appVersion: string;
+  buildEnvironment: "development" | "production" | "test";
+  dataSource: "in-memory" | "postgres";
+  documentationUrl?: string;
   previewUsers: PreviewUser[];
   currentUser: CurrentUser;
   currentUserDepartments: Department[];

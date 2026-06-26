@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { apiClient } from "../data/apiClient";
+import { toErrorMessage } from "../lib/errors";
 import {
   formatUnavailabilityRuleSummary,
   getRuleDays,
@@ -174,9 +175,7 @@ export function MyUnavailability({ currentUser }: Props) {
       } catch (error) {
         if (!isCancelled) {
           setErrorMessage(
-            error instanceof Error
-              ? error.message
-              : "Unable to load unavailable rules.",
+            toErrorMessage(error, "Unable to load unavailable rules."),
           );
         }
       } finally {
@@ -295,9 +294,7 @@ export function MyUnavailability({ currentUser }: Props) {
 
       resetForm();
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Unable to save rule.",
-      );
+      setErrorMessage(toErrorMessage(error, "Unable to save rule."));
     } finally {
       setIsSaving(false);
     }
@@ -333,9 +330,7 @@ export function MyUnavailability({ currentUser }: Props) {
         resetForm();
       }
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Unable to delete rule.",
-      );
+      setErrorMessage(toErrorMessage(error, "Unable to delete rule."));
     } finally {
       setIsSaving(false);
     }

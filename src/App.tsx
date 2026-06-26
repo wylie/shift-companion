@@ -5,6 +5,7 @@ import { MySchedule } from "./components/MySchedule";
 import { MyUnavailability } from "./components/MyUnavailability";
 import { SettingsPrivacy } from "./components/SettingsPrivacy";
 import { apiClient } from "./data/apiClient";
+import { toErrorMessage } from "./lib/errors";
 import { canAccessManagerView, getVisibleNavItems } from "./lib/access";
 import { useTeamsRuntime } from "./lib/teams";
 import type { AppBootstrap, NavItem } from "./types";
@@ -78,9 +79,7 @@ export default function App() {
         }
 
         setBootstrap(null);
-        setErrorMessage(
-          error instanceof Error ? error.message : "Unable to load demo data.",
-        );
+        setErrorMessage(toErrorMessage(error, "Unable to load demo data."));
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
@@ -300,7 +299,10 @@ export default function App() {
         {activeView === "settings" && (
           <SettingsPrivacy
             appVersion={bootstrap.appVersion}
+            buildEnvironment={bootstrap.buildEnvironment}
             currentUser={currentUser}
+            dataSource={bootstrap.dataSource}
+            documentationUrl={bootstrap.documentationUrl}
             feedbackEmail={bootstrap.feedbackEmail}
           />
         )}

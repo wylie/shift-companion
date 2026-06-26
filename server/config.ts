@@ -3,6 +3,7 @@ import packageJson from "../package.json";
 
 export type AppConfig = {
   appBaseUrl?: string;
+  documentationUrl?: string;
   databaseUrl?: string;
   entraAppIdUri?: string;
   entraClientId?: string;
@@ -66,6 +67,7 @@ export function getOptionalEnv(name: string): string | undefined {
 export function buildAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   return {
     appBaseUrl: getTrimmedEnv(env, "APP_BASE_URL"),
+    documentationUrl: getTrimmedEnv(env, "APP_DOCUMENTATION_URL"),
     databaseUrl: getTrimmedEnv(env, "DATABASE_URL"),
     entraAppIdUri: getTrimmedEnv(env, "ENTRA_APP_ID_URI"),
     entraClientId: getTrimmedEnv(env, "ENTRA_CLIENT_ID"),
@@ -93,6 +95,12 @@ export function validateAppConfig(config: AppConfig): StartupValidation {
 
   if (config.appBaseUrl && !isValidHttpUrl(config.appBaseUrl)) {
     errors.push("APP_BASE_URL must be a valid http:// or https:// URL.");
+  }
+
+  if (config.documentationUrl && !isValidHttpUrl(config.documentationUrl)) {
+    errors.push(
+      "APP_DOCUMENTATION_URL must be a valid http:// or https:// URL.",
+    );
   }
 
   if (config.databaseUrl && !isValidPostgresUrl(config.databaseUrl)) {
