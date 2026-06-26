@@ -1,7 +1,43 @@
 import { describe, expect, it } from "vitest";
 import { buildCalendarIcs } from "../../src/lib/calendar";
+import type { Shift } from "../../src/types";
 import { createMockDataAccess } from "../data/mockDataAccess";
+import type { ScheduleProvider } from "../integrations/types";
 import { AppService } from "./appService";
+
+function createScheduleProviderStub(shifts: Shift[]): ScheduleProvider {
+  return {
+    async getCurrentUserScheduleRange() {
+      return {
+        data: shifts,
+        ok: true,
+        status: {
+          availability: "available",
+          message: "stub",
+          providerId: "neon-demo",
+        },
+      };
+    },
+    async getCurrentUserShiftById({ shiftId }) {
+      return {
+        data: shifts.find((shift) => shift.id === shiftId),
+        ok: true,
+        status: {
+          availability: "available",
+          message: "stub",
+          providerId: "neon-demo",
+        },
+      };
+    },
+    async getProviderStatus() {
+      return {
+        availability: "available",
+        message: "stub",
+        providerId: "neon-demo",
+      };
+    },
+  };
+}
 
 describe("AppService calendar export", () => {
   it("returns only the current preview user's shifts for calendar export", async () => {
@@ -49,6 +85,36 @@ describe("AppService calendar export", () => {
     expect(shifts.every((shift) => shift.start < "2026-06-29T00:00:00")).toBe(
       true,
     );
+  });
+
+  it("uses the schedule provider boundary for schedule and calendar lookups", async () => {
+    const dataAccess = createMockDataAccess();
+    const currentUser = await new AppService(dataAccess).getPreviewUser(
+      "user-staff-1",
+    );
+    const providerShifts: Shift[] = [
+      {
+        id: "shift-provider-1",
+        userId: currentUser.id,
+        title: "Provider Shift",
+        start: "2026-06-23T14:00:00.000Z",
+        end: "2026-06-23T18:00:00.000Z",
+        location: "Wellness Floor",
+      },
+    ];
+    const service = new AppService(dataAccess, {
+      scheduleProvider: createScheduleProviderStub(providerShifts),
+    });
+
+    const visibleShifts = await service.listOwnShifts(currentUser);
+    const exportableShifts = await service.getOwnCalendarShifts(
+      currentUser,
+      new Date("2026-06-22T00:00:00"),
+      1,
+    );
+
+    expect(visibleShifts).toEqual(providerShifts);
+    expect(exportableShifts).toEqual(providerShifts);
   });
 });
 

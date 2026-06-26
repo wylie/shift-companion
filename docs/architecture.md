@@ -69,6 +69,7 @@ Key responsibilities:
 - health reporting
 - Teams / Entra identity verification
 - repository selection between Postgres and in-memory demo data
+- schedule-provider selection between the current Neon/demo source and future external providers
 - authorization-aware application behavior through `AppService`
 
 ### Data
@@ -80,6 +81,18 @@ The app uses a repository boundary so the same product behavior can run against:
 
 This keeps UI and service behavior stable while the data backend changes.
 
+### Integration providers
+
+Phase 6A adds a small provider boundary for published schedule data.
+
+Current state:
+
+- `neon-demo` is the active schedule provider by default
+- `microsoft-graph` is present only as a stub
+- app-owned unavailability remains in the existing repository layer
+
+This keeps published shifts replaceable later without forcing a rewrite of the current UI flows.
+
 ## Request flow
 
 Typical flow:
@@ -88,7 +101,8 @@ Typical flow:
 2. The client calls `/api/bootstrap`.
 3. The server resolves the current user from preview identity or verified Teams SSO.
 4. `AppService` applies authorization rules and returns scoped data.
-5. Feature routes use the same pattern for schedule, unavailability, manager review, audit events, and calendar export.
+5. Schedule and calendar-export routes resolve shifts through the active schedule provider.
+6. Unavailability, manager review, audit events, and other app-owned behaviors continue through the repository and service layers.
 
 The important constraint is that identity and authorization live on the server, not only in client state.
 
@@ -134,6 +148,8 @@ Planned posture:
 - treat Graph as an integration source, not as a reason to widen the product
 
 The first reasonable step is read-only access to Shifts-related schedule data once tenancy, consent, and user mapping are in place.
+
+See [integration-architecture.md](integration-architecture.md) for the current provider boundary and stub details.
 
 ## Future calendar integrations
 

@@ -37,6 +37,7 @@ The current MVP includes:
 - Read-only manager conflict review
 - Teams runtime detection and Entra SSO validation scaffolding
 - Postgres persistence through Neon, with in-memory fallback when `DATABASE_URL` is absent
+- Graph-ready schedule provider boundaries, with the current Neon/demo provider active and a non-functional Microsoft Graph stub reserved for later work
 
 The MVP intentionally does not connect to Microsoft Graph, live Teams Shifts data, or external calendar subscriptions yet.
 
@@ -48,6 +49,7 @@ At a high level:
 - `server/` contains the Express API, auth checks, config validation, logging, health reporting, database access, and application services
 - `server/services/appService.ts` is the main application boundary for authorization-aware behavior
 - `server/data/` contains repository implementations for Postgres and the in-memory demo fallback
+- `server/integrations/` contains the schedule-provider boundary for the current Neon/demo source and the future Graph stub
 - `server/db/` contains schema, migrations, and seed logic
 - `teams-app/` contains the Teams app manifest template and icons
 - `scripts/` contains project automation such as Teams packaging and version validation
@@ -85,6 +87,7 @@ Copy `.env.example` to `.env` and set values as needed.
 | `APP_BASE_URL` | No for browser preview, Yes for Teams packaging | Base URL used by Teams manifest tooling and local Teams testing. |
 | `FEEDBACK_EMAIL` | Recommended | Email address used by the Settings feedback links. |
 | `APP_DOCUMENTATION_URL` | Optional | Public documentation URL shown in Settings when configured. |
+| `SCHEDULE_PROVIDER` | Optional | Placeholder schedule-provider selector. Defaults to `neon-demo`. `microsoft-graph` is present only as a safe stub today. |
 | `TEAMS_APP_ID` | Required for Teams packaging | Teams app ID used in the manifest. |
 | `ENTRA_CLIENT_ID` | Required for Teams SSO | Entra app registration client ID. |
 | `ENTRA_TENANT_ID` | Required for Teams SSO | Entra tenant ID. |
@@ -97,7 +100,7 @@ Copy `.env.example` to `.env` and set values as needed.
 | `TEAMS_TERMS_OF_USE_URL` | Required for Teams packaging | Terms URL in the manifest. |
 | `TEAMS_VALID_DOMAINS` | Required for Teams packaging | Comma-separated domains allowed by the manifest. |
 
-Startup validation now checks `PORT`, `APP_BASE_URL`, `DATABASE_URL`, `FEEDBACK_EMAIL`, and partial Teams SSO configuration.
+Startup validation now checks `PORT`, `APP_BASE_URL`, `DATABASE_URL`, `FEEDBACK_EMAIL`, schedule-provider selection, and partial Teams SSO configuration.
 
 ## Neon setup
 
@@ -131,6 +134,18 @@ npm run db:seed
 ```
 
 The seed data exists to preserve the browser preview workflow. It is not production data and should not be treated as a real tenant model.
+
+## Integration architecture
+
+Published schedule data now passes through a schedule-provider boundary on the server.
+
+Today:
+
+- `neon-demo` is the active provider and uses the existing persisted schedule data
+- `microsoft-graph` is an intentional stub for future read-only Teams Shifts work
+- unavailability remains app-owned and stays in the current database/service layer
+
+No Microsoft credentials or Graph SDK setup are required yet.
 
 ## Running locally
 
@@ -245,6 +260,7 @@ Release metadata is tracked in [CHANGELOG.md](CHANGELOG.md). The release workflo
 - [docs/architecture.md](docs/architecture.md)
 - [docs/database.md](docs/database.md)
 - [docs/deployment.md](docs/deployment.md)
+- [docs/integration-architecture.md](docs/integration-architecture.md)
 - [docs/roadmap.md](docs/roadmap.md)
 - [docs/contributing.md](docs/contributing.md)
 - [docs/release-checklist.md](docs/release-checklist.md)

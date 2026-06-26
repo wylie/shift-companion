@@ -1,5 +1,6 @@
 import "dotenv/config";
 import packageJson from "../package.json";
+import type { ScheduleProviderId } from "./integrations/types";
 
 export type AppConfig = {
   appBaseUrl?: string;
@@ -10,6 +11,8 @@ export type AppConfig = {
   entraTenantId?: string;
   feedbackEmail?: string;
   port: number;
+  scheduleProvider: ScheduleProviderId;
+  scheduleProviderSelection?: string;
   teamsAppId?: string;
   version: string;
 };
@@ -49,6 +52,16 @@ function isValidPostgresUrl(value: string): boolean {
   }
 }
 
+function normalizeScheduleProviderId(
+  value?: string,
+): ScheduleProviderId {
+  if (value === "microsoft-graph") {
+    return "microsoft-graph";
+  }
+
+  return "neon-demo";
+}
+
 export function getRequiredEnv(name: string): string {
   const value = process.env[name];
 
@@ -74,6 +87,10 @@ export function buildAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfig 
     entraTenantId: getTrimmedEnv(env, "ENTRA_TENANT_ID"),
     feedbackEmail: getTrimmedEnv(env, "FEEDBACK_EMAIL"),
     port: Number(env.PORT ?? "8787"),
+    scheduleProvider: normalizeScheduleProviderId(
+      getTrimmedEnv(env, "SCHEDULE_PROVIDER"),
+    ),
+    scheduleProviderSelection: getTrimmedEnv(env, "SCHEDULE_PROVIDER"),
     teamsAppId: getTrimmedEnv(env, "TEAMS_APP_ID"),
     version: packageJson.version,
   };
@@ -111,6 +128,22 @@ export function validateAppConfig(config: AppConfig): StartupValidation {
 
   if (config.feedbackEmail && !isValidEmail(config.feedbackEmail)) {
     errors.push("FEEDBACK_EMAIL must be a valid email address.");
+  }
+
+  if (
+    config.scheduleProviderSelection &&
+    config.scheduleProviderSelection !== "neon-demo" &&
+    config.scheduleProviderSelection !== "microsoft-graph"
+  ) {
+    warnings.push(
+      `SCHEDULE_PROVIDER "${config.scheduleProviderSelection}" is not supported. Falling back to "neon-demo".`,
+    );
+  }
+
+  if (config.scheduleProvider === "microsoft-graph") {
+    warnings.push(
+      'SCHEDULE_PROVIDER is set to "microsoft-graph", but that provider is still a non-functional Phase 6A stub.',
+    );
   }
 
   const configuredSsoVariables = [

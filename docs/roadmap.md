@@ -62,6 +62,7 @@ Planned.
 
 Scope should stay narrow:
 
+- Phase 6A: provider/adaptor architecture with a safe Graph stub and no live Microsoft calls
 - read-only schedule ingestion first
 - least-privilege permissions
 - no attempt to replace Shifts authoring

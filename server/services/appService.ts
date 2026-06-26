@@ -27,6 +27,10 @@ import {
 } from "../auth/entra";
 import { HttpError } from "../http/errors";
 import {
+  createNeonDemoScheduleProvider,
+} from "../integrations/schedule/neonDemoScheduleProvider";
+import type { ScheduleProvider } from "../integrations/types";
+import {
   addDays,
   formatWeekRange,
   isWithinRange,
@@ -92,8 +96,20 @@ export type RequestIdentityContext = {
   previewUserId?: string;
 };
 
+type AppServiceOptions = {
+  scheduleProvider?: ScheduleProvider;
+};
+
 export class AppService {
-  constructor(private readonly dataAccess: AppDataAccess) {}
+  private readonly scheduleProvider: ScheduleProvider;
+
+  constructor(
+    private readonly dataAccess: AppDataAccess,
+    options: AppServiceOptions = {},
+  ) {
+    this.scheduleProvider =
+      options.scheduleProvider ?? createNeonDemoScheduleProvider(dataAccess);
+  }
 
   async getPreviewUser(previewUserId?: string): Promise<CurrentUser> {
     const previewUsers = await this.dataAccess.users.listPreviewUsers();
@@ -289,7 +305,17 @@ export class AppService {
       );
     }
 
-    return this.dataAccess.shifts.listForUser(currentUser.id);
+    const scheduleResult = await this.scheduleProvider.getCurrentUserScheduleRange({
+      endDate: new Date("2100-01-01T00:00:00"),
+      startDate: new Date("2000-01-01T00:00:00"),
+      userId: currentUser.id,
+    });
+
+    if (!scheduleResult.ok) {
+      throw new HttpError(503, scheduleResult.message);
+    }
+
+    return scheduleResult.data;
   }
 
   async listOwnAuditEvents(currentUser: CurrentUser) {
@@ -443,8 +469,17 @@ export class AppService {
 
     const exportRangeStart = weekStart;
     const exportRangeEnd = addDays(weekStart, weeks * 7);
-    const shifts = await this.dataAccess.shifts.listForUser(currentUser.id);
-    const exportableShifts = shifts.filter((shift) =>
+    const scheduleResult = await this.scheduleProvider.getCurrentUserScheduleRange({
+      endDate: exportRangeEnd,
+      startDate: exportRangeStart,
+      userId: currentUser.id,
+    });
+
+    if (!scheduleResult.ok) {
+      throw new HttpError(503, scheduleResult.message);
+    }
+
+    const exportableShifts = scheduleResult.data.filter((shift) =>
       isWithinRange(
         parseLocalDateTime(shift.start),
         exportRangeStart,

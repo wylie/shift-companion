@@ -28,4 +28,17 @@ describe("validateAppConfig", () => {
       "FEEDBACK_EMAIL is not configured. Settings feedback actions will be unavailable.",
     );
   });
+
+  it("falls back to the Neon/demo schedule provider for unsupported values", () => {
+    const config = buildAppConfig({
+      PORT: "8787",
+      SCHEDULE_PROVIDER: "future-provider",
+    });
+    const validation = validateAppConfig(config);
+
+    expect(config.scheduleProvider).toBe("neon-demo");
+    expect(validation.warnings).toContain(
+      'SCHEDULE_PROVIDER "future-provider" is not supported. Falling back to "neon-demo".',
+    );
+  });
 });
