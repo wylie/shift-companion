@@ -2,9 +2,9 @@
 
 ## Goal
 
-Phase 6A prepares the app for future Microsoft Graph and Teams Shifts integration without connecting to Microsoft services yet.
+The `v0.2.0` milestone prepares the app for future Microsoft Graph and Teams Shifts integration without connecting to Microsoft services yet.
 
-Phase 6 extends that work with an auth-provider boundary for future Microsoft Entra sign-in. The app can now evolve identity and schedule integrations independently.
+The app can now evolve identity and schedule integrations independently.
 
 The current MVP remains unchanged in product scope:
 
@@ -26,7 +26,7 @@ Current implementations:
 - `microsoft-graph`
   - intentionally stubbed
   - makes no network requests
-  - returns a safe not-configured result
+  - returns a safe disabled, not-configured, or not-implemented result depending on future flags
 
 ## Why this boundary exists
 
@@ -72,15 +72,21 @@ Supported values today:
 - `neon-demo`
 - `microsoft-graph`
 
+Future Microsoft flags:
+
+- `MICROSOFT_GRAPH_ENABLED`
+- `MICROSOFT_CLIENT_ID`
+- `MICROSOFT_TENANT_ID`
+
 Behavior:
 
 - default is `neon-demo`
 - unsupported values fall back safely to `neon-demo`
-- selecting `microsoft-graph` does not crash startup, but schedule calls return a clear not-configured result
+- selecting `microsoft-graph` does not crash startup, but schedule calls remain stubbed until future setup is complete
 
 ## No Microsoft setup required yet
 
-Phase 6A and the current auth-boundary work do not require:
+`v0.2.0` does not require:
 
 - Microsoft credentials
 - Graph SDK dependencies
@@ -90,4 +96,4 @@ Phase 6A and the current auth-boundary work do not require:
 
 That is intentional. This phase is only about creating a clean seam for future work.
 
-See [auth-architecture.md](auth-architecture.md) for the preview auth provider, the Entra stub, and the app-user mapping direction.
+See [auth-architecture.md](auth-architecture.md) for the preview auth provider, the Entra stub, and the app-user mapping direction. See [microsoft-integration.md](microsoft-integration.md) for the future setup placeholders and source-of-truth guidance.

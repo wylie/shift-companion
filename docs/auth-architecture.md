@@ -2,7 +2,7 @@
 
 ## Goal
 
-Phase 6 extends the MVP with an auth-provider boundary so future Microsoft Entra sign-in can replace preview identity selection without forcing a rewrite of the UI or API contracts.
+The `v0.2.0` milestone extends the MVP with an auth-provider boundary so future Microsoft Entra sign-in can replace preview identity selection without forcing a rewrite of the UI or API contracts.
 
 This phase does not add:
 
@@ -23,10 +23,10 @@ Current states:
   - resolves the selected demo user
   - powers local development, Vercel demo environments, and the current MVP
 - `microsoft-entra-not-configured`
-  - returned when `AUTH_MODE=microsoft-entra` but Entra placeholders are missing
+  - returned when Microsoft auth is still disabled or future Microsoft setup is incomplete
   - keeps the app in a safe setup-needed state
 - `microsoft-entra-future`
-  - returned when `AUTH_MODE=microsoft-entra` and placeholder Entra settings exist
+  - returned when future Microsoft auth is enabled and placeholder setup exists
   - still does not authenticate anyone yet
 
 ## Why this boundary exists
@@ -66,6 +66,14 @@ It:
 - returns a safe setup-needed session instead of throwing
 
 Future Entra token verification and app-user mapping will live here later.
+
+Current placeholder inputs live behind:
+
+- `MICROSOFT_AUTH_ENABLED`
+- `MICROSOFT_CLIENT_ID`
+- `MICROSOFT_TENANT_ID`
+- `MICROSOFT_REDIRECT_URI`
+- `MICROSOFT_CLIENT_SECRET` for future server-only work when needed
 
 ## Server-side request flow
 

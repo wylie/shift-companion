@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "../data/apiClient";
 import { toErrorMessage } from "../lib/errors";
-import type { AppAuthSession, AuditEvent, CurrentUser } from "../types";
+import type {
+  AppAuthSession,
+  AuditEvent,
+  CurrentUser,
+  ProviderStatus,
+} from "../types";
 
 type Props = {
   auth: AppAuthSession;
@@ -11,7 +16,37 @@ type Props = {
   dataSource: "in-memory" | "postgres";
   documentationUrl?: string;
   feedbackEmail?: string;
+  providerStatus: {
+    currentAuth: ProviderStatus;
+    currentSchedule: ProviderStatus;
+    microsoftAuth: ProviderStatus;
+    microsoftGraph: ProviderStatus;
+  };
 };
+
+function formatStatusLabel(status: ProviderStatus): string {
+  if (status.providerId === "preview-demo") {
+    return "Preview/demo";
+  }
+
+  if (status.providerId === "neon-demo") {
+    return "Neon/demo";
+  }
+
+  if (status.availability === "disabled") {
+    return "Disabled";
+  }
+
+  if (status.availability === "not_configured") {
+    return "Not configured";
+  }
+
+  if (status.availability === "not_implemented") {
+    return "Setup needed";
+  }
+
+  return "Available";
+}
 
 function buildFeedbackHref(params: {
   appVersion: string;
@@ -57,6 +92,7 @@ export function SettingsPrivacy({
   dataSource,
   documentationUrl,
   feedbackEmail,
+  providerStatus,
 }: Props) {
   const [visibleAuditEvents, setVisibleAuditEvents] = useState<AuditEvent[]>(
     [],
@@ -140,6 +176,10 @@ export function SettingsPrivacy({
           <p>{auth.mode}</p>
         </article>
         <article className="card">
+          <h3>Schedule provider</h3>
+          <p>{formatStatusLabel(providerStatus.currentSchedule)}</p>
+        </article>
+        <article className="card">
           <h3>Build environment</h3>
           <p>{buildEnvironment}</p>
         </article>
@@ -148,6 +188,40 @@ export function SettingsPrivacy({
           <p>{dataSource === "postgres" ? "Postgres / Neon" : "In-memory demo data"}</p>
         </article>
       </div>
+
+      <section className="card">
+        <div className="group-header">
+          <h3>Provider status</h3>
+          <span className="muted">v0.2.0 groundwork</span>
+        </div>
+        <p className="muted">
+          Microsoft integration remains stubbed. These status lines show which
+          demo providers are active now and which future Microsoft paths still
+          need setup.
+        </p>
+        <div className="card-grid">
+          <article className="card inset-card">
+            <h4>Current auth mode</h4>
+            <p>{formatStatusLabel(providerStatus.currentAuth)}</p>
+            <p className="muted">{providerStatus.currentAuth.message}</p>
+          </article>
+          <article className="card inset-card">
+            <h4>Current schedule provider</h4>
+            <p>{formatStatusLabel(providerStatus.currentSchedule)}</p>
+            <p className="muted">{providerStatus.currentSchedule.message}</p>
+          </article>
+          <article className="card inset-card">
+            <h4>Microsoft auth</h4>
+            <p>{formatStatusLabel(providerStatus.microsoftAuth)}</p>
+            <p className="muted">{providerStatus.microsoftAuth.message}</p>
+          </article>
+          <article className="card inset-card">
+            <h4>Microsoft Graph</h4>
+            <p>{formatStatusLabel(providerStatus.microsoftGraph)}</p>
+            <p className="muted">{providerStatus.microsoftGraph.message}</p>
+          </article>
+        </div>
+      </section>
 
       <section className="card">
         <div className="group-header">

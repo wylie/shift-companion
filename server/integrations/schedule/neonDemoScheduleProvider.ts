@@ -7,6 +7,7 @@ import { filterShiftsByRange } from "./utils";
 
 const status: IntegrationProviderStatus = {
   availability: "available",
+  enabled: true,
   message:
     "Using the persisted Neon/demo schedule provider backed by the current repository layer.",
   providerId: "neon-demo",

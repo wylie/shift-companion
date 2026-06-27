@@ -35,10 +35,11 @@ The current MVP includes:
 - Persisted personal schedule view
 - Personal `.ics` calendar download
 - Read-only manager conflict review
-- Teams runtime detection plus a preview-first auth boundary for future Entra sign-in
+- Teams runtime detection plus preview-first auth and schedule boundaries for future Microsoft/Graph integration
 - Postgres persistence through Neon, with in-memory fallback when `DATABASE_URL` is absent
 - Graph-ready schedule provider boundaries, with the current Neon/demo provider active and a non-functional Microsoft Graph stub reserved for later work
 - Auth-provider boundaries, with preview/demo auth active and Microsoft Entra held as a safe stub
+- Lightweight provider status reporting in Settings so the active demo path and future Microsoft flags stay explicit
 
 The MVP intentionally does not connect to Microsoft Graph, live Teams Shifts data, or external calendar subscriptions yet.
 
@@ -91,6 +92,12 @@ Copy `.env.example` to `.env` and set values as needed.
 | `FEEDBACK_EMAIL` | Recommended | Email address used by the Settings feedback links. |
 | `APP_DOCUMENTATION_URL` | Optional | Public documentation URL shown in Settings when configured. |
 | `SCHEDULE_PROVIDER` | Optional | Placeholder schedule-provider selector. Defaults to `neon-demo`. `microsoft-graph` is present only as a safe stub today. |
+| `MICROSOFT_AUTH_ENABLED` | Optional | Future Microsoft auth feature flag. Defaults to `false`. |
+| `MICROSOFT_GRAPH_ENABLED` | Optional | Future Microsoft Graph / Teams Shifts feature flag. Defaults to `false`. |
+| `MICROSOFT_CLIENT_ID` | Optional placeholder | Future Microsoft application client ID. Not required in preview/demo mode. |
+| `MICROSOFT_TENANT_ID` | Optional placeholder | Future Microsoft tenant ID. Not required in preview/demo mode. |
+| `MICROSOFT_REDIRECT_URI` | Optional placeholder | Future Microsoft auth redirect URI. Not required until real sign-in begins. |
+| `MICROSOFT_CLIENT_SECRET` | Optional placeholder | Future server-only secret for Microsoft integration. Do not expose this to the client. |
 | `TEAMS_APP_ID` | Required for Teams packaging | Teams app ID used in the manifest. |
 | `ENTRA_CLIENT_ID` | Optional placeholder | Future Entra app registration client ID. Not required for the current MVP. |
 | `ENTRA_TENANT_ID` | Optional placeholder | Future Entra tenant ID. Not required for the current MVP. |
@@ -103,7 +110,7 @@ Copy `.env.example` to `.env` and set values as needed.
 | `TEAMS_TERMS_OF_USE_URL` | Required for Teams packaging | Terms URL in the manifest. |
 | `TEAMS_VALID_DOMAINS` | Required for Teams packaging | Comma-separated domains allowed by the manifest. |
 
-Startup validation now checks `PORT`, `APP_BASE_URL`, `DATABASE_URL`, `FEEDBACK_EMAIL`, auth-mode selection, schedule-provider selection, and incomplete placeholder Entra configuration without crashing startup.
+Startup validation now checks `PORT`, `APP_BASE_URL`, `DATABASE_URL`, `FEEDBACK_EMAIL`, auth-mode selection, schedule-provider selection, and incomplete Microsoft placeholder setup without crashing preview/demo mode.
 
 ## Neon setup
 
@@ -147,6 +154,7 @@ Today:
 - `neon-demo` is the active provider and uses the existing persisted schedule data
 - `microsoft-graph` is an intentional stub for future read-only Teams Shifts work
 - unavailability remains app-owned and stays in the current database/service layer
+- `MICROSOFT_GRAPH_ENABLED=false` keeps the Microsoft path safely disabled by default
 
 No Microsoft credentials or Graph SDK setup are required yet.
 
@@ -159,9 +167,27 @@ Today:
 - `preview-demo` is the active auth mode by default
 - preview identity switching remains the working MVP path
 - `microsoft-entra` is selectable only as a safe setup-needed stub
+- `MICROSOFT_AUTH_ENABLED=false` keeps Microsoft sign-in safely disabled by default
 - no Microsoft tenant, OAuth flow, or token verification is required yet
 
 Future Entra work should map a verified Microsoft identity to an existing app user without changing the current UI contracts.
+
+## Microsoft groundwork
+
+`v0.2.0` is a groundwork milestone, not a live Microsoft integration release.
+
+It adds:
+
+- safe Microsoft configuration placeholders
+- explicit disabled/setup-needed provider status in Settings
+- stronger separation between preview/demo data and future Microsoft-backed paths
+
+It does not add:
+
+- real OAuth redirects
+- real Microsoft Graph calls
+- Teams Shifts API calls
+- background sync
 
 ## Running locally
 
@@ -282,6 +308,7 @@ Release metadata is tracked in [CHANGELOG.md](CHANGELOG.md). The release workflo
 
 - [docs/architecture.md](docs/architecture.md)
 - [docs/auth-architecture.md](docs/auth-architecture.md)
+- [docs/microsoft-integration.md](docs/microsoft-integration.md)
 - [docs/database.md](docs/database.md)
 - [docs/deployment.md](docs/deployment.md)
 - [docs/integration-architecture.md](docs/integration-architecture.md)

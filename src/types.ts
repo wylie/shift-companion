@@ -102,6 +102,23 @@ export type AuthProviderId = "microsoft-entra" | "preview-demo";
 
 export type AuthStatus = "authenticated" | "setup-required" | "unmapped";
 
+export type ScheduleProviderId = "microsoft-graph" | "neon-demo";
+
+export type ProviderAvailability =
+  | "available"
+  | "disabled"
+  | "not_configured"
+  | "not_implemented";
+
+export type ProviderStatus = {
+  availability: ProviderAvailability;
+  enabled: boolean;
+  message: string;
+  providerId:
+    | AuthProviderId
+    | ScheduleProviderId;
+};
+
 export type AppAuthSession = {
   isConfigured: boolean;
   message?: string;
@@ -128,6 +145,12 @@ export type AppBootstrap = {
   documentationUrl?: string;
   feedbackEmail?: string;
   organization: Organization;
+  providerStatus: {
+    currentAuth: ProviderStatus;
+    currentSchedule: ProviderStatus;
+    microsoftAuth: ProviderStatus;
+    microsoftGraph: ProviderStatus;
+  };
   previewUsers: PreviewUser[];
 };
 

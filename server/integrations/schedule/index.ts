@@ -9,7 +9,7 @@ export function createScheduleProvider(params: {
   dataAccess: AppDataAccess;
 }): ScheduleProvider {
   if (params.config.scheduleProvider === "microsoft-graph") {
-    return createMicrosoftGraphScheduleProvider();
+    return createMicrosoftGraphScheduleProvider(params.config);
   }
 
   return createNeonDemoScheduleProvider(params.dataAccess);

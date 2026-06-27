@@ -15,6 +15,7 @@ describe("createScheduleProvider", () => {
 
     await expect(provider.getProviderStatus()).resolves.toEqual({
       availability: "available",
+      enabled: true,
       message:
         "Using the persisted Neon/demo schedule provider backed by the current repository layer.",
       providerId: "neon-demo",
@@ -24,12 +25,17 @@ describe("createScheduleProvider", () => {
 
 describe("createMicrosoftGraphScheduleProvider", () => {
   it("returns a safe not-configured result without making external calls", async () => {
-    const provider = createMicrosoftGraphScheduleProvider();
+    const provider = createMicrosoftGraphScheduleProvider(
+      buildAppConfig({
+        PORT: "8787",
+      }),
+    );
 
     await expect(provider.getProviderStatus()).resolves.toEqual({
-      availability: "not_configured",
+      availability: "disabled",
+      enabled: false,
       message:
-        "Microsoft Graph / Teams Shifts schedule integration is intentionally stubbed in Phase 6A and is not configured yet.",
+        "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
       providerId: "microsoft-graph",
     });
 
@@ -40,16 +46,34 @@ describe("createMicrosoftGraphScheduleProvider", () => {
         userId: "user-staff-1",
       }),
     ).resolves.toEqual({
-      errorCode: "not_configured",
+      errorCode: "disabled",
       message:
-        "Microsoft Graph / Teams Shifts schedule integration is not configured yet.",
+        "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
       ok: false,
       status: {
-        availability: "not_configured",
+        availability: "disabled",
+        enabled: false,
         message:
-          "Microsoft Graph / Teams Shifts schedule integration is intentionally stubbed in Phase 6A and is not configured yet.",
+          "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
         providerId: "microsoft-graph",
       },
+    });
+  });
+
+  it("returns a safe setup-needed state when Microsoft Graph is enabled without full config", async () => {
+    const provider = createMicrosoftGraphScheduleProvider(
+      buildAppConfig({
+        MICROSOFT_GRAPH_ENABLED: "true",
+        PORT: "8787",
+      }),
+    );
+
+    await expect(provider.getProviderStatus()).resolves.toEqual({
+      availability: "not_configured",
+      enabled: true,
+      message:
+        "Microsoft Graph is enabled, but setup is incomplete. Add MICROSOFT_CLIENT_ID and MICROSOFT_TENANT_ID before enabling real Teams Shifts reads later.",
+      providerId: "microsoft-graph",
     });
   });
 });

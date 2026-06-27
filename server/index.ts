@@ -1,5 +1,5 @@
 import { createApp } from "./app";
-import { appConfig, validateAppConfig } from "./config";
+import { appConfig, isMicrosoftAuthConfigured, validateAppConfig } from "./config";
 import { logError, logInfo, logWarn } from "./logger";
 
 const startupValidation = validateAppConfig(appConfig);
@@ -29,11 +29,7 @@ app.listen(appConfig.port, () => {
     authConfigured:
       appConfig.authMode === "preview-demo"
         ? true
-        : Boolean(
-            appConfig.entraAppIdUri &&
-              appConfig.entraClientId &&
-              appConfig.entraTenantId,
-          ),
+        : isMicrosoftAuthConfigured(appConfig),
     authMode: appConfig.authMode,
     dataSource: appConfig.databaseUrl ? "postgres" : "in-memory",
     feedbackConfigured: Boolean(appConfig.feedbackEmail),

@@ -1,15 +1,8 @@
-import type { Shift } from "../../src/types";
+import type { ProviderStatus, Shift } from "../../src/types";
 
 export type ScheduleProviderId = "microsoft-graph" | "neon-demo";
 
-export type IntegrationProviderAvailability =
-  | "available"
-  | "not_configured"
-  | "not_implemented";
-
-export type IntegrationProviderStatus = {
-  availability: IntegrationProviderAvailability;
-  message: string;
+export type IntegrationProviderStatus = ProviderStatus & {
   providerId: ScheduleProviderId;
 };
 
@@ -31,7 +24,7 @@ export type ScheduleProviderResult<T> =
       status: IntegrationProviderStatus;
     }
   | {
-      errorCode: "not_configured" | "not_implemented";
+      errorCode: "disabled" | "not_configured" | "not_implemented";
       message: string;
       ok: false;
       status: IntegrationProviderStatus;

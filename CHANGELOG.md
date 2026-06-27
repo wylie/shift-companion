@@ -10,6 +10,16 @@ The format follows Keep a Changelog, and versions follow Semantic Versioning.
 
 - Documentation, CI/CD, runtime validation, health reporting, and release infrastructure are being hardened without expanding product scope.
 
+## [0.2.0] - 2026-06-26
+
+### Added
+
+- Microsoft/Graph integration groundwork with explicit preview-vs-Microsoft provider boundaries, safe feature flags, and lightweight provider status reporting.
+
+### Changed
+
+- Clarified that Neon-backed demo data remains the source of truth for app-owned unavailability while future Teams Shifts data is still stubbed.
+
 ## [0.1.3] - 2026-06-26
 
 ### Fixed

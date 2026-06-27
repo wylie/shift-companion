@@ -14,6 +14,7 @@ function createScheduleProviderStub(shifts: Shift[]): ScheduleProvider {
         ok: true,
         status: {
           availability: "available",
+          enabled: true,
           message: "stub",
           providerId: "neon-demo",
         },
@@ -25,6 +26,7 @@ function createScheduleProviderStub(shifts: Shift[]): ScheduleProvider {
         ok: true,
         status: {
           availability: "available",
+          enabled: true,
           message: "stub",
           providerId: "neon-demo",
         },
@@ -33,6 +35,7 @@ function createScheduleProviderStub(shifts: Shift[]): ScheduleProvider {
     async getProviderStatus() {
       return {
         availability: "available",
+        enabled: true,
         message: "stub",
         providerId: "neon-demo",
       };
@@ -42,6 +45,14 @@ function createScheduleProviderStub(shifts: Shift[]): ScheduleProvider {
 
 function createAuthProviderStub(): AuthProvider {
   return {
+    async getProviderStatus() {
+      return {
+        availability: "not_configured",
+        enabled: false,
+        message: "Microsoft Entra auth is not configured yet.",
+        providerId: "microsoft-entra",
+      };
+    },
     async getSession() {
       return {
         isConfigured: false,
@@ -162,6 +173,49 @@ describe("AppService calendar export", () => {
     expect(bootstrap.auth.status).toBe("setup-required");
     expect(bootstrap.currentUser).toBeNull();
     expect(bootstrap.previewUsers).toEqual([]);
+    expect(bootstrap.providerStatus.currentAuth).toEqual({
+      availability: "not_configured",
+      enabled: false,
+      message: "Microsoft Entra auth is not configured yet.",
+      providerId: "microsoft-entra",
+    });
+  });
+
+  it("includes default provider status for the preview/demo MVP path", async () => {
+    const service = new AppService(createMockDataAccess());
+    const bootstrap = await service.getBootstrap({
+      appRuntime: "browserPreview",
+      previewUserId: "user-staff-1",
+    });
+
+    expect(bootstrap.providerStatus.currentAuth).toEqual({
+      availability: "available",
+      enabled: true,
+      message:
+        "Preview/demo auth is active and resolves the selected local demo identity.",
+      providerId: "preview-demo",
+    });
+    expect(bootstrap.providerStatus.currentSchedule).toEqual({
+      availability: "available",
+      enabled: true,
+      message:
+        "Using the persisted Neon/demo schedule provider backed by the current repository layer.",
+      providerId: "neon-demo",
+    });
+    expect(bootstrap.providerStatus.microsoftAuth).toEqual({
+      availability: "not_configured",
+      enabled: false,
+      message:
+        "Microsoft auth is disabled. Preview/demo auth remains the active MVP path until MICROSOFT_AUTH_ENABLED=true and future setup is completed.",
+      providerId: "microsoft-entra",
+    });
+    expect(bootstrap.providerStatus.microsoftGraph).toEqual({
+      availability: "disabled",
+      enabled: false,
+      message:
+        "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
+      providerId: "microsoft-graph",
+    });
   });
 });
 

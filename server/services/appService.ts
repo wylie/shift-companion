@@ -23,6 +23,7 @@ import type { AppDataAccess } from "../data/types";
 import {
   createPreviewAuthProvider,
 } from "../auth/providers/previewAuthProvider";
+import { getMicrosoftEntraProviderStatus } from "../auth/providers/microsoftEntraAuthProvider";
 import type {
   AuthenticatedUser,
   AuthProvider,
@@ -34,6 +35,7 @@ import { HttpError } from "../http/errors";
 import {
   createNeonDemoScheduleProvider,
 } from "../integrations/schedule/neonDemoScheduleProvider";
+import { getMicrosoftGraphScheduleProviderStatus } from "../integrations/schedule/microsoftGraphScheduleProvider";
 import type { ScheduleProvider } from "../integrations/types";
 import {
   addDays,
@@ -199,8 +201,11 @@ export class AppService {
   async getBootstrap(
     requestContext: AuthRequestContext,
   ): Promise<AppBootstrap> {
-    const [authSession, organization] = await Promise.all([
+    const [authSession, currentAuthStatus, currentScheduleStatus, organization] =
+      await Promise.all([
       this.resolveRequestUser(requestContext),
+      this.authProvider.getProviderStatus(),
+      this.scheduleProvider.getProviderStatus(),
       this.dataAccess.organizations.getDemoOrganization(),
     ]);
     const currentUser = authSession.currentUser ?? null;
@@ -241,6 +246,12 @@ export class AppService {
       documentationUrl:
         getOptionalEnv("APP_DOCUMENTATION_URL") ?? appConfig.documentationUrl,
       feedbackEmail: getOptionalEnv("FEEDBACK_EMAIL") ?? appConfig.feedbackEmail,
+      providerStatus: {
+        currentAuth: currentAuthStatus,
+        currentSchedule: currentScheduleStatus,
+        microsoftAuth: getMicrosoftEntraProviderStatus(appConfig),
+        microsoftGraph: getMicrosoftGraphScheduleProviderStatus(appConfig),
+      },
       previewUsers: previewUsersWithDepartments,
       organization,
     };

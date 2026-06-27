@@ -55,4 +55,34 @@ describe("validateAppConfig", () => {
       'AUTH_MODE "future-auth" is not supported. Falling back to "preview-demo".',
     );
   });
+
+  it("does not require Microsoft auth variables in local preview mode", () => {
+    const config = buildAppConfig({
+      MICROSOFT_AUTH_ENABLED: "false",
+      MICROSOFT_GRAPH_ENABLED: "false",
+      PORT: "8787",
+    });
+    const validation = validateAppConfig(config);
+
+    expect(validation.errors).toEqual([]);
+    expect(validation.warnings).not.toContain(
+      expect.stringContaining("Microsoft auth is enabled but incomplete."),
+    );
+    expect(validation.warnings).not.toContain(
+      expect.stringContaining("Microsoft Graph is enabled but incomplete."),
+    );
+  });
+
+  it("warns when Microsoft auth is enabled without the future setup values", () => {
+    const config = buildAppConfig({
+      MICROSOFT_AUTH_ENABLED: "true",
+      PORT: "8787",
+    });
+    const validation = validateAppConfig(config);
+
+    expect(validation.errors).toEqual([]);
+    expect(validation.warnings).toContain(
+      "Microsoft auth is enabled but incomplete. Missing: MICROSOFT_CLIENT_ID, MICROSOFT_TENANT_ID, MICROSOFT_REDIRECT_URI.",
+    );
+  });
 });

@@ -1,6 +1,6 @@
 import type { AppHealthResponse, HealthCheck } from "../src/types";
 import type { AppConfig } from "./config";
-import { appConfig, isTeamsSsoConfigured } from "./config";
+import { appConfig, isMicrosoftAuthConfigured, isTeamsSsoConfigured } from "./config";
 import { createPool, hasDatabaseUrl } from "./db/connection";
 
 async function getDatabaseHealthCheck(
@@ -44,9 +44,10 @@ export async function buildHealthSnapshot(params: {
   return {
     checks,
     runtime: {
-      authConfigured: params.config.authMode === "preview-demo"
-        ? true
-        : isTeamsSsoConfigured(params.config),
+      authConfigured:
+        params.config.authMode === "preview-demo"
+          ? true
+          : isMicrosoftAuthConfigured(params.config),
       authMode: params.config.authMode,
       dataSource: params.isDatabaseConfigured ? "postgres" : "in-memory",
       feedbackConfigured: Boolean(params.config.feedbackEmail),

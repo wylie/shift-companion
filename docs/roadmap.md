@@ -55,14 +55,14 @@ Completed.
 - CI/CD and release workflows
 - documentation for long-term maintenance
 
-### Phase 6: Read-only Microsoft Graph and Teams Shifts integration
+### Phase 6: Microsoft/Graph groundwork and future Teams Shifts integration
 
-Planned.
+In progress.
 
 Scope should stay narrow:
 
-- Phase 6A: provider/adaptor architecture with a safe Graph stub and no live Microsoft calls
-- Phase 6B: auth-provider architecture with preview/demo auth active and Microsoft Entra held as a safe stub
+- v0.2.0: explicit Microsoft configuration placeholders, provider status UI, and safer disabled defaults
+- keep preview/demo auth and Neon/demo schedule data working while Microsoft paths stay stubbed
 - future app-user mapping from verified Entra identity to internal users
 - read-only schedule ingestion first
 - least-privilege permissions
