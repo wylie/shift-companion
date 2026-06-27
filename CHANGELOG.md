@@ -10,6 +10,13 @@ The format follows Keep a Changelog, and versions follow Semantic Versioning.
 
 - Documentation, CI/CD, runtime validation, health reporting, and release infrastructure are being hardened without expanding product scope.
 
+## [0.1.3] - 2026-06-26
+
+### Fixed
+
+- Synchronized `package.json`, release automation, and changelog metadata after the failed `v0.1.2` release attempt.
+- Hardened the tagged release flow so GitHub Releases validate the pushed tag against `package.json` and publish changelog-backed release notes.
+
 ## [0.1.0] - 2026-06-26
 
 ### Added

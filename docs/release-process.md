@@ -30,6 +30,7 @@ Guidelines:
 - keep an `## [Unreleased]` section at the top
 - add the new released section before tagging
 - keep the release tag and the released changelog version identical
+- if a version tag has already been created or pushed, do not reuse it; bump to the next patch release instead
 
 ## Versioning guidance
 
@@ -73,3 +74,4 @@ git push origin v0.1.0
 - Do not tag if the Vercel deployment is failing when that deployment is part of the release gate.
 - Do not create releases from a dirty local state.
 - The Git tag must match `package.json` exactly.
+- If a previous tag was consumed by a failed release attempt, cut the next patch version instead of trying to recycle the old tag.
