@@ -87,6 +87,7 @@ It performs:
 
 - `npm ci`
 - `npm run version:check`
+- `npm run release:check`
 - `npm run typecheck`
 - `npm run lint`
 - `npm run test`
@@ -94,7 +95,12 @@ It performs:
 - `npm run teams:validate`
 - `npm run teams:package`
 
-It also uploads the Teams app package as a workflow artifact.
+It also:
+
+- verifies the pushed tag matches `package.json`
+- extracts the matching `CHANGELOG.md` section for release notes
+- uploads the Teams app package as a workflow artifact
+- creates a GitHub Release for the pushed tag
 
 ## Release workflow documentation
 
@@ -106,9 +112,10 @@ Recommended release flow:
 4. Run `npm run release:verify`.
 5. Commit the release preparation changes.
 6. Create a Git tag in the form `vX.Y.Z`.
-7. Push the branch and tag when ready for GitHub Actions to validate the release artifact path.
+7. Optionally run `npm run release:check -- vX.Y.Z` locally before pushing the tag.
+8. Push the branch and tag when ready for GitHub Actions to validate the release and create the GitHub Release entry.
 
-This repo now includes local and CI checks for version metadata, but it does not auto-publish npm packages or GitHub Releases.
+This repo now includes local and CI checks for version metadata and automated GitHub Release creation. It still does not publish npm packages.
 
 ## Teams deployment notes
 
@@ -119,5 +126,6 @@ This repo now includes local and CI checks for version metadata, but it does not
 Additional setup references:
 
 - [release-checklist.md](release-checklist.md)
+- [release-process.md](release-process.md)
 - [entra-sso-setup.md](entra-sso-setup.md)
 - [teams-local-testing.md](teams-local-testing.md)

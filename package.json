@@ -16,9 +16,10 @@
     "db:seed": "tsx server/db/seed.ts",
     "teams:validate": "node scripts/validate-teams-manifest.mjs",
     "teams:package": "node scripts/build-teams-package.mjs",
+    "release:check": "node scripts/check-release-version.mjs",
     "version:current": "node scripts/version.mjs current",
     "version:check": "node scripts/version.mjs check",
-    "release:verify": "npm run version:check && npm run typecheck && npm run lint && npm run test && npm run build && npm run teams:validate && npm run teams:package"
+    "release:verify": "npm run version:check && npm run release:check v$(node scripts/version.mjs current) && npm run typecheck && npm run lint && npm run test && npm run build && npm run teams:validate && npm run teams:package"
   },
   "dependencies": {
     "@microsoft/teams-js": "^2.33.0",

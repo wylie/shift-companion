@@ -224,6 +224,7 @@ npm run build
 - `npm run lint` runs ESLint with `--max-warnings 0`
 - `npm run teams:validate` validates the Teams manifest inputs
 - `npm run teams:package` builds the local Teams app package
+- `npm run release:check` validates that a release tag matches `package.json`
 - `npm run version:current` prints the current application version
 - `npm run version:check` validates SemVer and changelog structure
 - `npm run release:verify` runs release-oriented validation, build, and Teams packaging
@@ -236,6 +237,10 @@ Deployment has two parts:
 2. The Teams manifest package that points at that deployment
 
 For deployment guidance, release flow, environment expectations, and health checks, see [docs/deployment.md](docs/deployment.md).
+
+## Release
+
+For version bumps, changelog updates, tag discipline, and GitHub Release automation, see [docs/release-process.md](docs/release-process.md).
 
 ## Roadmap
 
@@ -269,8 +274,9 @@ This project follows Semantic Versioning.
 Release metadata is tracked in [CHANGELOG.md](CHANGELOG.md). The release workflows use:
 
 - `npm run version:check` to validate version and changelog structure
+- `npm run release:check` to validate that a pushed `vX.Y.Z` tag matches `package.json`
 - `.github/workflows/ci.yml` for pull request and branch validation
-- `.github/workflows/release.yml` for tag-based release validation and Teams package artifacts
+- `.github/workflows/release.yml` for tag-based validation, Teams package artifacts, changelog-backed release notes, and GitHub Release creation
 
 ## Additional docs
 

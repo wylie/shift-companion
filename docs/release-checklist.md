@@ -25,6 +25,7 @@
 - `npm run test`
 - `npm run build`
 - `npm run release:verify`
+- `npm run release:check -- v0.1.0`
 
 ### Running app checks
 
@@ -37,6 +38,7 @@
 - Settings shows app version, build environment, data source, feedback links, and documentation link when configured
 - Manager View still functions as an experimental read-only demo surface
 - Health endpoint reports a healthy Postgres-backed runtime
+- Tagged releases can validate the version/tag match and create a GitHub Release from `CHANGELOG.md`
 
 ## Recommendation
 

@@ -78,6 +78,7 @@ This keeps the product honest about:
 - Keep `package.json` version in valid SemVer format.
 - Update `CHANGELOG.md` for user-visible or operationally meaningful changes.
 - Use tags in the form `vX.Y.Z`.
+- Use `npm run release:check -- vX.Y.Z` to confirm the tag matches `package.json` before pushing.
 - Use `npm run version:check` to validate release metadata locally.
 
 ## Related references

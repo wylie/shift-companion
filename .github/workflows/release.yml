@@ -1,4 +1,4 @@
-name: Release Validation
+name: Release
 
 on:
   push:
@@ -9,14 +9,19 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
-  release-verify:
+  release:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -27,8 +32,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate release metadata
+      - name: Validate version metadata
         run: npm run version:check
+
+      - name: Validate release tag matches package version
+        run: npm run release:check
 
       - name: Typecheck
         run: npm run typecheck
@@ -48,9 +56,20 @@ jobs:
       - name: Build Teams app package
         run: npm run teams:package
 
+      - name: Extract release notes from changelog
+        run: node scripts/extract-release-notes.mjs "$RUNNER_TEMP/release-notes.md"
+
       - name: Upload Teams app package
         uses: actions/upload-artifact@v4
         with:
           name: teams-app-package
           path: teams-app/dist/*.zip
           if-no-files-found: error
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: ${{ runner.temp }}/release-notes.md
+          files: teams-app/dist/*.zip
+          generate_release_notes: false
+          tag_name: ${{ github.ref_name }}
