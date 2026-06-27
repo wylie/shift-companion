@@ -1,4 +1,5 @@
 import type {
+  AppAuthSession,
   CurrentUser,
   NavItem,
   PreviewUser,
@@ -7,6 +8,7 @@ import type {
 
 type Props = {
   activeView: NavItem["id"];
+  auth: AppAuthSession;
   currentUser: CurrentUser;
   currentUserDepartmentLabel: string;
   mockUsers: PreviewUser[];
@@ -18,6 +20,7 @@ type Props = {
 
 export function AppSidebar({
   activeView,
+  auth,
   currentUser,
   currentUserDepartmentLabel,
   mockUsers,
@@ -26,7 +29,7 @@ export function AppSidebar({
   onUserChange,
   teamsRuntime,
 }: Props) {
-  const isBrowserPreview = teamsRuntime.mode === "browserPreview";
+  const isPreviewAuth = auth.providerId === "preview-demo";
 
   return (
     <aside className="sidebar">
@@ -40,7 +43,7 @@ export function AppSidebar({
           </p>
         </div>
 
-        {isBrowserPreview ? (
+        {isPreviewAuth ? (
           <label className="mode-toggle">
             Preview identity
             <select
@@ -56,17 +59,18 @@ export function AppSidebar({
               ))}
             </select>
             <span className="sidebar-helper" id="identity-preview-help">
-              Mocked identity preview only. Real roles and access will come
-              from Teams, Entra, and app records later.
+              Mocked identity preview only. Real Microsoft sign-in is not wired
+              yet, and this selector remains the active auth path for local MVP
+              use.
             </span>
           </label>
         ) : (
           <div className="runtime-indicator" role="note">
-            <strong>Teams workspace</strong>
+            <strong>Future Microsoft auth</strong>
             <span className="sidebar-helper">
-              Teams host context is active. Preview identity switching stays
-              browser-only, and app access is resolved from verified Teams and
-              Entra identity on the server.
+              Microsoft Entra mode has been selected, but this phase only
+              exposes a safe setup-needed boundary. Preview identity switching
+              is disabled until real sign-in is added later.
             </span>
           </div>
         )}
@@ -87,44 +91,42 @@ export function AppSidebar({
           ))}
         </nav>
 
-        {isBrowserPreview ? (
+        {isPreviewAuth ? (
           <div className="demo-notice" role="note">
             <strong>Demo data only.</strong> No YMCA, Microsoft Graph, or Teams
             Shifts data is connected.
           </div>
         ) : (
           <div className="demo-notice" role="note">
-            <strong>Teams SSO only.</strong> No Microsoft Graph, live Teams
-            Shifts, or YMCA data is connected yet.
+            <strong>Setup required.</strong> Microsoft Entra auth is still
+            stubbed. No Microsoft Graph, live Teams Shifts, or YMCA data is
+            connected yet.
           </div>
         )}
       </div>
 
       <div className="status-card">
-        {isBrowserPreview ? (
+        {isPreviewAuth ? (
           <>
             <strong>{currentUser.name}</strong>
             <span>
               {currentUser.role === "manager" ? "Manager" : "Staff member"}
             </span>
             <span>{currentUserDepartmentLabel}</span>
-            <span>Browser preview mode</span>
+            <span>Preview/demo auth mode</span>
           </>
         ) : (
           <>
-            <strong>
-              {teamsRuntime.context?.userDisplayName ??
-                teamsRuntime.context?.userPrincipalName ??
-                currentUser.name}
-            </strong>
-            <span>{currentUser.name}</span>
+            <strong>{auth.mode}</strong>
+            <span>{auth.message ?? "Microsoft auth is not configured yet."}</span>
+            <span>
+              {teamsRuntime.context?.hostName ?? "Microsoft Teams"} ready for a
+              future sign-in path
+            </span>
             <span>
               {teamsRuntime.context?.clientType
                 ? `Client: ${teamsRuntime.context.clientType}`
-                : "Client context pending"}
-            </span>
-            <span>
-              {teamsRuntime.context?.hostName ?? "Microsoft Teams"} workspace
+                : "No Teams client required today"}
             </span>
           </>
         )}

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "../data/apiClient";
 import { toErrorMessage } from "../lib/errors";
-import type { AuditEvent, CurrentUser } from "../types";
+import type { AppAuthSession, AuditEvent, CurrentUser } from "../types";
 
 type Props = {
+  auth: AppAuthSession;
   appVersion: string;
   buildEnvironment: "development" | "production" | "test";
   currentUser: CurrentUser;
@@ -49,6 +50,7 @@ function buildFeedbackHref(params: {
 }
 
 export function SettingsPrivacy({
+  auth,
   appVersion,
   buildEnvironment,
   currentUser,
@@ -124,13 +126,18 @@ export function SettingsPrivacy({
         <article className="card">
           <h3>Current environment</h3>
           <p>
-            No real Shifts, Microsoft Graph, YMCA, or production auth is
-            connected yet.
+            {auth.providerId === "preview-demo"
+              ? "Preview/demo auth is active. No real Shifts, Microsoft Graph, YMCA, or production auth is connected yet."
+              : "Microsoft Entra auth is reserved for a future phase. This environment stays in a safe setup-needed state until real sign-in is implemented."}
           </p>
         </article>
         <article className="card">
           <h3>App version</h3>
           <p>Current release: v{appVersion}</p>
+        </article>
+        <article className="card">
+          <h3>Authentication mode</h3>
+          <p>{auth.mode}</p>
         </article>
         <article className="card">
           <h3>Build environment</h3>

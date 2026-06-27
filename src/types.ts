@@ -93,6 +93,23 @@ export type NavItem = {
   label: string;
 };
 
+export type AuthMode =
+  | "preview-demo"
+  | "microsoft-entra-not-configured"
+  | "microsoft-entra-future";
+
+export type AuthProviderId = "microsoft-entra" | "preview-demo";
+
+export type AuthStatus = "authenticated" | "setup-required" | "unmapped";
+
+export type AppAuthSession = {
+  isConfigured: boolean;
+  message?: string;
+  mode: AuthMode;
+  providerId: AuthProviderId;
+  status: AuthStatus;
+};
+
 export type AuditEvent = {
   id: string;
   actorUserId: string;
@@ -102,15 +119,16 @@ export type AuditEvent = {
 };
 
 export type AppBootstrap = {
+  auth: AppAuthSession;
   appVersion: string;
   buildEnvironment: "development" | "production" | "test";
+  currentUser: CurrentUser | null;
+  currentUserDepartments: Department[];
   dataSource: "in-memory" | "postgres";
   documentationUrl?: string;
-  previewUsers: PreviewUser[];
-  currentUser: CurrentUser;
-  currentUserDepartments: Department[];
   feedbackEmail?: string;
   organization: Organization;
+  previewUsers: PreviewUser[];
 };
 
 export type UnavailabilityRuleInput = {
@@ -163,6 +181,8 @@ export type HealthCheck = {
 export type AppHealthResponse = {
   checks: HealthCheck[];
   runtime: {
+    authConfigured: boolean;
+    authMode: AuthProviderId;
     dataSource: "in-memory" | "postgres";
     feedbackConfigured: boolean;
     teamsSsoConfigured: boolean;

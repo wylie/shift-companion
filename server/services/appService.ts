@@ -8,7 +8,6 @@ import {
 } from "../../src/lib/access";
 import { detectManagerConflicts } from "../../src/lib/conflicts";
 import type {
-  AppRuntimeMode,
   AppBootstrap,
   AuditEvent,
   CurrentUser,
@@ -18,13 +17,19 @@ import type {
   Shift,
   UnavailabilityRule,
   UnavailabilityRuleInput,
+  AppAuthSession,
 } from "../../src/types";
 import type { AppDataAccess } from "../data/types";
 import {
-  TeamsIdentityError,
-  verifyEntraSsoToken,
-  type VerifiedEntraIdentity,
-} from "../auth/entra";
+  createPreviewAuthProvider,
+} from "../auth/providers/previewAuthProvider";
+import type {
+  AuthenticatedUser,
+  AuthProvider,
+  AuthRequestContext,
+  AuthSession,
+} from "../auth/types";
+import { isAuthenticatedSession } from "../auth/types";
 import { HttpError } from "../http/errors";
 import {
   createNeonDemoScheduleProvider,
@@ -90,102 +95,118 @@ function describeRule(rule: UnavailabilityRule): string {
   return "unavailable date range";
 }
 
-export type RequestIdentityContext = {
-  appRuntime: AppRuntimeMode;
-  bearerToken?: string;
-  previewUserId?: string;
-};
-
 type AppServiceOptions = {
+  authProvider?: AuthProvider;
   scheduleProvider?: ScheduleProvider;
 };
 
 export class AppService {
+  private readonly authProvider: AuthProvider;
   private readonly scheduleProvider: ScheduleProvider;
 
   constructor(
     private readonly dataAccess: AppDataAccess,
     options: AppServiceOptions = {},
   ) {
+    this.authProvider =
+      options.authProvider ?? createPreviewAuthProvider(dataAccess);
     this.scheduleProvider =
       options.scheduleProvider ?? createNeonDemoScheduleProvider(dataAccess);
   }
 
   async getPreviewUser(previewUserId?: string): Promise<CurrentUser> {
-    const previewUsers = await this.dataAccess.users.listPreviewUsers();
-    const requestedUserId = previewUserId ?? previewUsers[0]?.id;
+    const session = await createPreviewAuthProvider(this.dataAccess).getSession({
+      appRuntime: "browserPreview",
+      previewUserId,
+    });
 
-    if (!requestedUserId) {
-      throw new HttpError(500, "No preview users are configured.");
+    if (!session.currentUser) {
+      throw new HttpError(500, "Preview identity could not be resolved.");
     }
 
-    const user = await this.dataAccess.users.getById(requestedUserId);
-
-    if (!user) {
-      throw new HttpError(404, "Preview identity not found.");
-    }
-
-    return user;
+    return session.currentUser;
   }
 
-  private toHttpError(error: unknown): HttpError {
-    if (error instanceof HttpError) {
-      return error;
+  private toAuthHttpError(session: AppAuthSession): HttpError {
+    if (session.status === "unmapped") {
+      return new HttpError(
+        404,
+        session.message ?? "Signed-in user is not mapped to an app user yet.",
+      );
     }
 
-    if (error instanceof TeamsIdentityError) {
-      return new HttpError(error.statusCode, error.message);
+    return new HttpError(
+      503,
+      session.message ?? "Authentication is not configured for this environment.",
+    );
+  }
+
+  async resolveRequestUser(
+    requestContext: AuthRequestContext,
+  ): Promise<AuthSession> {
+    return this.authProvider.getSession(requestContext);
+  }
+
+  async getCurrentAppUser(
+    requestContext: AuthRequestContext,
+  ): Promise<AuthenticatedUser | null> {
+    const session = await this.resolveRequestUser(requestContext);
+
+    if (!isAuthenticatedSession(session)) {
+      return null;
     }
 
-    return new HttpError(500, "Unable to resolve the current user.");
+    return {
+      auth: {
+        isConfigured: session.isConfigured,
+        message: session.message,
+        mode: session.mode,
+        providerId: session.providerId,
+        status: session.status,
+      },
+      currentUser: session.currentUser,
+    };
+  }
+
+  async requireCurrentUser(
+    requestContext: AuthRequestContext,
+  ): Promise<AuthenticatedUser> {
+    const session = await this.resolveRequestUser(requestContext);
+
+    if (!isAuthenticatedSession(session)) {
+      throw this.toAuthHttpError(session);
+    }
+
+    return {
+      auth: {
+        isConfigured: session.isConfigured,
+        message: session.message,
+        mode: session.mode,
+        providerId: session.providerId,
+        status: session.status,
+      },
+      currentUser: session.currentUser,
+    };
   }
 
   async getCurrentUserForRequest(
-    requestContext: RequestIdentityContext,
+    requestContext: AuthRequestContext,
   ): Promise<CurrentUser> {
-    if (requestContext.appRuntime === "teams") {
-      if (!requestContext.bearerToken) {
-        throw new HttpError(401, "Teams SSO token is unavailable.");
-      }
-
-      let verifiedIdentity: VerifiedEntraIdentity;
-
-      try {
-        verifiedIdentity = await verifyEntraSsoToken(requestContext.bearerToken);
-      } catch (error) {
-        throw this.toHttpError(error);
-      }
-
-      const currentUser = await this.dataAccess.users.getByEntraIdentity({
-        email: verifiedIdentity.email,
-        entraObjectId: verifiedIdentity.entraObjectId,
-        tenantId: verifiedIdentity.tenantId,
-        userPrincipalName: verifiedIdentity.userPrincipalName,
-      });
-
-      if (!currentUser) {
-        throw new HttpError(
-          404,
-          "Signed-in Teams user is not mapped to an app user yet.",
-        );
-      }
-
-      return currentUser;
-    }
-
-    return this.getPreviewUser(requestContext.previewUserId);
+    const authenticatedUser = await this.requireCurrentUser(requestContext);
+    return authenticatedUser.currentUser;
   }
 
   async getBootstrap(
-    requestContext: RequestIdentityContext,
+    requestContext: AuthRequestContext,
   ): Promise<AppBootstrap> {
-    const [organization, currentUser] = await Promise.all([
+    const [authSession, organization] = await Promise.all([
+      this.resolveRequestUser(requestContext),
       this.dataAccess.organizations.getDemoOrganization(),
-      this.getCurrentUserForRequest(requestContext),
     ]);
+    const currentUser = authSession.currentUser ?? null;
 
     const previewUsersWithDepartments =
-      requestContext.appRuntime === "browserPreview"
+      authSession.providerId === "preview-demo"
         ? await Promise.all(
             (await this.dataAccess.users.listPreviewUsers()).map(async (user) =>
               toPreviewUser(
@@ -195,10 +216,18 @@ export class AppService {
             ),
           )
         : [];
-    const currentUserDepartments =
-      await this.dataAccess.departments.listForUser(currentUser.id);
+    const currentUserDepartments = currentUser
+      ? await this.dataAccess.departments.listForUser(currentUser.id)
+      : [];
 
     return {
+      auth: {
+        isConfigured: authSession.isConfigured,
+        message: authSession.message,
+        mode: authSession.mode,
+        providerId: authSession.providerId,
+        status: authSession.status,
+      },
       appVersion: appConfig.version,
       buildEnvironment:
         process.env.NODE_ENV === "production"
@@ -206,13 +235,13 @@ export class AppService {
           : process.env.NODE_ENV === "test"
             ? "test"
             : "development",
+      currentUser,
+      currentUserDepartments,
       dataSource: appConfig.databaseUrl ? "postgres" : "in-memory",
       documentationUrl:
         getOptionalEnv("APP_DOCUMENTATION_URL") ?? appConfig.documentationUrl,
       feedbackEmail: getOptionalEnv("FEEDBACK_EMAIL") ?? appConfig.feedbackEmail,
       previewUsers: previewUsersWithDepartments,
-      currentUser,
-      currentUserDepartments,
       organization,
     };
   }

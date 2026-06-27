@@ -39,15 +39,14 @@ Completed.
 
 - Teams runtime detection
 - Teams app packaging
-- Entra SSO token handling
-- server-side token verification
-- app-user mapping for Teams mode
+- placeholder Entra identity data model support
+- Teams-ready deployment structure
 
 ## Near-term priorities
 
 ### Phase 5: Production hardening
 
-In progress.
+Completed.
 
 - environment validation
 - startup validation
@@ -63,6 +62,8 @@ Planned.
 Scope should stay narrow:
 
 - Phase 6A: provider/adaptor architecture with a safe Graph stub and no live Microsoft calls
+- Phase 6B: auth-provider architecture with preview/demo auth active and Microsoft Entra held as a safe stub
+- future app-user mapping from verified Entra identity to internal users
 - read-only schedule ingestion first
 - least-privilege permissions
 - no attempt to replace Shifts authoring

@@ -4,6 +4,8 @@
 
 Phase 6A prepares the app for future Microsoft Graph and Teams Shifts integration without connecting to Microsoft services yet.
 
+Phase 6 extends that work with an auth-provider boundary for future Microsoft Entra sign-in. The app can now evolve identity and schedule integrations independently.
+
 The current MVP remains unchanged in product scope:
 
 - personal unavailability stays app-owned
@@ -78,12 +80,14 @@ Behavior:
 
 ## No Microsoft setup required yet
 
-Phase 6A does not require:
+Phase 6A and the current auth-boundary work do not require:
 
 - Microsoft credentials
 - Graph SDK dependencies
 - OAuth setup
-- Teams runtime changes
+- a Microsoft tenant
 - background sync
 
 That is intentional. This phase is only about creating a clean seam for future work.
+
+See [auth-architecture.md](auth-architecture.md) for the preview auth provider, the Entra stub, and the app-user mapping direction.

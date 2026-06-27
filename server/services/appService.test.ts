@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildCalendarIcs } from "../../src/lib/calendar";
 import type { Shift } from "../../src/types";
 import { createMockDataAccess } from "../data/mockDataAccess";
+import type { AuthProvider } from "../auth/types";
 import type { ScheduleProvider } from "../integrations/types";
 import { AppService } from "./appService";
 
@@ -34,6 +35,20 @@ function createScheduleProviderStub(shifts: Shift[]): ScheduleProvider {
         availability: "available",
         message: "stub",
         providerId: "neon-demo",
+      };
+    },
+  };
+}
+
+function createAuthProviderStub(): AuthProvider {
+  return {
+    async getSession() {
+      return {
+        isConfigured: false,
+        message: "Microsoft Entra auth is not configured yet.",
+        mode: "microsoft-entra-not-configured",
+        providerId: "microsoft-entra",
+        status: "setup-required",
       };
     },
   };
@@ -115,6 +130,38 @@ describe("AppService calendar export", () => {
 
     expect(visibleShifts).toEqual(providerShifts);
     expect(exportableShifts).toEqual(providerShifts);
+  });
+
+  it("keeps protected actions scoped to the resolved app user", async () => {
+    const service = new AppService(createMockDataAccess());
+    const authenticatedUser = await service.requireCurrentUser({
+      appRuntime: "browserPreview",
+      previewUserId: "user-staff-1",
+    });
+    const shifts = await service.getOwnCalendarShifts(
+      authenticatedUser.currentUser,
+      new Date("2026-06-22T00:00:00"),
+      1,
+    );
+
+    expect(authenticatedUser.currentUser.id).toBe("user-staff-1");
+    expect(shifts.every((shift) => shift.userId === authenticatedUser.currentUser.id)).toBe(
+      true,
+    );
+  });
+
+  it("returns a safe setup-needed bootstrap state for the Entra auth stub", async () => {
+    const service = new AppService(createMockDataAccess(), {
+      authProvider: createAuthProviderStub(),
+    });
+    const bootstrap = await service.getBootstrap({
+      appRuntime: "teams",
+    });
+
+    expect(bootstrap.auth.mode).toBe("microsoft-entra-not-configured");
+    expect(bootstrap.auth.status).toBe("setup-required");
+    expect(bootstrap.currentUser).toBeNull();
+    expect(bootstrap.previewUsers).toEqual([]);
   });
 });
 

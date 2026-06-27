@@ -26,6 +26,15 @@ const app = createApp();
 app.listen(appConfig.port, () => {
   logInfo("startup.ready", {
     appBaseUrl: appConfig.appBaseUrl,
+    authConfigured:
+      appConfig.authMode === "preview-demo"
+        ? true
+        : Boolean(
+            appConfig.entraAppIdUri &&
+              appConfig.entraClientId &&
+              appConfig.entraTenantId,
+          ),
+    authMode: appConfig.authMode,
     dataSource: appConfig.databaseUrl ? "postgres" : "in-memory",
     feedbackConfigured: Boolean(appConfig.feedbackEmail),
     port: appConfig.port,

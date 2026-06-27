@@ -44,6 +44,10 @@ export async function buildHealthSnapshot(params: {
   return {
     checks,
     runtime: {
+      authConfigured: params.config.authMode === "preview-demo"
+        ? true
+        : isTeamsSsoConfigured(params.config),
+      authMode: params.config.authMode,
       dataSource: params.isDatabaseConfigured ? "postgres" : "in-memory",
       feedbackConfigured: Boolean(params.config.feedbackEmail),
       teamsSsoConfigured: isTeamsSsoConfigured(params.config),

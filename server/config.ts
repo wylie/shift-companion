@@ -1,9 +1,12 @@
 import "dotenv/config";
 import packageJson from "../package.json";
+import type { AuthProviderId } from "../src/types";
 import type { ScheduleProviderId } from "./integrations/types";
 
 export type AppConfig = {
   appBaseUrl?: string;
+  authMode: AuthProviderId;
+  authModeSelection?: string;
   documentationUrl?: string;
   databaseUrl?: string;
   entraAppIdUri?: string;
@@ -62,6 +65,14 @@ function normalizeScheduleProviderId(
   return "neon-demo";
 }
 
+function normalizeAuthMode(value?: string): AuthProviderId {
+  if (value === "microsoft-entra") {
+    return "microsoft-entra";
+  }
+
+  return "preview-demo";
+}
+
 export function getRequiredEnv(name: string): string {
   const value = process.env[name];
 
@@ -80,6 +91,8 @@ export function getOptionalEnv(name: string): string | undefined {
 export function buildAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   return {
     appBaseUrl: getTrimmedEnv(env, "APP_BASE_URL"),
+    authMode: normalizeAuthMode(getTrimmedEnv(env, "AUTH_MODE")),
+    authModeSelection: getTrimmedEnv(env, "AUTH_MODE"),
     documentationUrl: getTrimmedEnv(env, "APP_DOCUMENTATION_URL"),
     databaseUrl: getTrimmedEnv(env, "DATABASE_URL"),
     entraAppIdUri: getTrimmedEnv(env, "ENTRA_APP_ID_URI"),
@@ -131,6 +144,16 @@ export function validateAppConfig(config: AppConfig): StartupValidation {
   }
 
   if (
+    config.authModeSelection &&
+    config.authModeSelection !== "preview-demo" &&
+    config.authModeSelection !== "microsoft-entra"
+  ) {
+    warnings.push(
+      `AUTH_MODE "${config.authModeSelection}" is not supported. Falling back to "preview-demo".`,
+    );
+  }
+
+  if (
     config.scheduleProviderSelection &&
     config.scheduleProviderSelection !== "neon-demo" &&
     config.scheduleProviderSelection !== "microsoft-graph"
@@ -169,10 +192,18 @@ export function validateAppConfig(config: AppConfig): StartupValidation {
       !config.entraTenantId ? "ENTRA_TENANT_ID" : null,
     ].filter(Boolean);
 
-    errors.push(
-      `Teams SSO server configuration is incomplete. Missing: ${missingVariables.join(
+    warnings.push(
+      `Microsoft Entra configuration is incomplete. Missing: ${missingVariables.join(
         ", ",
       )}.`,
+    );
+  }
+
+  if (config.authMode === "microsoft-entra") {
+    warnings.push(
+      isTeamsSsoConfigured(config)
+        ? 'AUTH_MODE is set to "microsoft-entra", but that provider is still a safe Phase 6 stub.'
+        : 'AUTH_MODE is set to "microsoft-entra", but Microsoft Entra setup is incomplete. The app will stay in a safe setup-needed state.',
     );
   }
 

@@ -12,6 +12,8 @@ describe("getHealthSnapshot", () => {
     });
 
     expect(snapshot.status).toBe("ok");
+    expect(snapshot.runtime.authConfigured).toBe(true);
+    expect(snapshot.runtime.authMode).toBe("preview-demo");
     expect(snapshot.runtime.dataSource).toBe("in-memory");
     expect(snapshot.checks).toContainEqual({
       details:

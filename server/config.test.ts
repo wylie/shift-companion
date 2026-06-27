@@ -2,15 +2,16 @@ import { describe, expect, it } from "vitest";
 import { buildAppConfig, validateAppConfig } from "./config";
 
 describe("validateAppConfig", () => {
-  it("reports incomplete Teams SSO configuration", () => {
+  it("warns about incomplete Microsoft Entra configuration without failing startup", () => {
     const config = buildAppConfig({
       ENTRA_CLIENT_ID: "client-id-only",
       PORT: "8787",
     });
     const validation = validateAppConfig(config);
 
-    expect(validation.errors).toContain(
-      "Teams SSO server configuration is incomplete. Missing: ENTRA_APP_ID_URI, ENTRA_TENANT_ID.",
+    expect(validation.errors).toEqual([]);
+    expect(validation.warnings).toContain(
+      "Microsoft Entra configuration is incomplete. Missing: ENTRA_APP_ID_URI, ENTRA_TENANT_ID.",
     );
   });
 
@@ -39,6 +40,19 @@ describe("validateAppConfig", () => {
     expect(config.scheduleProvider).toBe("neon-demo");
     expect(validation.warnings).toContain(
       'SCHEDULE_PROVIDER "future-provider" is not supported. Falling back to "neon-demo".',
+    );
+  });
+
+  it("defaults auth mode to preview-demo and warns on unsupported values", () => {
+    const config = buildAppConfig({
+      AUTH_MODE: "future-auth",
+      PORT: "8787",
+    });
+    const validation = validateAppConfig(config);
+
+    expect(config.authMode).toBe("preview-demo");
+    expect(validation.warnings).toContain(
+      'AUTH_MODE "future-auth" is not supported. Falling back to "preview-demo".',
     );
   });
 });

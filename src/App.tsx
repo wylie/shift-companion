@@ -27,10 +27,10 @@ export default function App() {
   const [teamsReloadKey, setTeamsReloadKey] = useState(0);
   const teamsRuntime = useTeamsRuntime(teamsReloadKey);
   const isBrowserPreview = teamsRuntime.mode === "browserPreview";
+  const isTeamsInitializing = teamsRuntime.mode === "teamsInitializing";
   const teamsToken = teamsRuntime.sso.status === "tokenReady"
     ? teamsRuntime.sso.token
     : undefined;
-  const canLoadBootstrap = isBrowserPreview || Boolean(teamsToken);
 
   useEffect(() => {
     apiClient.configureSession(
@@ -47,7 +47,7 @@ export default function App() {
   }, [isBrowserPreview, selectedPreviewUserId, teamsToken]);
 
   useEffect(() => {
-    if (!canLoadBootstrap) {
+    if (isTeamsInitializing) {
       setIsLoading(false);
       setBootstrap(null);
       return;
@@ -70,7 +70,11 @@ export default function App() {
 
         setBootstrap(nextBootstrap);
 
-        if (!selectedPreviewUserId && isBrowserPreview) {
+        if (
+          !selectedPreviewUserId &&
+          isBrowserPreview &&
+          nextBootstrap.currentUser
+        ) {
           setSelectedPreviewUserId(nextBootstrap.currentUser.id);
         }
       } catch (error) {
@@ -93,14 +97,16 @@ export default function App() {
       isCancelled = true;
     };
   }, [
-    canLoadBootstrap,
     isBrowserPreview,
+    isTeamsInitializing,
     reloadKey,
     selectedPreviewUserId,
     teamsToken,
   ]);
 
+  const authSession = bootstrap?.auth;
   const currentUser = bootstrap?.currentUser;
+  const isPreviewAuth = authSession?.providerId === "preview-demo";
 
   useEffect(() => {
     if (
@@ -118,14 +124,12 @@ export default function App() {
         <section className="screen">
           <article className="card empty-state" aria-live="polite">
             <h2>
-              {isBrowserPreview
-                ? "Loading demo workspace"
-                : "Loading Teams workspace"}
+              {isBrowserPreview ? "Loading demo workspace" : "Loading workspace"}
             </h2>
             <p className="muted">
               {isBrowserPreview
                 ? "Connecting to the current preview data source for demo identities, schedules, and unavailable rules."
-                : "Verifying the Teams tab identity and loading only the mapped app user's data."}
+                : "Checking the current auth mode and loading the scoped workspace for this environment."}
             </p>
           </article>
         </section>
@@ -172,62 +176,12 @@ export default function App() {
     );
   }
 
-  if (!isBrowserPreview && teamsRuntime.sso.status === "setupRequired") {
+  if (!bootstrap) {
     return (
       <main className="content">
         <section className="screen">
           <article className="card empty-state" role="alert">
-            <h2>Teams SSO setup needed</h2>
-            <p className="muted">
-              {teamsRuntime.sso.errorMessage ??
-                "Teams tab SSO is not configured yet for this environment."}
-            </p>
-            <button
-              className="primary-button"
-              type="button"
-              onClick={() => setTeamsReloadKey((current) => current + 1)}
-            >
-              Retry Teams sign-in
-            </button>
-          </article>
-        </section>
-      </main>
-    );
-  }
-
-  if (!isBrowserPreview && teamsRuntime.sso.status === "tokenUnavailable") {
-    return (
-      <main className="content">
-        <section className="screen">
-          <article className="card empty-state" role="alert">
-            <h2>Teams sign-in token unavailable</h2>
-            <p className="muted">
-              {teamsRuntime.sso.errorMessage ??
-                "The Teams host didn't provide an auth token for this tab."}
-            </p>
-            <button
-              className="primary-button"
-              type="button"
-              onClick={() => setTeamsReloadKey((current) => current + 1)}
-            >
-              Retry Teams sign-in
-            </button>
-          </article>
-        </section>
-      </main>
-    );
-  }
-
-  if (!bootstrap || !currentUser) {
-    return (
-      <main className="content">
-        <section className="screen">
-          <article className="card empty-state" role="alert">
-            <h2>
-              {isBrowserPreview
-                ? "Unable to load demo workspace"
-                : "Teams user access not ready"}
-            </h2>
+            <h2>{isBrowserPreview ? "Unable to load demo workspace" : "Workspace access not ready"}</h2>
             <p className="muted">
               {errorMessage ?? "Try refreshing the page."}
             </p>
@@ -249,6 +203,35 @@ export default function App() {
     );
   }
 
+  if (!currentUser || authSession?.status !== "authenticated") {
+    return (
+      <main className="content">
+        <section className="screen">
+          <article className="card empty-state" role="alert">
+            <h2>Authentication setup needed</h2>
+            <p className="muted">
+              {authSession?.message ??
+                "This environment is not ready to resolve a signed-in app user yet."}
+            </p>
+            {!isBrowserPreview && teamsRuntime.sso.errorMessage && (
+              <p className="muted">{teamsRuntime.sso.errorMessage}</p>
+            )}
+            <button
+              className="primary-button"
+              type="button"
+              onClick={() => {
+                setReloadKey((current) => current + 1);
+                setTeamsReloadKey((current) => current + 1);
+              }}
+            >
+              Retry
+            </button>
+          </article>
+        </section>
+      </main>
+    );
+  }
+
   const visibleNavItems = getVisibleNavItems(navItems, currentUser);
   const currentUserDepartmentLabel = bootstrap.currentUserDepartments
     .map((department) => department.name)
@@ -258,6 +241,7 @@ export default function App() {
     <div className="app-shell">
       <AppSidebar
         activeView={activeView}
+        auth={bootstrap.auth}
         currentUser={currentUser}
         currentUserDepartmentLabel={currentUserDepartmentLabel}
         teamsRuntime={teamsRuntime}
@@ -268,14 +252,13 @@ export default function App() {
       />
 
       <main className="content">
-        {!isBrowserPreview && teamsRuntime.mode === "teamsReady" && (
+        {!isPreviewAuth && (
           <article className="card empty-state" role="note">
-            <h3>Teams identity verified</h3>
+            <h3>Future Microsoft auth boundary</h3>
             <p className="muted">
-              This tab is running in Teams with a server-verified identity
-              mapping. Authorization still stays inside the existing app service
-              and repository boundaries, and Microsoft Graph or Teams Shifts
-              data is not connected yet.
+              This environment is using the reserved Microsoft auth boundary.
+              Real Entra sign-in, token verification, and app-user mapping are
+              still intentionally disabled for this MVP.
             </p>
           </article>
         )}
@@ -283,9 +266,9 @@ export default function App() {
         {errorMessage && (
           <article className="card empty-state" role="status">
             <h3>
-              {isBrowserPreview
+              {isPreviewAuth
                 ? "Demo data fallback notice"
-                : "Teams workspace notice"}
+                : "Workspace notice"}
             </h3>
             <p className="muted">{errorMessage}</p>
           </article>
@@ -298,6 +281,7 @@ export default function App() {
         {activeView === "manager" && <ManagerView currentUser={currentUser} />}
         {activeView === "settings" && (
           <SettingsPrivacy
+            auth={bootstrap.auth}
             appVersion={bootstrap.appVersion}
             buildEnvironment={bootstrap.buildEnvironment}
             currentUser={currentUser}

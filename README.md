@@ -35,9 +35,10 @@ The current MVP includes:
 - Persisted personal schedule view
 - Personal `.ics` calendar download
 - Read-only manager conflict review
-- Teams runtime detection and Entra SSO validation scaffolding
+- Teams runtime detection plus a preview-first auth boundary for future Entra sign-in
 - Postgres persistence through Neon, with in-memory fallback when `DATABASE_URL` is absent
 - Graph-ready schedule provider boundaries, with the current Neon/demo provider active and a non-functional Microsoft Graph stub reserved for later work
+- Auth-provider boundaries, with preview/demo auth active and Microsoft Entra held as a safe stub
 
 The MVP intentionally does not connect to Microsoft Graph, live Teams Shifts data, or external calendar subscriptions yet.
 
@@ -48,6 +49,7 @@ At a high level:
 - `src/` contains the React client, Teams runtime detection, and UI state
 - `server/` contains the Express API, auth checks, config validation, logging, health reporting, database access, and application services
 - `server/services/appService.ts` is the main application boundary for authorization-aware behavior
+- `server/auth/` contains the auth-provider boundary, preview auth implementation, and the future Microsoft Entra stub
 - `server/data/` contains repository implementations for Postgres and the in-memory demo fallback
 - `server/integrations/` contains the schedule-provider boundary for the current Neon/demo source and the future Graph stub
 - `server/db/` contains schema, migrations, and seed logic
@@ -85,13 +87,14 @@ Copy `.env.example` to `.env` and set values as needed.
 | `PORT` | No | Express API port. Defaults to `8787`. |
 | `DATABASE_URL` | No | Neon or Postgres connection string. If omitted, the app uses in-memory demo data. |
 | `APP_BASE_URL` | No for browser preview, Yes for Teams packaging | Base URL used by Teams manifest tooling and local Teams testing. |
+| `AUTH_MODE` | Optional | Active auth provider selection. Defaults to `preview-demo`. `microsoft-entra` is a safe setup-needed stub only. |
 | `FEEDBACK_EMAIL` | Recommended | Email address used by the Settings feedback links. |
 | `APP_DOCUMENTATION_URL` | Optional | Public documentation URL shown in Settings when configured. |
 | `SCHEDULE_PROVIDER` | Optional | Placeholder schedule-provider selector. Defaults to `neon-demo`. `microsoft-graph` is present only as a safe stub today. |
 | `TEAMS_APP_ID` | Required for Teams packaging | Teams app ID used in the manifest. |
-| `ENTRA_CLIENT_ID` | Required for Teams SSO | Entra app registration client ID. |
-| `ENTRA_TENANT_ID` | Required for Teams SSO | Entra tenant ID. |
-| `ENTRA_APP_ID_URI` | Required for Teams SSO | App ID URI / resource expected by server-side token validation. |
+| `ENTRA_CLIENT_ID` | Optional placeholder | Future Entra app registration client ID. Not required for the current MVP. |
+| `ENTRA_TENANT_ID` | Optional placeholder | Future Entra tenant ID. Not required for the current MVP. |
+| `ENTRA_APP_ID_URI` | Optional placeholder | Future App ID URI / resource for token validation. Not required for the current MVP. |
 | `TEAMS_APP_NAME_SHORT` | Required for Teams packaging | Short Teams app display name. |
 | `TEAMS_APP_NAME_FULL` | Required for Teams packaging | Full Teams app display name. |
 | `TEAMS_DEVELOPER_NAME` | Required for Teams packaging | Developer display name in the manifest. |
@@ -100,7 +103,7 @@ Copy `.env.example` to `.env` and set values as needed.
 | `TEAMS_TERMS_OF_USE_URL` | Required for Teams packaging | Terms URL in the manifest. |
 | `TEAMS_VALID_DOMAINS` | Required for Teams packaging | Comma-separated domains allowed by the manifest. |
 
-Startup validation now checks `PORT`, `APP_BASE_URL`, `DATABASE_URL`, `FEEDBACK_EMAIL`, schedule-provider selection, and partial Teams SSO configuration.
+Startup validation now checks `PORT`, `APP_BASE_URL`, `DATABASE_URL`, `FEEDBACK_EMAIL`, auth-mode selection, schedule-provider selection, and incomplete placeholder Entra configuration without crashing startup.
 
 ## Neon setup
 
@@ -146,6 +149,19 @@ Today:
 - unavailability remains app-owned and stays in the current database/service layer
 
 No Microsoft credentials or Graph SDK setup are required yet.
+
+## Authentication architecture
+
+Current auth behavior now passes through a small auth-provider boundary on the server.
+
+Today:
+
+- `preview-demo` is the active auth mode by default
+- preview identity switching remains the working MVP path
+- `microsoft-entra` is selectable only as a safe setup-needed stub
+- no Microsoft tenant, OAuth flow, or token verification is required yet
+
+Future Entra work should map a verified Microsoft identity to an existing app user without changing the current UI contracts.
 
 ## Running locally
 
@@ -229,6 +245,7 @@ The near-term direction stays narrow:
 - Keep manager workflows read-only
 - Add identity-backed integrations before any scope expansion
 - Introduce Microsoft Graph and Teams Shifts in read-only form first
+- Replace preview auth with mapped Microsoft Entra sign-in only after the auth boundary is ready
 - Evaluate calendar subscriptions only after secure revocation and privacy controls exist
 
 See [docs/roadmap.md](docs/roadmap.md) for the fuller phased plan.
@@ -258,6 +275,7 @@ Release metadata is tracked in [CHANGELOG.md](CHANGELOG.md). The release workflo
 ## Additional docs
 
 - [docs/architecture.md](docs/architecture.md)
+- [docs/auth-architecture.md](docs/auth-architecture.md)
 - [docs/database.md](docs/database.md)
 - [docs/deployment.md](docs/deployment.md)
 - [docs/integration-architecture.md](docs/integration-architecture.md)

@@ -67,7 +67,7 @@ Key responsibilities:
 - environment and startup validation
 - request logging and error handling
 - health reporting
-- Teams / Entra identity verification
+- auth-session resolution through preview and future Entra provider boundaries
 - repository selection between Postgres and in-memory demo data
 - schedule-provider selection between the current Neon/demo source and future external providers
 - authorization-aware application behavior through `AppService`
@@ -93,13 +93,25 @@ Current state:
 
 This keeps published shifts replaceable later without forcing a rewrite of the current UI flows.
 
+### Authentication providers
+
+Phase 6 adds a parallel auth-provider boundary.
+
+Current state:
+
+- `preview-demo` is the default auth mode
+- `microsoft-entra` is a safe stub that returns setup-needed state
+- protected routes now resolve identity through one request boundary before applying authorization
+
+This keeps future sign-in work from leaking into route handlers and UI components.
+
 ## Request flow
 
 Typical flow:
 
 1. The client initializes browser preview or Teams runtime mode.
 2. The client calls `/api/bootstrap`.
-3. The server resolves the current user from preview identity or verified Teams SSO.
+3. The server resolves an auth session, then requires a current app user only for protected routes.
 4. `AppService` applies authorization rules and returns scoped data.
 5. Schedule and calendar-export routes resolve shifts through the active schedule provider.
 6. Unavailability, manager review, audit events, and other app-owned behaviors continue through the repository and service layers.
@@ -116,14 +128,13 @@ Browser preview is a development convenience, not real authentication.
 - Demo users are resolved through the same service and repository layers
 - This mode supports local UI work without requiring Teams embedding
 
-### Teams runtime
+### Future Microsoft auth
 
-Teams runtime is the future deployment path.
+Microsoft Entra sign-in is the future deployment path.
 
-- The client initializes the Teams SDK only when embedded
-- The app requests a Teams auth token
-- The server validates the Entra token before trusting identity
-- The resolved app user is then subject to the same authorization rules as browser preview
+- The current phase keeps Entra behind a safe stub
+- The server boundary already has room for a future verified identity session
+- Future sign-in should map Microsoft identities onto existing app users before any Graph-backed schedule data is trusted
 
 ## Observability and operational boundaries
 
@@ -149,7 +160,7 @@ Planned posture:
 
 The first reasonable step is read-only access to Shifts-related schedule data once tenancy, consent, and user mapping are in place.
 
-See [integration-architecture.md](integration-architecture.md) for the current provider boundary and stub details.
+See [integration-architecture.md](integration-architecture.md) for the schedule boundary and [auth-architecture.md](auth-architecture.md) for the current auth seam.
 
 ## Future calendar integrations
 
