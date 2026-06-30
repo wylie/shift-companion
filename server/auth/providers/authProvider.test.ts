@@ -63,11 +63,12 @@ describe("MicrosoftEntraAuthProvider", () => {
       }),
     );
 
-    await expect(provider.getProviderStatus()).resolves.toEqual({
+    await expect(provider.getProviderStatus()).resolves.toMatchObject({
       availability: "not_configured",
       enabled: false,
       message:
         "Microsoft auth is disabled. Preview/demo auth remains the active MVP path until MICROSOFT_AUTH_ENABLED=true and future setup is completed.",
+      name: "MicrosoftEntraAuthProvider",
       providerId: "microsoft-entra",
     });
   });

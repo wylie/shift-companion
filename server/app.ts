@@ -6,13 +6,12 @@ import { buildCalendarIcs } from "../src/lib/calendar";
 import type { AppErrorResponse } from "../src/types";
 import { startOfWeek } from "../src/lib/date";
 import type { UnavailabilityRuleInput } from "../src/types";
-import { createAuthProvider } from "./auth";
 import { resolveRequestUser } from "./auth/requestContext";
 import { appConfig } from "./config";
 import { getHealthSnapshot } from "./health";
 import { createDataAccess } from "./data";
 import { HttpError } from "./http/errors";
-import { createScheduleProvider } from "./integrations/schedule";
+import { createIntegrationRegistry } from "./integrations/registry";
 import { logError, logInfo, logWarn } from "./logger";
 import { AppService } from "./services/appService";
 
@@ -31,17 +30,12 @@ function parseCalendarWeeks(value: unknown): 1 | 4 {
 export function createApp() {
   const app = express();
   const dataAccess = createDataAccess();
-  const authProvider = createAuthProvider({
-    config: appConfig,
-    dataAccess,
-  });
-  const scheduleProvider = createScheduleProvider({
+  const integrationRegistry = createIntegrationRegistry({
     config: appConfig,
     dataAccess,
   });
   const appService = new AppService(dataAccess, {
-    authProvider,
-    scheduleProvider,
+    integrationRegistry,
   });
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const distPath = path.resolve(__dirname, "../dist");

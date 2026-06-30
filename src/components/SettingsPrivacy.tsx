@@ -17,22 +17,22 @@ type Props = {
   documentationUrl?: string;
   feedbackEmail?: string;
   providerStatus: {
+    calendarExport: ProviderStatus;
     currentAuth: ProviderStatus;
     currentSchedule: ProviderStatus;
+    database: {
+      connected: boolean;
+      migrationVersion?: string;
+      name: string;
+      status: "connected" | "demo";
+    };
+    feedback: ProviderStatus;
     microsoftAuth: ProviderStatus;
     microsoftGraph: ProviderStatus;
   };
 };
 
 function formatStatusLabel(status: ProviderStatus): string {
-  if (status.providerId === "preview-demo") {
-    return "Preview/demo";
-  }
-
-  if (status.providerId === "neon-demo") {
-    return "Neon/demo";
-  }
-
   if (status.availability === "disabled") {
     return "Disabled";
   }
@@ -46,6 +46,30 @@ function formatStatusLabel(status: ProviderStatus): string {
   }
 
   return "Available";
+}
+
+function formatProviderLabel(status: ProviderStatus): string {
+  if (status.providerId === "preview-demo") {
+    return "Preview/demo";
+  }
+
+  if (status.providerId === "neon-demo") {
+    return "Neon/demo";
+  }
+
+  if (status.providerId === "microsoft-entra") {
+    return "Microsoft Entra";
+  }
+
+  if (status.providerId === "microsoft-graph") {
+    return "Microsoft Graph";
+  }
+
+  if (status.providerId === "feedback-email") {
+    return "Feedback email";
+  }
+
+  return status.name;
 }
 
 function buildFeedbackHref(params: {
@@ -177,7 +201,7 @@ export function SettingsPrivacy({
         </article>
         <article className="card">
           <h3>Schedule provider</h3>
-          <p>{formatStatusLabel(providerStatus.currentSchedule)}</p>
+          <p>{formatProviderLabel(providerStatus.currentSchedule)}</p>
         </article>
         <article className="card">
           <h3>Build environment</h3>
@@ -191,34 +215,60 @@ export function SettingsPrivacy({
 
       <section className="card">
         <div className="group-header">
-          <h3>Provider status</h3>
-          <span className="muted">v0.2.0 groundwork</span>
+          <h3>Integration Status</h3>
+          <span className="muted">Developer diagnostics</span>
         </div>
         <p className="muted">
-          Microsoft integration remains stubbed. These status lines show which
-          demo providers are active now and which future Microsoft paths still
-          need setup.
+          These diagnostics describe the active integration providers and safe
+          future Microsoft placeholders without exposing secrets.
         </p>
         <div className="card-grid">
           <article className="card inset-card">
-            <h4>Current auth mode</h4>
-            <p>{formatStatusLabel(providerStatus.currentAuth)}</p>
+            <h4>Authentication</h4>
+            <p>Active provider: {formatProviderLabel(providerStatus.currentAuth)}</p>
+            <p>Status: {formatStatusLabel(providerStatus.currentAuth)}</p>
+            <p>Mode: {auth.mode}</p>
             <p className="muted">{providerStatus.currentAuth.message}</p>
           </article>
           <article className="card inset-card">
-            <h4>Current schedule provider</h4>
-            <p>{formatStatusLabel(providerStatus.currentSchedule)}</p>
+            <h4>Schedule</h4>
+            <p>Active provider: {formatProviderLabel(providerStatus.currentSchedule)}</p>
+            <p>Status: {formatStatusLabel(providerStatus.currentSchedule)}</p>
             <p className="muted">{providerStatus.currentSchedule.message}</p>
           </article>
           <article className="card inset-card">
+            <h4>Calendar export</h4>
+            <p>Active provider: {formatProviderLabel(providerStatus.calendarExport)}</p>
+            <p>Status: {formatStatusLabel(providerStatus.calendarExport)}</p>
+            <p className="muted">{providerStatus.calendarExport.message}</p>
+          </article>
+          <article className="card inset-card">
+            <h4>Database</h4>
+            <p>Connected: {providerStatus.database.connected ? "Yes" : "No"}</p>
+            <p>Status: {providerStatus.database.status}</p>
+            <p className="muted">
+              {providerStatus.database.migrationVersion
+                ? `Migration version: ${providerStatus.database.migrationVersion}`
+                : "Migration version is not reported in the current runtime diagnostics."}
+            </p>
+          </article>
+          <article className="card inset-card">
             <h4>Microsoft auth</h4>
-            <p>{formatStatusLabel(providerStatus.microsoftAuth)}</p>
+            <p>Active provider: {formatProviderLabel(providerStatus.microsoftAuth)}</p>
+            <p>Status: {formatStatusLabel(providerStatus.microsoftAuth)}</p>
             <p className="muted">{providerStatus.microsoftAuth.message}</p>
           </article>
           <article className="card inset-card">
             <h4>Microsoft Graph</h4>
-            <p>{formatStatusLabel(providerStatus.microsoftGraph)}</p>
+            <p>Active provider: {formatProviderLabel(providerStatus.microsoftGraph)}</p>
+            <p>Status: {formatStatusLabel(providerStatus.microsoftGraph)}</p>
             <p className="muted">{providerStatus.microsoftGraph.message}</p>
+          </article>
+          <article className="card inset-card">
+            <h4>Feedback</h4>
+            <p>Active provider: {formatProviderLabel(providerStatus.feedback)}</p>
+            <p>Status: {formatStatusLabel(providerStatus.feedback)}</p>
+            <p className="muted">{providerStatus.feedback.message}</p>
           </article>
         </div>
       </section>

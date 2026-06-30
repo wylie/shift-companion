@@ -1,16 +1,22 @@
 import type { AppDataAccess } from "../../data/types";
-import type {
-  IntegrationProviderStatus,
-  ScheduleProvider,
-} from "../types";
+import type { IntegrationProviderStatus, ScheduleProvider } from "../types";
+import { readOnlyScheduleCapabilities } from "../types";
+import {
+  mapNeonShiftRecordToScheduleShift,
+  mapNeonShiftRecordsToScheduleShifts,
+} from "../mappers/neonScheduleMapper";
 import { filterShiftsByRange } from "./utils";
 
 const status: IntegrationProviderStatus = {
   availability: "available",
+  capabilities: readOnlyScheduleCapabilities,
+  configured: true,
   enabled: true,
   message:
     "Using the persisted Neon/demo schedule provider backed by the current repository layer.",
+  name: "NeonScheduleProvider",
   providerId: "neon-demo",
+  version: "0.2.0",
 };
 
 export function createNeonDemoScheduleProvider(
@@ -21,7 +27,7 @@ export function createNeonDemoScheduleProvider(
       const shifts = await dataAccess.shifts.listForUser(userId);
 
       return {
-        data: filterShiftsByRange(shifts, {
+        data: filterShiftsByRange(mapNeonShiftRecordsToScheduleShifts(shifts), {
           endDate,
           startDate,
         }),
@@ -34,7 +40,7 @@ export function createNeonDemoScheduleProvider(
       const shift = shifts.find((item) => item.id === shiftId);
 
       return {
-        data: shift,
+        data: shift ? mapNeonShiftRecordToScheduleShift(shift) : undefined,
         ok: true,
         status,
       };

@@ -1,3 +1,22 @@
+import type {
+  AppAuthSession,
+  AuthMode,
+  AuthProviderId,
+  AuthStatus,
+} from "./models/auth";
+import type {
+  UnavailabilityRule,
+  UnavailabilityRuleInput,
+  UnavailabilityRuleType,
+} from "./models/availability";
+import type {
+  ProviderAvailability,
+  ProviderCapability,
+  ProviderStatus,
+  ScheduleProviderId,
+} from "./models/integration";
+import type { Shift, ShiftAssignment } from "./models/schedule";
+
 export type UserRole = "staff" | "manager";
 
 export type MembershipRole = "staff" | "manager";
@@ -54,77 +73,22 @@ export type StaffMember = {
   isDemo: boolean;
 };
 
-export type UnavailabilityRuleType =
-  | "weekly-recurring"
-  | "one-time-date"
-  | "date-range";
-
-export type UnavailabilityRule = {
-  id: string;
-  userId: string;
-  type: UnavailabilityRuleType;
-  note: string;
-  dayOfWeek?: string;
-  daysOfWeek?: string[];
-  startTime?: string;
-  endTime?: string;
-  date?: string;
-  startDate?: string;
-  endDate?: string;
-  createdAt?: string;
-  updatedAt?: string;
-};
-
-export type Shift = {
-  id: string;
-  userId: string;
-  departmentId?: string;
-  title: string;
-  department?: string;
-  start: string;
-  end: string;
-  location: string;
-  createdAt?: string;
-  updatedAt?: string;
-};
+export type { UnavailabilityRuleType, UnavailabilityRule, Shift, ShiftAssignment };
 
 export type NavItem = {
   id: "unavailability" | "schedule" | "manager" | "settings";
   label: string;
 };
 
-export type AuthMode =
-  | "preview-demo"
-  | "microsoft-entra-not-configured"
-  | "microsoft-entra-future";
-
-export type AuthProviderId = "microsoft-entra" | "preview-demo";
-
-export type AuthStatus = "authenticated" | "setup-required" | "unmapped";
-
-export type ScheduleProviderId = "microsoft-graph" | "neon-demo";
-
-export type ProviderAvailability =
-  | "available"
-  | "disabled"
-  | "not_configured"
-  | "not_implemented";
-
-export type ProviderStatus = {
-  availability: ProviderAvailability;
-  enabled: boolean;
-  message: string;
-  providerId:
-    | AuthProviderId
-    | ScheduleProviderId;
-};
-
-export type AppAuthSession = {
-  isConfigured: boolean;
-  message?: string;
-  mode: AuthMode;
-  providerId: AuthProviderId;
-  status: AuthStatus;
+export type {
+  AppAuthSession,
+  AuthMode,
+  AuthProviderId,
+  AuthStatus,
+  ProviderAvailability,
+  ProviderCapability,
+  ProviderStatus,
+  ScheduleProviderId,
 };
 
 export type AuditEvent = {
@@ -146,24 +110,23 @@ export type AppBootstrap = {
   feedbackEmail?: string;
   organization: Organization;
   providerStatus: {
+    calendarExport: ProviderStatus;
     currentAuth: ProviderStatus;
     currentSchedule: ProviderStatus;
+    database: {
+      connected: boolean;
+      migrationVersion?: string;
+      name: string;
+      status: "connected" | "demo";
+    };
+    feedback: ProviderStatus;
     microsoftAuth: ProviderStatus;
     microsoftGraph: ProviderStatus;
   };
   previewUsers: PreviewUser[];
 };
 
-export type UnavailabilityRuleInput = {
-  type: UnavailabilityRuleType;
-  daysOfWeek: string[];
-  startTime: string;
-  endTime: string;
-  date: string;
-  startDate: string;
-  endDate: string;
-  note: string;
-};
+export type { UnavailabilityRuleInput };
 
 export type ManagerStaffSummary = {
   staffMember: StaffMember;

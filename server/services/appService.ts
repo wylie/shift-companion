@@ -20,10 +20,6 @@ import type {
   AppAuthSession,
 } from "../../src/types";
 import type { AppDataAccess } from "../data/types";
-import {
-  createPreviewAuthProvider,
-} from "../auth/providers/previewAuthProvider";
-import { getMicrosoftEntraProviderStatus } from "../auth/providers/microsoftEntraAuthProvider";
 import type {
   AuthenticatedUser,
   AuthProvider,
@@ -32,11 +28,12 @@ import type {
 } from "../auth/types";
 import { isAuthenticatedSession } from "../auth/types";
 import { HttpError } from "../http/errors";
-import {
-  createNeonDemoScheduleProvider,
-} from "../integrations/schedule/neonDemoScheduleProvider";
-import { getMicrosoftGraphScheduleProviderStatus } from "../integrations/schedule/microsoftGraphScheduleProvider";
-import type { ScheduleProvider } from "../integrations/types";
+import type { IntegrationRegistry } from "../integrations/registry";
+import { createIntegrationRegistry } from "../integrations/registry";
+import type {
+  CalendarExportProvider,
+  ScheduleProvider,
+} from "../integrations/types";
 import {
   addDays,
   formatWeekRange,
@@ -98,29 +95,38 @@ function describeRule(rule: UnavailabilityRule): string {
 }
 
 type AppServiceOptions = {
-  authProvider?: AuthProvider;
-  scheduleProvider?: ScheduleProvider;
+  integrationRegistry?: IntegrationRegistry;
 };
 
 export class AppService {
+  private readonly calendarExportProvider: CalendarExportProvider;
   private readonly authProvider: AuthProvider;
+  private readonly integrationRegistry: IntegrationRegistry;
   private readonly scheduleProvider: ScheduleProvider;
 
   constructor(
     private readonly dataAccess: AppDataAccess,
     options: AppServiceOptions = {},
   ) {
-    this.authProvider =
-      options.authProvider ?? createPreviewAuthProvider(dataAccess);
-    this.scheduleProvider =
-      options.scheduleProvider ?? createNeonDemoScheduleProvider(dataAccess);
+    this.integrationRegistry =
+      options.integrationRegistry ??
+      createIntegrationRegistry({
+        config: appConfig,
+        dataAccess,
+      });
+    this.authProvider = this.integrationRegistry.getAuthProvider();
+    this.scheduleProvider = this.integrationRegistry.getScheduleProvider();
+    this.calendarExportProvider =
+      this.integrationRegistry.getCalendarExportProvider();
   }
 
   async getPreviewUser(previewUserId?: string): Promise<CurrentUser> {
-    const session = await createPreviewAuthProvider(this.dataAccess).getSession({
-      appRuntime: "browserPreview",
-      previewUserId,
-    });
+    const session = await this.integrationRegistry
+      .getAuthProvider("preview-demo")
+      .getSession({
+        appRuntime: "browserPreview",
+        previewUserId,
+      });
 
     if (!session.currentUser) {
       throw new HttpError(500, "Preview identity could not be resolved.");
@@ -201,11 +207,19 @@ export class AppService {
   async getBootstrap(
     requestContext: AuthRequestContext,
   ): Promise<AppBootstrap> {
-    const [authSession, currentAuthStatus, currentScheduleStatus, organization] =
-      await Promise.all([
+    const [
+      authSession,
+      providerDiagnostics,
+      microsoftAuthStatus,
+      microsoftGraphStatus,
+      organization,
+    ] = await Promise.all([
       this.resolveRequestUser(requestContext),
-      this.authProvider.getProviderStatus(),
-      this.scheduleProvider.getProviderStatus(),
+      this.integrationRegistry.getProviderDiagnostics(),
+      this.integrationRegistry.getAuthProvider("microsoft-entra").getProviderStatus(),
+      this.integrationRegistry
+        .getScheduleProvider("microsoft-graph")
+        .getProviderStatus(),
       this.dataAccess.organizations.getDemoOrganization(),
     ]);
     const currentUser = authSession.currentUser ?? null;
@@ -245,12 +259,23 @@ export class AppService {
       dataSource: appConfig.databaseUrl ? "postgres" : "in-memory",
       documentationUrl:
         getOptionalEnv("APP_DOCUMENTATION_URL") ?? appConfig.documentationUrl,
-      feedbackEmail: getOptionalEnv("FEEDBACK_EMAIL") ?? appConfig.feedbackEmail,
+      feedbackEmail:
+        this.integrationRegistry.getFeedbackProvider().getFeedbackEmail() ??
+        getOptionalEnv("FEEDBACK_EMAIL") ??
+        appConfig.feedbackEmail,
       providerStatus: {
-        currentAuth: currentAuthStatus,
-        currentSchedule: currentScheduleStatus,
-        microsoftAuth: getMicrosoftEntraProviderStatus(appConfig),
-        microsoftGraph: getMicrosoftGraphScheduleProviderStatus(appConfig),
+        calendarExport: providerDiagnostics.calendarExport,
+        currentAuth: providerDiagnostics.auth,
+        currentSchedule: providerDiagnostics.schedule,
+        database: {
+          connected: appConfig.databaseUrl ? true : false,
+          migrationVersion: undefined,
+          name: appConfig.databaseUrl ? "Postgres / Neon" : "In-memory demo data",
+          status: appConfig.databaseUrl ? "connected" : "demo",
+        },
+        feedback: providerDiagnostics.feedback,
+        microsoftAuth: microsoftAuthStatus,
+        microsoftGraph: microsoftGraphStatus,
       },
       previewUsers: previewUsersWithDepartments,
       organization,
@@ -509,7 +534,7 @@ export class AppService {
 
     const exportRangeStart = weekStart;
     const exportRangeEnd = addDays(weekStart, weeks * 7);
-    const scheduleResult = await this.scheduleProvider.getCurrentUserScheduleRange({
+    const scheduleResult = await this.calendarExportProvider.getCurrentUserScheduleRange({
       endDate: exportRangeEnd,
       startDate: exportRangeStart,
       userId: currentUser.id,

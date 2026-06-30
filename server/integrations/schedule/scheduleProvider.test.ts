@@ -13,11 +13,12 @@ describe("createScheduleProvider", () => {
       dataAccess: createMockDataAccess(),
     });
 
-    await expect(provider.getProviderStatus()).resolves.toEqual({
+    await expect(provider.getProviderStatus()).resolves.toMatchObject({
       availability: "available",
       enabled: true,
       message:
         "Using the persisted Neon/demo schedule provider backed by the current repository layer.",
+      name: "NeonScheduleProvider",
       providerId: "neon-demo",
     });
   });
@@ -31,11 +32,12 @@ describe("createMicrosoftGraphScheduleProvider", () => {
       }),
     );
 
-    await expect(provider.getProviderStatus()).resolves.toEqual({
+    await expect(provider.getProviderStatus()).resolves.toMatchObject({
       availability: "disabled",
       enabled: false,
       message:
         "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
+      name: "MicrosoftGraphScheduleProvider",
       providerId: "microsoft-graph",
     });
 
@@ -45,7 +47,7 @@ describe("createMicrosoftGraphScheduleProvider", () => {
         startDate: new Date("2026-06-22T00:00:00"),
         userId: "user-staff-1",
       }),
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       errorCode: "disabled",
       message:
         "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
@@ -55,6 +57,7 @@ describe("createMicrosoftGraphScheduleProvider", () => {
         enabled: false,
         message:
           "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
+        name: "MicrosoftGraphScheduleProvider",
         providerId: "microsoft-graph",
       },
     });
@@ -68,11 +71,12 @@ describe("createMicrosoftGraphScheduleProvider", () => {
       }),
     );
 
-    await expect(provider.getProviderStatus()).resolves.toEqual({
+    await expect(provider.getProviderStatus()).resolves.toMatchObject({
       availability: "not_configured",
       enabled: true,
       message:
         "Microsoft Graph is enabled, but setup is incomplete. Add MICROSOFT_CLIENT_ID and MICROSOFT_TENANT_ID before enabling real Teams Shifts reads later.",
+      name: "MicrosoftGraphScheduleProvider",
       providerId: "microsoft-graph",
     });
   });

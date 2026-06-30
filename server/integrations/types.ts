@@ -1,9 +1,18 @@
-import type { ProviderStatus, Shift } from "../../src/types";
+import type {
+  ProviderCapability,
+  ProviderStatus,
+  Shift,
+} from "../../src/types";
+import type { AuthProviderStatus } from "../auth/types";
 
 export type ScheduleProviderId = "microsoft-graph" | "neon-demo";
 
 export type IntegrationProviderStatus = ProviderStatus & {
   providerId: ScheduleProviderId;
+};
+
+export type FeedbackProviderStatus = ProviderStatus & {
+  providerId: "feedback-email";
 };
 
 export type ScheduleRangeParams = {
@@ -40,15 +49,24 @@ export type ScheduleProvider = {
   getProviderStatus(): Promise<IntegrationProviderStatus>;
 };
 
-export type IdentityProvider = {
-  getProviderStatus(): Promise<IntegrationProviderStatus>;
-};
-
 export type CalendarExportProvider = Pick<
   ScheduleProvider,
   "getCurrentUserScheduleRange" | "getProviderStatus"
 >;
 
-export type AvailabilityProvider = {
-  getProviderStatus(): Promise<IntegrationProviderStatus>;
+export type FeedbackProvider = {
+  getFeedbackEmail(): string | undefined;
+  getProviderStatus(): Promise<FeedbackProviderStatus>;
 };
+
+export type ProviderDiagnostics = {
+  auth: AuthProviderStatus;
+  calendarExport: IntegrationProviderStatus;
+  feedback: FeedbackProviderStatus;
+  schedule: IntegrationProviderStatus;
+};
+
+export const readOnlyScheduleCapabilities: ProviderCapability[] = [
+  "calendarExport",
+  "readSchedule",
+];

@@ -3,6 +3,7 @@ import { buildCalendarIcs } from "../../src/lib/calendar";
 import type { Shift } from "../../src/types";
 import { createMockDataAccess } from "../data/mockDataAccess";
 import type { AuthProvider } from "../auth/types";
+import type { IntegrationRegistry } from "../integrations/registry";
 import type { ScheduleProvider } from "../integrations/types";
 import { AppService } from "./appService";
 
@@ -14,8 +15,11 @@ function createScheduleProviderStub(shifts: Shift[]): ScheduleProvider {
         ok: true,
         status: {
           availability: "available",
+          capabilities: ["calendarExport", "readSchedule"],
+          configured: true,
           enabled: true,
           message: "stub",
+          name: "NeonScheduleProvider",
           providerId: "neon-demo",
         },
       };
@@ -26,8 +30,11 @@ function createScheduleProviderStub(shifts: Shift[]): ScheduleProvider {
         ok: true,
         status: {
           availability: "available",
+          capabilities: ["calendarExport", "readSchedule"],
+          configured: true,
           enabled: true,
           message: "stub",
+          name: "NeonScheduleProvider",
           providerId: "neon-demo",
         },
       };
@@ -35,8 +42,11 @@ function createScheduleProviderStub(shifts: Shift[]): ScheduleProvider {
     async getProviderStatus() {
       return {
         availability: "available",
+        capabilities: ["calendarExport", "readSchedule"],
+        configured: true,
         enabled: true,
         message: "stub",
+        name: "NeonScheduleProvider",
         providerId: "neon-demo",
       };
     },
@@ -48,8 +58,11 @@ function createAuthProviderStub(): AuthProvider {
     async getProviderStatus() {
       return {
         availability: "not_configured",
+        capabilities: ["configured", "microsoft"],
+        configured: false,
         enabled: false,
         message: "Microsoft Entra auth is not configured yet.",
+        name: "MicrosoftEntraAuthProvider",
         providerId: "microsoft-entra",
       };
     },
@@ -61,6 +74,53 @@ function createAuthProviderStub(): AuthProvider {
         providerId: "microsoft-entra",
         status: "setup-required",
       };
+    },
+  };
+}
+
+function createIntegrationRegistryStub(params: {
+  authProvider?: AuthProvider;
+  scheduleProvider?: ScheduleProvider;
+}): IntegrationRegistry {
+  const authProvider = params.authProvider ?? createAuthProviderStub();
+  const scheduleProvider =
+    params.scheduleProvider ?? createScheduleProviderStub([]);
+
+  return {
+    getAuthProvider() {
+      return authProvider;
+    },
+    getCalendarExportProvider() {
+      return scheduleProvider;
+    },
+    getFeedbackProvider() {
+      return {
+        getFeedbackEmail() {
+          return undefined;
+        },
+        async getProviderStatus() {
+          return {
+            availability: "not_configured",
+            capabilities: ["emailFeedback"],
+            configured: false,
+            enabled: false,
+            message: "Feedback email is not configured.",
+            name: "EmailFeedbackProvider",
+            providerId: "feedback-email",
+          };
+        },
+      };
+    },
+    async getProviderDiagnostics() {
+      return {
+        auth: await authProvider.getProviderStatus(),
+        calendarExport: await scheduleProvider.getProviderStatus(),
+        feedback: await this.getFeedbackProvider().getProviderStatus(),
+        schedule: await scheduleProvider.getProviderStatus(),
+      };
+    },
+    getScheduleProvider() {
+      return scheduleProvider;
     },
   };
 }
@@ -129,7 +189,38 @@ describe("AppService calendar export", () => {
       },
     ];
     const service = new AppService(dataAccess, {
-      scheduleProvider: createScheduleProviderStub(providerShifts),
+      integrationRegistry: createIntegrationRegistryStub({
+        authProvider: {
+          ...createAuthProviderStub(),
+          async getProviderStatus() {
+            return {
+              availability: "available",
+              capabilities: ["configured", "preview"],
+              configured: true,
+              enabled: true,
+              message: "stub auth",
+              name: "PreviewAuthProvider",
+              providerId: "preview-demo",
+            };
+          },
+          async getSession() {
+            const currentUser = await dataAccess.users.getById("user-staff-1");
+
+            if (!currentUser) {
+              throw new Error("Missing user for stub auth provider.");
+            }
+
+            return {
+              currentUser,
+              isConfigured: true,
+              mode: "preview-demo",
+              providerId: "preview-demo",
+              status: "authenticated",
+            };
+          },
+        },
+        scheduleProvider: createScheduleProviderStub(providerShifts),
+      }),
     });
 
     const visibleShifts = await service.listOwnShifts(currentUser);
@@ -163,7 +254,9 @@ describe("AppService calendar export", () => {
 
   it("returns a safe setup-needed bootstrap state for the Entra auth stub", async () => {
     const service = new AppService(createMockDataAccess(), {
-      authProvider: createAuthProviderStub(),
+      integrationRegistry: createIntegrationRegistryStub({
+        authProvider: createAuthProviderStub(),
+      }),
     });
     const bootstrap = await service.getBootstrap({
       appRuntime: "teams",
@@ -173,10 +266,11 @@ describe("AppService calendar export", () => {
     expect(bootstrap.auth.status).toBe("setup-required");
     expect(bootstrap.currentUser).toBeNull();
     expect(bootstrap.previewUsers).toEqual([]);
-    expect(bootstrap.providerStatus.currentAuth).toEqual({
+    expect(bootstrap.providerStatus.currentAuth).toMatchObject({
       availability: "not_configured",
       enabled: false,
       message: "Microsoft Entra auth is not configured yet.",
+      name: "MicrosoftEntraAuthProvider",
       providerId: "microsoft-entra",
     });
   });
@@ -188,32 +282,63 @@ describe("AppService calendar export", () => {
       previewUserId: "user-staff-1",
     });
 
-    expect(bootstrap.providerStatus.currentAuth).toEqual({
+    expect(bootstrap.providerStatus.currentAuth).toMatchObject({
       availability: "available",
       enabled: true,
       message:
         "Preview/demo auth is active and resolves the selected local demo identity.",
+      name: "PreviewAuthProvider",
       providerId: "preview-demo",
     });
-    expect(bootstrap.providerStatus.currentSchedule).toEqual({
+    expect(bootstrap.providerStatus.currentSchedule).toMatchObject({
       availability: "available",
       enabled: true,
       message:
         "Using the persisted Neon/demo schedule provider backed by the current repository layer.",
+      name: "NeonScheduleProvider",
       providerId: "neon-demo",
     });
-    expect(bootstrap.providerStatus.microsoftAuth).toEqual({
+    expect(bootstrap.providerStatus.calendarExport).toMatchObject({
+      availability: "available",
+      enabled: true,
+      name: "NeonScheduleProvider",
+      providerId: "neon-demo",
+    });
+    expect(bootstrap.providerStatus.database).toEqual(
+      bootstrap.dataSource === "postgres"
+        ? {
+            connected: true,
+            migrationVersion: undefined,
+            name: "Postgres / Neon",
+            status: "connected",
+          }
+        : {
+            connected: false,
+            migrationVersion: undefined,
+            name: "In-memory demo data",
+            status: "demo",
+          },
+    );
+    expect(bootstrap.providerStatus.feedback).toMatchObject({
+      availability: "not_configured",
+      enabled: false,
+      name: "EmailFeedbackProvider",
+      providerId: "feedback-email",
+    });
+    expect(bootstrap.providerStatus.microsoftAuth).toMatchObject({
       availability: "not_configured",
       enabled: false,
       message:
         "Microsoft auth is disabled. Preview/demo auth remains the active MVP path until MICROSOFT_AUTH_ENABLED=true and future setup is completed.",
+      name: "MicrosoftEntraAuthProvider",
       providerId: "microsoft-entra",
     });
-    expect(bootstrap.providerStatus.microsoftGraph).toEqual({
+    expect(bootstrap.providerStatus.microsoftGraph).toMatchObject({
       availability: "disabled",
       enabled: false,
       message:
         "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
+      name: "MicrosoftGraphScheduleProvider",
       providerId: "microsoft-graph",
     });
   });

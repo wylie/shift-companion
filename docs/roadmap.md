@@ -61,7 +61,7 @@ In progress.
 
 Scope should stay narrow:
 
-- v0.2.0: explicit Microsoft configuration placeholders, provider status UI, and safer disabled defaults
+- v0.2.0: integration registry, shared provider models, mapping seams, explicit Microsoft configuration placeholders, provider status UI, and safer disabled defaults
 - keep preview/demo auth and Neon/demo schedule data working while Microsoft paths stay stubbed
 - future app-user mapping from verified Entra identity to internal users
 - read-only schedule ingestion first

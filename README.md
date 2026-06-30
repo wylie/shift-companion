@@ -52,7 +52,7 @@ At a high level:
 - `server/services/appService.ts` is the main application boundary for authorization-aware behavior
 - `server/auth/` contains the auth-provider boundary, preview auth implementation, and the future Microsoft Entra stub
 - `server/data/` contains repository implementations for Postgres and the in-memory demo fallback
-- `server/integrations/` contains the schedule-provider boundary for the current Neon/demo source and the future Graph stub
+- `server/integrations/` contains the Integration Registry, provider interfaces, mapping layer, the current Neon/demo provider, and the future Microsoft Graph stub
 - `server/db/` contains schema, migrations, and seed logic
 - `teams-app/` contains the Teams app manifest template and icons
 - `scripts/` contains project automation such as Teams packaging and version validation

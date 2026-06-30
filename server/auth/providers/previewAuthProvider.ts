@@ -1,13 +1,17 @@
 import { HttpError } from "../../http/errors";
 import type { AppDataAccess } from "../../data/types";
-import type { AuthProvider } from "../types";
+import type { AuthProvider, AuthProviderStatus } from "../types";
 
-const status = {
-  availability: "available" as const,
+const status: AuthProviderStatus = {
+  availability: "available",
+  capabilities: ["configured", "preview"],
+  configured: true,
   enabled: true,
   message:
     "Preview/demo auth is active and resolves the selected local demo identity.",
-  providerId: "preview-demo" as const,
+  name: "PreviewAuthProvider",
+  providerId: "preview-demo",
+  version: "0.2.0",
 };
 
 export function createPreviewAuthProvider(

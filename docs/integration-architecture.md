@@ -2,87 +2,203 @@
 
 ## Goal
 
-The `v0.2.0` milestone prepares the app for future Microsoft Graph and Teams Shifts integration without connecting to Microsoft services yet.
+The `v0.2.0` milestone prepares the app for future Microsoft Entra authentication and Microsoft Graph / Teams Shifts schedule reads without connecting to Microsoft services yet.
 
-The app can now evolve identity and schedule integrations independently.
-
-The current MVP remains unchanged in product scope:
+The app can now evolve auth and schedule integrations behind stable internal contracts while keeping the current MVP behavior unchanged:
 
 - personal unavailability stays app-owned
 - personal schedule review stays lightweight
 - calendar export stays one-time and individual-only
 - demo and persisted Neon-backed data remain the working source today
 
-## Current provider boundary
+## Design principles
 
-The server now has a small schedule-provider layer in `server/integrations/`.
+- The UI only understands internal app models.
+- The application service asks an integration registry for providers.
+- Providers expose status and capabilities without making network calls.
+- External provider shapes are mapped into internal models before they reach the UI.
+- Unavailability remains app-owned unless a future Microsoft capability clearly replaces it.
 
-Current implementations:
+## Integration Registry
 
-- `neon-demo`
-  - active by default
-  - wraps the existing persisted schedule data from the repository layer
-  - powers current schedule views and calendar export
-- `microsoft-graph`
-  - intentionally stubbed
-  - makes no network requests
-  - returns a safe disabled, not-configured, or not-implemented result depending on future flags
+`server/integrations/registry.ts` is the central provider factory.
 
-## Why this boundary exists
+It owns creation and selection of:
 
-Without a provider boundary, future Teams Shifts data would force schedule and calendar logic to keep reaching directly into the current data repositories.
+- `AuthProvider`
+- `ScheduleProvider`
+- `CalendarExportProvider`
+- `FeedbackProvider`
 
-With the boundary in place:
+The rest of the application should not instantiate provider implementations directly. `AppService` requests providers from the registry and then enforces authorization on top of them.
 
-- the UI can keep asking for schedules the same way
-- calendar export can keep using the same service entry point and the same provider-backed shift data
-- the provider can later swap from demo data to Graph-backed data with less churn
+Current default selections:
+
+- auth: `preview-demo`
+- schedule: `neon-demo`
+- calendar export: same active schedule provider
+- feedback: email-backed provider status with a safe disabled state when `FEEDBACK_EMAIL` is missing
+
+## Architecture diagram
+
+```text
+React UI
+  |
+  v
+AppService
+  |
+  v
+IntegrationRegistry
+  |-- AuthProvider ----------> PreviewAuthProvider
+  |                          -> MicrosoftEntraAuthProvider (stub)
+  |
+  |-- ScheduleProvider ------> NeonScheduleProvider
+  |                          -> MicrosoftGraphScheduleProvider (stub)
+  |
+  |-- CalendarExportProvider -> active ScheduleProvider
+  |
+  |-- FeedbackProvider ------> EmailFeedbackProvider
+
+Neon/Postgres shift records
+  |
+  v
+Neon mapping layer
+  |
+  v
+Internal Shift model
+  |
+  v
+UI / calendar export
+```
+
+## Shared internal models
+
+Shared provider-facing and UI-facing models now live under `src/models/`.
+
+Current shared models include:
+
+- `auth.ts`
+  - `AppAuthSession`
+  - `AuthMode`
+- `integration.ts`
+  - `ProviderStatus`
+  - `ProviderCapability`
+- `schedule.ts`
+  - `Shift`
+  - `ShiftAssignment`
+- `availability.ts`
+  - `UnavailabilityRule`
+  - `UnavailabilityRuleInput`
+
+`src/types.ts` re-exports these so the UI and server can converge on the same internal shapes without leaking provider-specific payloads.
+
+## Mapping layer
+
+The mapping layer sits between provider-specific records and internal schedule models.
+
+Current mapping path:
+
+```text
+Neon/Postgres shift record
+  -> server/integrations/mappers/neonScheduleMapper.ts
+  -> internal Shift model
+  -> AppService / UI / calendar export
+```
+
+Later mapping path:
+
+```text
+Microsoft Graph / Teams Shifts payload
+  -> future Graph mapper
+  -> internal Shift model
+  -> AppService / UI / calendar export
+```
+
+This is why the UI never talks directly to Neon or Graph. The UI consumes app-owned models, not provider payloads.
+
+## Current provider implementations
+
+### `neon-demo`
+
+- active by default
+- wraps the existing persisted schedule repository behavior
+- maps repository records into internal `Shift` models
+- powers current schedule views and calendar export
+
+### `microsoft-graph`
+
+- intentionally stubbed
+- makes no network requests
+- returns a safe disabled, not-configured, or not-implemented result depending on future flags
+- marks the future home for Teams Shifts Graph reads
+
+### `preview-demo`
+
+- active by default
+- resolves the selected demo identity
+- keeps preview mode explicit and local-only
+
+### `microsoft-entra`
+
+- intentionally stubbed
+- never redirects or requests tokens
+- reports disabled, not-configured, or future setup-needed states safely
+
+## Provider status and diagnostics
+
+Each provider exposes lightweight metadata for debugging:
+
+- name
+- optional version
+- configured
+- enabled
+- availability/status
+- capabilities
+
+Settings reads these diagnostics through bootstrap data and shows:
+
+- active authentication provider and auth mode
+- active schedule provider
+- calendar export provider status
+- Microsoft auth and Microsoft Graph placeholder status
+- feedback provider status
+- database runtime summary
+
+No secrets are exposed in this diagnostics view.
 
 ## Current source of truth
 
 Today:
 
-- published shifts are served from the existing Neon/demo repository layer
+- published shifts are served from the Neon/demo repository layer
 - unavailability rules are app-owned and stay in the app database
 - manager review remains a demo/read-only capability built on the same persisted data model
 
-## Future Microsoft Graph direction
+Later:
 
-Later, published shifts should come from Microsoft Teams Shifts data via Microsoft Graph.
-
-That future integration should stay narrow:
-
-- read-only schedule ingestion first
-- least-privilege permissions
-- no expansion into full schedule authoring
-- no background sync jobs until there is a clear operational need
-
-The current Graph provider stub marks where those calls will eventually live.
+- published shifts should come from Microsoft Teams Shifts via Graph
+- app-owned unavailability should remain local unless a future Teams capability proves to be a better fit
 
 ## Provider selection
 
-The active schedule provider is selected with:
+The active providers are selected with configuration rather than UI changes.
 
-```text
-SCHEDULE_PROVIDER
-```
+Relevant values today:
 
-Supported values today:
-
-- `neon-demo`
-- `microsoft-graph`
-
-Future Microsoft flags:
-
+- `AUTH_MODE`
+- `SCHEDULE_PROVIDER`
+- `MICROSOFT_AUTH_ENABLED`
 - `MICROSOFT_GRAPH_ENABLED`
 - `MICROSOFT_CLIENT_ID`
 - `MICROSOFT_TENANT_ID`
+- `MICROSOFT_REDIRECT_URI`
 
 Behavior:
 
-- default is `neon-demo`
-- unsupported values fall back safely to `neon-demo`
-- selecting `microsoft-graph` does not crash startup, but schedule calls remain stubbed until future setup is complete
+- default auth stays `preview-demo`
+- default schedule stays `neon-demo`
+- unsupported values fall back safely to preview/demo or Neon/demo
+- enabling Microsoft flags without full setup does not crash startup
 
 ## No Microsoft setup required yet
 
@@ -93,7 +209,8 @@ Behavior:
 - OAuth setup
 - a Microsoft tenant
 - background sync
+- Teams Shifts API calls
 
-That is intentional. This phase is only about creating a clean seam for future work.
+That is intentional. This phase is only about creating clean seams for future work.
 
-See [auth-architecture.md](auth-architecture.md) for the preview auth provider, the Entra stub, and the app-user mapping direction. See [microsoft-integration.md](microsoft-integration.md) for the future setup placeholders and source-of-truth guidance.
+See [auth-architecture.md](auth-architecture.md) for auth boundary details and [microsoft-integration.md](microsoft-integration.md) for future setup placeholders and source-of-truth guidance.

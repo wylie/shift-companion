@@ -3,6 +3,7 @@ import type {
   IntegrationProviderStatus,
   ScheduleProvider,
 } from "../types";
+import { readOnlyScheduleCapabilities } from "../types";
 
 export function getMicrosoftGraphScheduleProviderStatus(
   config: AppConfig,
@@ -10,29 +11,41 @@ export function getMicrosoftGraphScheduleProviderStatus(
   if (!config.microsoftGraphEnabled) {
     return {
       availability: "disabled",
+      capabilities: [...readOnlyScheduleCapabilities, "configured"],
+      configured: false,
       enabled: false,
       message:
         "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
+      name: "MicrosoftGraphScheduleProvider",
       providerId: "microsoft-graph",
+      version: "0.2.0",
     };
   }
 
   if (!config.microsoftClientId || !config.microsoftTenantId) {
     return {
       availability: "not_configured",
+      capabilities: [...readOnlyScheduleCapabilities, "configured"],
+      configured: false,
       enabled: true,
       message:
         "Microsoft Graph is enabled, but setup is incomplete. Add MICROSOFT_CLIENT_ID and MICROSOFT_TENANT_ID before enabling real Teams Shifts reads later.",
+      name: "MicrosoftGraphScheduleProvider",
       providerId: "microsoft-graph",
+      version: "0.2.0",
     };
   }
 
   return {
     availability: "not_implemented",
+    capabilities: [...readOnlyScheduleCapabilities, "configured"],
+    configured: true,
     enabled: true,
     message:
       "Microsoft Graph / Teams Shifts schedule integration is configured for future work, but it remains intentionally stubbed for v0.2.0.",
+    name: "MicrosoftGraphScheduleProvider",
     providerId: "microsoft-graph",
+    version: "0.2.0",
   };
 }
 
