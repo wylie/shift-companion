@@ -273,6 +273,7 @@ describe("AppService calendar export", () => {
       name: "MicrosoftEntraAuthProvider",
       providerId: "microsoft-entra",
     });
+    expect(bootstrap.microsoftReadiness.auth.state).toBe("disabled");
   });
 
   it("includes default provider status for the preview/demo MVP path", async () => {
@@ -329,7 +330,7 @@ describe("AppService calendar export", () => {
       availability: "not_configured",
       enabled: false,
       message:
-        "Microsoft auth is disabled. Preview/demo auth remains the active MVP path until MICROSOFT_AUTH_ENABLED=true and future setup is completed.",
+        "Microsoft auth is disabled. Preview/demo mode remains the active path until future Entra sign-in work is ready to test.",
       name: "MicrosoftEntraAuthProvider",
       providerId: "microsoft-entra",
     });
@@ -337,10 +338,29 @@ describe("AppService calendar export", () => {
       availability: "disabled",
       enabled: false,
       message:
-        "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
+        "Microsoft Graph is disabled. Neon/demo schedule data remains active until the future Teams Shifts provider is ready to test.",
       name: "MicrosoftGraphScheduleProvider",
       providerId: "microsoft-graph",
     });
+    expect(bootstrap.microsoftReadiness.auth.state).toBe("disabled");
+    expect(bootstrap.microsoftReadiness.graph.state).toBe("disabled");
+    expect(bootstrap.microsoftReadiness.overall).toBe("disabled");
+  });
+
+  it("keeps Microsoft secret fields out of the bootstrap diagnostics payload", async () => {
+    const service = new AppService(createMockDataAccess());
+    const bootstrap = await service.getBootstrap({
+      appRuntime: "browserPreview",
+      previewUserId: "user-staff-1",
+    });
+    const serialized = JSON.stringify(bootstrap);
+
+    expect(serialized).not.toContain("MICROSOFT_CLIENT_SECRET");
+    expect(serialized).not.toContain("microsoftClientSecret");
+
+    if (process.env.MICROSOFT_CLIENT_SECRET) {
+      expect(serialized).not.toContain(process.env.MICROSOFT_CLIENT_SECRET);
+    }
   });
 });
 

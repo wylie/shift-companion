@@ -1,4 +1,5 @@
 import type { AppConfig } from "../../config";
+import { evaluateMicrosoftIntegrationReadiness } from "../microsoftReadiness";
 import type {
   IntegrationProviderStatus,
   ScheduleProvider,
@@ -8,28 +9,28 @@ import { readOnlyScheduleCapabilities } from "../types";
 export function getMicrosoftGraphScheduleProviderStatus(
   config: AppConfig,
 ): IntegrationProviderStatus {
-  if (!config.microsoftGraphEnabled) {
+  const readiness = evaluateMicrosoftIntegrationReadiness(config).graph;
+
+  if (readiness.state === "disabled") {
     return {
       availability: "disabled",
       capabilities: [...readOnlyScheduleCapabilities, "configured"],
       configured: false,
       enabled: false,
-      message:
-        "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
+      message: readiness.message,
       name: "MicrosoftGraphScheduleProvider",
       providerId: "microsoft-graph",
       version: "0.2.0",
     };
   }
 
-  if (!config.microsoftClientId || !config.microsoftTenantId) {
+  if (readiness.state === "missing_config") {
     return {
       availability: "not_configured",
       capabilities: [...readOnlyScheduleCapabilities, "configured"],
       configured: false,
       enabled: true,
-      message:
-        "Microsoft Graph is enabled, but setup is incomplete. Add MICROSOFT_CLIENT_ID and MICROSOFT_TENANT_ID before enabling real Teams Shifts reads later.",
+      message: readiness.message,
       name: "MicrosoftGraphScheduleProvider",
       providerId: "microsoft-graph",
       version: "0.2.0",
@@ -41,8 +42,7 @@ export function getMicrosoftGraphScheduleProviderStatus(
     capabilities: [...readOnlyScheduleCapabilities, "configured"],
     configured: true,
     enabled: true,
-    message:
-      "Microsoft Graph / Teams Shifts schedule integration is configured for future work, but it remains intentionally stubbed for v0.2.0.",
+    message: readiness.message,
     name: "MicrosoftGraphScheduleProvider",
     providerId: "microsoft-graph",
     version: "0.2.0",

@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "../data/apiClient";
 import { toErrorMessage } from "../lib/errors";
+import { microsoftSetupChecklist } from "../models/microsoft";
 import type {
   AppAuthSession,
   AuditEvent,
   CurrentUser,
+  MicrosoftIntegrationReadiness,
+  MicrosoftReadinessCheck,
   ProviderStatus,
 } from "../types";
 
@@ -16,6 +19,7 @@ type Props = {
   dataSource: "in-memory" | "postgres";
   documentationUrl?: string;
   feedbackEmail?: string;
+  microsoftReadiness: MicrosoftIntegrationReadiness;
   providerStatus: {
     calendarExport: ProviderStatus;
     currentAuth: ProviderStatus;
@@ -31,6 +35,24 @@ type Props = {
     microsoftGraph: ProviderStatus;
   };
 };
+
+function formatReadinessStateLabel(
+  state: MicrosoftReadinessCheck["state"],
+): string {
+  if (state === "disabled") {
+    return "Disabled";
+  }
+
+  if (state === "missing_config") {
+    return "Setup needed";
+  }
+
+  return "Ready to test";
+}
+
+function formatReadinessLabel(check: MicrosoftReadinessCheck): string {
+  return formatReadinessStateLabel(check.state);
+}
 
 function formatStatusLabel(status: ProviderStatus): string {
   if (status.availability === "disabled") {
@@ -116,6 +138,7 @@ export function SettingsPrivacy({
   dataSource,
   documentationUrl,
   feedbackEmail,
+  microsoftReadiness,
   providerStatus,
 }: Props) {
   const [visibleAuditEvents, setVisibleAuditEvents] = useState<AuditEvent[]>(
@@ -224,6 +247,15 @@ export function SettingsPrivacy({
         </p>
         <div className="card-grid">
           <article className="card inset-card">
+            <h4>Preview / demo mode</h4>
+            <p>Active: {auth.providerId === "preview-demo" ? "Yes" : "No"}</p>
+            <p className="muted">
+              {auth.providerId === "preview-demo"
+                ? "Preview/demo mode is active. No Microsoft tenant or live sign-in is required for this environment."
+                : "This environment is reserved for the future Microsoft auth boundary and remains in a safe setup-needed state."}
+            </p>
+          </article>
+          <article className="card inset-card">
             <h4>Authentication</h4>
             <p>Active provider: {formatProviderLabel(providerStatus.currentAuth)}</p>
             <p>Status: {formatStatusLabel(providerStatus.currentAuth)}</p>
@@ -255,14 +287,24 @@ export function SettingsPrivacy({
           <article className="card inset-card">
             <h4>Microsoft auth</h4>
             <p>Active provider: {formatProviderLabel(providerStatus.microsoftAuth)}</p>
-            <p>Status: {formatStatusLabel(providerStatus.microsoftAuth)}</p>
-            <p className="muted">{providerStatus.microsoftAuth.message}</p>
+            <p>Status: {formatReadinessLabel(microsoftReadiness.auth)}</p>
+            <p className="muted">{microsoftReadiness.auth.message}</p>
+            {microsoftReadiness.auth.missingEnvVars.length > 0 && (
+              <p className="muted">
+                Missing config: {microsoftReadiness.auth.missingEnvVars.join(", ")}
+              </p>
+            )}
           </article>
           <article className="card inset-card">
             <h4>Microsoft Graph</h4>
             <p>Active provider: {formatProviderLabel(providerStatus.microsoftGraph)}</p>
-            <p>Status: {formatStatusLabel(providerStatus.microsoftGraph)}</p>
-            <p className="muted">{providerStatus.microsoftGraph.message}</p>
+            <p>Status: {formatReadinessLabel(microsoftReadiness.graph)}</p>
+            <p className="muted">{microsoftReadiness.graph.message}</p>
+            {microsoftReadiness.graph.missingEnvVars.length > 0 && (
+              <p className="muted">
+                Missing config: {microsoftReadiness.graph.missingEnvVars.join(", ")}
+              </p>
+            )}
           </article>
           <article className="card inset-card">
             <h4>Feedback</h4>
@@ -270,6 +312,36 @@ export function SettingsPrivacy({
             <p>Status: {formatStatusLabel(providerStatus.feedback)}</p>
             <p className="muted">{providerStatus.feedback.message}</p>
           </article>
+        </div>
+      </section>
+
+      <section className="card">
+        <div className="group-header">
+          <h3>Microsoft Setup Checklist</h3>
+          <span className="muted">Informational only</span>
+        </div>
+        <p className="muted">
+          Use this checklist when real Microsoft integration work begins. It
+          does not enable sign-in or Graph access by itself.
+        </p>
+        <article className="card inset-card">
+          <h4>Current readiness</h4>
+          <p>Overall state: {formatReadinessStateLabel(microsoftReadiness.overall)}</p>
+          <p className="muted">
+            Ready to test means the documented Microsoft environment variables
+            and flags are present for the selected path. It does not mean real
+            Entra sign-in or Graph calls exist yet.
+          </p>
+        </article>
+        <div className="audit-list">
+          {microsoftSetupChecklist.map((item) => (
+            <article className="audit-row" key={item.id}>
+              <div>
+                <p>{item.title}</p>
+                <p className="muted">{item.description}</p>
+              </div>
+            </article>
+          ))}
         </div>
       </section>
 

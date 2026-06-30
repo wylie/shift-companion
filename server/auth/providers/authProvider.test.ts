@@ -67,7 +67,7 @@ describe("MicrosoftEntraAuthProvider", () => {
       availability: "not_configured",
       enabled: false,
       message:
-        "Microsoft auth is disabled. Preview/demo auth remains the active MVP path until MICROSOFT_AUTH_ENABLED=true and future setup is completed.",
+        "Microsoft auth is disabled. Preview/demo mode remains the active path until future Entra sign-in work is ready to test.",
       name: "MicrosoftEntraAuthProvider",
       providerId: "microsoft-entra",
     });

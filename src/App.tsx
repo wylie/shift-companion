@@ -288,6 +288,7 @@ export default function App() {
             dataSource={bootstrap.dataSource}
             documentationUrl={bootstrap.documentationUrl}
             feedbackEmail={bootstrap.feedbackEmail}
+            microsoftReadiness={bootstrap.microsoftReadiness}
             providerStatus={bootstrap.providerStatus}
           />
         )}

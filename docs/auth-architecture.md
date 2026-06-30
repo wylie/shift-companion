@@ -75,6 +75,14 @@ Current placeholder inputs live behind:
 - `MICROSOFT_REDIRECT_URI`
 - `MICROSOFT_CLIENT_SECRET` for future server-only work when needed
 
+The readiness checker now reports:
+
+- `disabled` when `MICROSOFT_AUTH_ENABLED=false`
+- `missing_config` when auth is enabled without the required placeholder values
+- `ready_to_test` when the future auth placeholder config is present
+
+Ready-to-test does not mean sign-in is implemented. It only means the local environment is prepared for future controlled testing.
+
 ## Server-side request flow
 
 The request flow is now:

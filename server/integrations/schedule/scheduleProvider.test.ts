@@ -36,7 +36,7 @@ describe("createMicrosoftGraphScheduleProvider", () => {
       availability: "disabled",
       enabled: false,
       message:
-        "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
+        "Microsoft Graph is disabled. Neon/demo schedule data remains active until the future Teams Shifts provider is ready to test.",
       name: "MicrosoftGraphScheduleProvider",
       providerId: "microsoft-graph",
     });
@@ -50,13 +50,13 @@ describe("createMicrosoftGraphScheduleProvider", () => {
     ).resolves.toMatchObject({
       errorCode: "disabled",
       message:
-        "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
+        "Microsoft Graph is disabled. Neon/demo schedule data remains active until the future Teams Shifts provider is ready to test.",
       ok: false,
       status: {
         availability: "disabled",
         enabled: false,
         message:
-          "Microsoft Graph is disabled. Neon/demo schedule data remains the active source until future Teams Shifts setup is enabled.",
+          "Microsoft Graph is disabled. Neon/demo schedule data remains active until the future Teams Shifts provider is ready to test.",
         name: "MicrosoftGraphScheduleProvider",
         providerId: "microsoft-graph",
       },
@@ -75,7 +75,7 @@ describe("createMicrosoftGraphScheduleProvider", () => {
       availability: "not_configured",
       enabled: true,
       message:
-        "Microsoft Graph is enabled, but setup is incomplete. Add MICROSOFT_CLIENT_ID and MICROSOFT_TENANT_ID before enabling real Teams Shifts reads later.",
+        "Microsoft Graph is enabled, but setup is incomplete. Missing: MICROSOFT_CLIENT_ID, MICROSOFT_TENANT_ID.",
       name: "MicrosoftGraphScheduleProvider",
       providerId: "microsoft-graph",
     });

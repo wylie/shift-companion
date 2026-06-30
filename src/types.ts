@@ -15,6 +15,12 @@ import type {
   ProviderStatus,
   ScheduleProviderId,
 } from "./models/integration";
+import type {
+  MicrosoftIntegrationReadiness,
+  MicrosoftReadinessCheck,
+  MicrosoftReadinessState,
+  MicrosoftSetupChecklistItem,
+} from "./models/microsoft";
 import type { Shift, ShiftAssignment } from "./models/schedule";
 
 export type UserRole = "staff" | "manager";
@@ -81,6 +87,10 @@ export type NavItem = {
 };
 
 export type {
+  MicrosoftIntegrationReadiness,
+  MicrosoftReadinessCheck,
+  MicrosoftReadinessState,
+  MicrosoftSetupChecklistItem,
   AppAuthSession,
   AuthMode,
   AuthProviderId,
@@ -108,6 +118,7 @@ export type AppBootstrap = {
   dataSource: "in-memory" | "postgres";
   documentationUrl?: string;
   feedbackEmail?: string;
+  microsoftReadiness: MicrosoftIntegrationReadiness;
   organization: Organization;
   providerStatus: {
     calendarExport: ProviderStatus;

@@ -40,6 +40,7 @@ The current MVP includes:
 - Graph-ready schedule provider boundaries, with the current Neon/demo provider active and a non-functional Microsoft Graph stub reserved for later work
 - Auth-provider boundaries, with preview/demo auth active and Microsoft Entra held as a safe stub
 - Lightweight provider status reporting in Settings so the active demo path and future Microsoft flags stay explicit
+- A Microsoft setup readiness layer that reports `disabled`, `missing_config`, or `ready_to_test` without making Microsoft network calls
 
 The MVP intentionally does not connect to Microsoft Graph, live Teams Shifts data, or external calendar subscriptions yet.
 
@@ -153,7 +154,7 @@ Today:
 
 - `neon-demo` is the active provider and uses the existing persisted schedule data
 - `microsoft-graph` is an intentional stub for future read-only Teams Shifts work
-- unavailability remains app-owned and stays in the current database/service layer
+- unavailability and feedback remain app-owned and stay in the current database/service layer
 - `MICROSOFT_GRAPH_ENABLED=false` keeps the Microsoft path safely disabled by default
 
 No Microsoft credentials or Graph SDK setup are required yet.
@@ -180,6 +181,7 @@ It adds:
 
 - safe Microsoft configuration placeholders
 - explicit disabled/setup-needed provider status in Settings
+- an informational Microsoft setup checklist and readiness checker
 - stronger separation between preview/demo data and future Microsoft-backed paths
 
 It does not add:
@@ -188,6 +190,8 @@ It does not add:
 - real Microsoft Graph calls
 - Teams Shifts API calls
 - background sync
+
+`ready_to_test` means the documented Microsoft placeholder config is present for that path. It does not mean real Entra sign-in or Microsoft Graph schedule reads are implemented yet.
 
 ## Running locally
 

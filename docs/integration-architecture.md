@@ -157,14 +157,35 @@ Each provider exposes lightweight metadata for debugging:
 
 Settings reads these diagnostics through bootstrap data and shows:
 
+- preview/demo mode state
 - active authentication provider and auth mode
 - active schedule provider
 - calendar export provider status
 - Microsoft auth and Microsoft Graph placeholder status
+- Microsoft setup readiness and checklist guidance
 - feedback provider status
 - database runtime summary
 
 No secrets are exposed in this diagnostics view.
+
+## Microsoft readiness layer
+
+`server/integrations/microsoftReadiness.ts` evaluates future Microsoft setup from local config only.
+
+It reports:
+
+- `disabled`
+- `missing_config`
+- `ready_to_test`
+
+This readiness layer is intentionally narrow:
+
+- it only checks local feature flags and required environment variables
+- it never requests tokens
+- it never calls Microsoft Graph
+- it never validates tenant reachability
+
+Ready-to-test means the documented placeholder config is present for that path. It does not mean the Microsoft integration itself exists yet.
 
 ## Current source of truth
 
@@ -192,6 +213,7 @@ Relevant values today:
 - `MICROSOFT_CLIENT_ID`
 - `MICROSOFT_TENANT_ID`
 - `MICROSOFT_REDIRECT_URI`
+- `MICROSOFT_CLIENT_SECRET` as a future server-only placeholder when needed later
 
 Behavior:
 

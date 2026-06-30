@@ -30,6 +30,7 @@ import { isAuthenticatedSession } from "../auth/types";
 import { HttpError } from "../http/errors";
 import type { IntegrationRegistry } from "../integrations/registry";
 import { createIntegrationRegistry } from "../integrations/registry";
+import { evaluateMicrosoftIntegrationReadiness } from "../integrations/microsoftReadiness";
 import type {
   CalendarExportProvider,
   ScheduleProvider,
@@ -263,6 +264,7 @@ export class AppService {
         this.integrationRegistry.getFeedbackProvider().getFeedbackEmail() ??
         getOptionalEnv("FEEDBACK_EMAIL") ??
         appConfig.feedbackEmail,
+      microsoftReadiness: evaluateMicrosoftIntegrationReadiness(appConfig),
       providerStatus: {
         calendarExport: providerDiagnostics.calendarExport,
         currentAuth: providerDiagnostics.auth,
