@@ -151,14 +151,6 @@ export function CalendarExport({ currentUser }: Props) {
           >
             {isDownloading ? "Preparing calendar..." : "Download calendar (.ics)"}
           </button>
-          <button
-            className="ghost-button"
-            type="button"
-            disabled
-            aria-disabled="true"
-          >
-            Subscribe to calendar - planned
-          </button>
         </div>
 
         {downloadMessage && (
@@ -176,22 +168,38 @@ export function CalendarExport({ currentUser }: Props) {
 
         <div className="privacy-grid">
           <article className="card inset-card">
+            <p className="eyebrow">Current</p>
+            <h4>Download .ics</h4>
+            <p className="muted">
+              Available now as a one-time export for the selected schedule window.
+            </p>
+          </article>
+          <article className="card inset-card">
+            <p className="eyebrow">Future</p>
             <h4>Apple Calendar</h4>
             <p className="muted">
-              Import the `.ics` file now. Subscription support is planned.
+              Personal subscription support is planned.
             </p>
           </article>
           <article className="card inset-card">
+            <p className="eyebrow">Future</p>
             <h4>Google Calendar</h4>
             <p className="muted">
-              Use the exported file today, with personal subscription links
-              coming later.
+              Personal subscription support is planned.
             </p>
           </article>
           <article className="card inset-card">
+            <p className="eyebrow">Future</p>
             <h4>Outlook</h4>
             <p className="muted">
-              Keep Teams Shifts visible alongside the rest of your workday.
+              Personal subscription support is planned.
+            </p>
+          </article>
+          <article className="card inset-card">
+            <p className="eyebrow">Future</p>
+            <h4>Automatic Teams sync</h4>
+            <p className="muted">
+              Live Teams Shifts synchronization remains planned, not active.
             </p>
           </article>
         </div>
@@ -199,7 +207,7 @@ export function CalendarExport({ currentUser }: Props) {
         <ul className="privacy-list">
           <li>Your export includes only your own shifts.</li>
           <li>Future subscriptions should be private and revocable.</li>
-          <li>Automatic synchronization is planned, not live yet.</li>
+          <li>Use your favorite calendar today, with subscription-based sync later.</li>
         </ul>
       </section>
     </section>

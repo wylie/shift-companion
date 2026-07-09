@@ -15,6 +15,7 @@ The product exists because Teams Shifts is strong at manager-owned schedule publ
 - Prepare for future personal calendar subscriptions
 - Preserve a clean path toward future Microsoft sign-in and Teams-backed schedule access
 - Keep dormant secondary features available without making them part of the MVP
+- Keep the availability feature in the codebase behind `features.unavailability = false` until real user demand is validated
 
 ### Non-goals
 

@@ -24,7 +24,7 @@ Build a Teams-contained companion to Microsoft Teams Shifts that helps staff acc
 - Dedicated feedback view
 - Persisted read-only manager conflict review
 - Privacy, database, and roadmap documentation
-- Dormant unavailability functionality kept intact but hidden from the default MVP
+- Dormant unavailability functionality kept intact behind `features.unavailability = false`
 
 ## Phase 1 completion
 
@@ -52,7 +52,7 @@ Build a Teams-contained companion to Microsoft Teams Shifts that helps staff acc
 - Real authorization still needs Teams SSO and Microsoft Entra identity later.
 - No Microsoft Graph, Teams Shifts, or YMCA data is connected yet.
 - Live calendar subscriptions remain deferred until secure backend token and revocation support exist.
-- Availability management is preserved but intentionally not part of the current primary experience.
+- Availability management is preserved behind a feature flag and is intentionally not part of the current primary experience until validated by real users.
 
 ## Default department assumptions
 

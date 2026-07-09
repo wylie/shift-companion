@@ -123,6 +123,44 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
 
   const exportRangeStart = weekStart;
   const exportRangeEnd = addDays(visibleRangeEnd, -1);
+  const todayShifts = useMemo(
+    () =>
+      myShifts.filter((shift) =>
+        isSameDay(parseLocalDateTime(shift.start), today),
+      ),
+    [myShifts],
+  );
+  const nextShift = useMemo(
+    () =>
+      myShifts.find((shift) => parseLocalDateTime(shift.start).getTime() >= today.getTime()) ??
+      null,
+    [myShifts],
+  );
+  const thisWeekShiftCount = useMemo(
+    () =>
+      myShifts.filter((shift) =>
+        isWithinRange(
+          parseLocalDateTime(shift.start),
+          startOfWeek(today),
+          addWeeks(startOfWeek(today), 1),
+        ),
+      ).length,
+    [myShifts],
+  );
+  const thisWeekDayCount = useMemo(
+    () =>
+      myShifts.reduce((dayKeys, shift) => {
+        const date = parseLocalDateTime(shift.start);
+        if (
+          isWithinRange(date, startOfWeek(today), addWeeks(startOfWeek(today), 1))
+        ) {
+          dayKeys.add(date.toISOString().slice(0, 10));
+        }
+
+        return dayKeys;
+      }, new Set<string>()).size,
+    [myShifts],
+  );
 
   function goToPreviousWeek() {
     setWeekStart((currentWeekStart) => addWeeks(currentWeekStart, -1));
@@ -180,16 +218,60 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
 
       <section className="card hero-panel">
         <div>
-          <h3>Start here</h3>
+          <h3>What am I working?</h3>
           <p className="muted">
             This companion is built to make Teams Shifts more useful, not to
-            replace it. View your schedule first, then export it for Apple
-            Calendar, Google Calendar, or Outlook.
+            replace it. Check today, see what is next, and take your Teams
+            Shifts schedule with you.
           </p>
         </div>
 
+        <div className="schedule-snapshot-grid">
+          <article className="card inset-card snapshot-card">
+            <p className="eyebrow">Today&apos;s Shifts</p>
+            <h3>{todayShifts.length === 0 ? "Off today" : getShiftCountLabel(todayShifts.length)}</h3>
+            <p className="muted">
+              {todayShifts.length > 0
+                ? todayShifts
+                    .map((shift) =>
+                      formatTimeRange(
+                        parseLocalDateTime(shift.start),
+                        parseLocalDateTime(shift.end),
+                      ),
+                    )
+                    .join(" • ")
+                : "No shifts are scheduled in today’s preview window."}
+            </p>
+          </article>
+          <article className="card inset-card snapshot-card">
+            <p className="eyebrow">Next Shift</p>
+            <h3>{nextShift ? nextShift.title : "Nothing upcoming yet"}</h3>
+            <p className="muted">
+              {nextShift
+                ? `${formatDateLabel(parseLocalDateTime(nextShift.start))} • ${formatTimeRange(
+                    parseLocalDateTime(nextShift.start),
+                    parseLocalDateTime(nextShift.end),
+                  )}`
+                : "Check back later for your next published Teams Shifts assignment."}
+            </p>
+          </article>
+          <article className="card inset-card snapshot-card">
+            <p className="eyebrow">This Week</p>
+            <h3>{getShiftCountLabel(thisWeekShiftCount)}</h3>
+            <p className="muted">
+              {thisWeekShiftCount > 0
+                ? `${thisWeekDayCount} scheduled day${thisWeekDayCount === 1 ? "" : "s"} in the current preview week.`
+                : "This preview week is currently clear."}
+            </p>
+          </article>
+        </div>
+
         <div className="hero-actions">
-          <button className="primary-button" type="button" disabled>
+          <button
+            className="primary-button"
+            type="button"
+            onClick={goToThisWeek}
+          >
             View My Schedule
           </button>
           <button
@@ -197,14 +279,17 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
             type="button"
             onClick={() => onNavigate("calendar")}
           >
-            Calendar Export
+            Open Calendar
           </button>
           <button
             className="ghost-button"
             type="button"
-            onClick={() => onNavigate("settings")}
+            disabled={isDownloadingCalendar}
+            onClick={() => void handleDownloadCalendar()}
           >
-            Settings
+            {isDownloadingCalendar
+              ? "Preparing calendar..."
+              : "Download Calendar (.ics)"}
           </button>
           <button
             className="ghost-button"
@@ -232,7 +317,7 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
           <h3>{formatWeekRange(weekStart)}</h3>
           <p className="muted">
             {viewMode === "week"
-              ? "Use week controls to review past and upcoming shifts."
+              ? "Use week controls to review today, upcoming shifts, and the rest of your week."
               : `Showing four consecutive weeks from ${formatDateLabel(
                   weekStart,
                 )} through ${formatDateLabel(exportRangeEnd)}.`}
@@ -330,11 +415,19 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
                       <div className="day-column-shifts">
                         {dayShifts.map((shift) => (
                           <article className="shift-card" key={shift.id}>
-                            <h4>{shift.title}</h4>
+                            <div className="shift-card-header">
+                              <h4>{shift.title}</h4>
+                              <span className="shift-time-pill">
+                                {formatTimeRange(
+                                  parseLocalDateTime(shift.start),
+                                  parseLocalDateTime(shift.end),
+                                )}
+                              </span>
+                            </div>
                             <p className="muted">
                               {formatDateLabel(parseLocalDateTime(shift.start))}
                             </p>
-                            <p>
+                            <p className="shift-primary-line">
                               {formatTimeRange(
                                 parseLocalDateTime(shift.start),
                                 parseLocalDateTime(shift.end),
@@ -367,8 +460,8 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
           </h3>
           <p className="muted">
             {viewMode === "week"
-              ? "Try another week, or return to This week to review the current persisted demo schedule window."
-              : "Try another starting week, or return to This week to review the current four week persisted demo schedule window."}
+              ? "Try another week, or return to This week to check your current preview schedule."
+              : "Try another starting week, or return to This week to check your current four-week preview schedule."}
           </p>
         </article>
       )}
@@ -404,10 +497,9 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
           <button
             className="ghost-button"
             type="button"
-            disabled
-            aria-disabled="true"
+            onClick={() => onNavigate("calendar")}
           >
-            Private calendar subscription - coming later
+            Open Calendar
           </button>
         </div>
 
@@ -425,10 +517,10 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
             </p>
           </article>
           <article className="card inset-card">
-            <h4>Subscribe to calendar</h4>
+            <h4>Stay in sync</h4>
             <p className="muted">
-              Future feature that would update automatically using a private
-              personal link.
+              Calendar subscriptions will arrive later as a private, personal
+              sync option.
             </p>
           </article>
         </div>
