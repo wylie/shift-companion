@@ -1,20 +1,20 @@
 # Teams Shifts Companion
 
-Teams Shifts Companion is a narrow Microsoft Teams tab companion for YMCA-style departments that already use Microsoft Teams Shifts. It helps staff manage unavailable times, review only their own schedules, and export a personal shift calendar without trying to replace Teams, Shifts, payroll, or messaging.
+Teams Shifts Companion is a narrow Microsoft Teams tab companion for teams that already use Microsoft Teams Shifts. Its job is simple: help people view their work schedule and carry it into the calendar application they already use, without trying to replace Teams Shifts, payroll, or messaging.
 
 ## Project overview
 
-The product exists because Teams Shifts is strong at manager-owned schedule publishing, but lightweight staff self-service still benefits from a focused companion surface. This app is that surface. It stays small on purpose.
+The product exists because Teams Shifts is strong at manager-owned schedule publishing, but staff often still need an easier way to see their own shifts in Apple Calendar, Google Calendar, or Outlook. This app is that companion surface. It stays small on purpose.
 
 ## Goals and non-goals
 
 ### Goals
 
-- Give staff a simple place to manage their own unavailable times
-- Let staff view only their own shifts
+- Let staff view only their own Teams Shifts schedule
 - Let staff export only their own schedule as a one-time calendar file
-- Give managers a read-only conflict review surface for departments they manage
-- Preserve a clean path toward future Teams tab deployment and identity-backed access
+- Prepare for future personal calendar subscriptions
+- Preserve a clean path toward future Microsoft sign-in and Teams-backed schedule access
+- Keep dormant secondary features available without making them part of the MVP
 
 ### Non-goals
 
@@ -31,18 +31,19 @@ The current MVP includes:
 - React + Vite client with a Teams-compatible tab shell
 - Express API with repository/service boundaries
 - Browser preview mode with demo identity switching for development only
-- Persisted staff unavailability rules
 - Persisted personal schedule view
 - Personal `.ics` calendar download
-- Read-only manager conflict review
+- Dedicated calendar export view and feedback entry point
+- Settings with provider diagnostics and planned-feature messaging
 - Teams runtime detection plus preview-first auth and schedule boundaries for future Microsoft/Graph integration
 - Postgres persistence through Neon, with in-memory fallback when `DATABASE_URL` is absent
 - Graph-ready schedule provider boundaries, with the current Neon/demo provider active and a non-functional Microsoft Graph stub reserved for later work
 - Auth-provider boundaries, with preview/demo auth active and Microsoft Entra held as a safe stub
 - Lightweight provider status reporting in Settings so the active demo path and future Microsoft flags stay explicit
 - A Microsoft setup readiness layer that reports `disabled`, `missing_config`, or `ready_to_test` without making Microsoft network calls
+- Dormant unavailability and manager-review functionality preserved behind the current product boundary
 
-The MVP intentionally does not connect to Microsoft Graph, live Teams Shifts data, or external calendar subscriptions yet.
+The MVP intentionally does not connect to Microsoft Graph, live Teams Shifts data, or external calendar subscriptions yet. It is not a replacement for Teams Shifts. It exists to make Teams Shifts more useful.
 
 ## Architecture overview
 
@@ -154,7 +155,8 @@ Today:
 
 - `neon-demo` is the active provider and uses the existing persisted schedule data
 - `microsoft-graph` is an intentional stub for future read-only Teams Shifts work
-- unavailability and feedback remain app-owned and stay in the current database/service layer
+- feedback remains app-owned and stays in the current database/service layer
+- unavailability remains in the codebase and database as a dormant feature, disabled in the current MVP
 - `MICROSOFT_GRAPH_ENABLED=false` keeps the Microsoft path safely disabled by default
 
 No Microsoft credentials or Graph SDK setup are required yet.
@@ -170,6 +172,13 @@ Today:
 - `microsoft-entra` is selectable only as a safe setup-needed stub
 - `MICROSOFT_AUTH_ENABLED=false` keeps Microsoft sign-in safely disabled by default
 - no Microsoft tenant, OAuth flow, or token verification is required yet
+
+Planned next steps:
+
+- Microsoft / Teams sign-in
+- live Teams Shifts schedule reads
+- private calendar subscriptions
+- optional return of recurring availability as a secondary feature
 
 Future Entra work should map a verified Microsoft identity to an existing app user without changing the current UI contracts.
 
@@ -217,6 +226,15 @@ npm run dev
 ```
 
 Without `DATABASE_URL`, the API uses in-memory demo data. That mode is acceptable for UI development but not for persistence or release validation.
+
+## Product boundary
+
+This app should stay narrow:
+
+- Teams Shifts remains the system of record for schedule publishing
+- this app focuses on personal schedule access and calendar portability
+- feedback should reinforce that scope rather than expand into workforce-management sprawl
+- dormant availability tooling can return later, but it is not part of the current MVP
 
 ## Testing
 

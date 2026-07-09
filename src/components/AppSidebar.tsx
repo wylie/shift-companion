@@ -36,10 +36,10 @@ export function AppSidebar({
       <div className="sidebar-top">
         <div>
           <p className="eyebrow">Teams Shifts Companion</p>
-          <h1>Staff scheduling companion</h1>
+          <h1>Your schedule, in the calendar you already use</h1>
           <p className="muted sidebar-muted">
-            Lightweight Teams-ready companion for personal schedule and
-            unavailability workflows.
+            A lightweight companion for viewing Teams Shifts and exporting your
+            schedule to Apple Calendar, Google Calendar, or Outlook.
           </p>
         </div>
 
@@ -59,18 +59,16 @@ export function AppSidebar({
               ))}
             </select>
             <span className="sidebar-helper" id="identity-preview-help">
-              Mocked identity preview only. Real Microsoft sign-in is not wired
-              yet, and this selector remains the active auth path for local MVP
-              use.
+              Mocked identity preview only. Real Microsoft sign-in is planned,
+              and this selector remains the active local MVP path for now.
             </span>
           </label>
         ) : (
           <div className="runtime-indicator" role="note">
-            <strong>Future Microsoft auth</strong>
+            <strong>Future Teams sign-in</strong>
             <span className="sidebar-helper">
               Microsoft Entra mode has been selected, but this phase only
-              exposes a safe setup-needed boundary. Preview identity switching
-              is disabled until real sign-in is added later.
+              exposes a safe setup-needed boundary until real sign-in is added.
             </span>
           </div>
         )}
@@ -93,14 +91,14 @@ export function AppSidebar({
 
         {isPreviewAuth ? (
           <div className="demo-notice" role="note">
-            <strong>Demo data only.</strong> No YMCA, Microsoft Graph, or Teams
-            Shifts data is connected.
+            <strong>Demo data only.</strong> No Microsoft Graph or live Teams
+            Shifts data is connected yet.
           </div>
         ) : (
           <div className="demo-notice" role="note">
             <strong>Setup required.</strong> Microsoft Entra auth is still
-            stubbed. No Microsoft Graph, live Teams Shifts, or YMCA data is
-            connected yet.
+            stubbed. No Microsoft Graph or live Teams Shifts data is connected
+            yet.
           </div>
         )}
       </div>
@@ -113,7 +111,7 @@ export function AppSidebar({
               {currentUser.role === "manager" ? "Manager" : "Staff member"}
             </span>
             <span>{currentUserDepartmentLabel}</span>
-            <span>Preview/demo auth mode</span>
+            <span>Preview/demo mode</span>
           </>
         ) : (
           <>

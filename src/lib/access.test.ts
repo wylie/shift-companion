@@ -10,10 +10,11 @@ import {
 } from "./access";
 
 const navItems = [
-  { id: "unavailability", label: "My Unavailability" },
   { id: "schedule", label: "My Schedule" },
-  { id: "manager", label: "Manager View" },
-  { id: "settings", label: "Settings / Privacy" },
+  { id: "calendar", label: "Calendar" },
+  { id: "settings", label: "Settings" },
+  { id: "feedback", label: "Feedback" },
+  { id: "manager", label: "Manager Review" },
 ] as const;
 
 describe("access helpers", () => {

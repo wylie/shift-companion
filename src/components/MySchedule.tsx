@@ -14,10 +14,11 @@ import {
   parseLocalDateTime,
   startOfWeek,
 } from "../lib/date";
-import type { CurrentUser, Shift } from "../types";
+import type { CurrentUser, NavItem, Shift } from "../types";
 
 type Props = {
   currentUser: CurrentUser;
+  onNavigate: (view: Extract<NavItem["id"], "calendar" | "feedback" | "settings">) => void;
 };
 
 type ScheduleViewMode = "week" | "four-week";
@@ -38,7 +39,7 @@ function downloadBlob(filename: string, blob: Blob) {
   URL.revokeObjectURL(url);
 }
 
-export function MySchedule({ currentUser }: Props) {
+export function MySchedule({ currentUser, onNavigate }: Props) {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
   const [viewMode, setViewMode] = useState<ScheduleViewMode>("week");
   const [downloadMessage, setDownloadMessage] = useState<string | null>(null);
@@ -166,17 +167,54 @@ export function MySchedule({ currentUser }: Props) {
       <div className="section-header">
         <div>
           <p className="eyebrow">My Schedule</p>
-          <h2>Schedule</h2>
+          <h2>Take your Teams Shifts schedule with you</h2>
         </div>
-        <span className="pill">Server-side calendar export</span>
+        <span className="pill">My Schedule first</span>
       </div>
 
       <p className="lead">
-        View only your own persisted demo shifts here. Calendar download stays
-        scoped to the selected preview identity and exports only that
-        user&apos;s shifts. Switch between a focused week and a broader four
-        week planning window.
+        Review only your own shifts, then move them into the calendar
+        application you already use. Export is available now, and automatic
+        synchronization is planned for a future release.
       </p>
+
+      <section className="card hero-panel">
+        <div>
+          <h3>Start here</h3>
+          <p className="muted">
+            This companion is built to make Teams Shifts more useful, not to
+            replace it. View your schedule first, then export it for Apple
+            Calendar, Google Calendar, or Outlook.
+          </p>
+        </div>
+
+        <div className="hero-actions">
+          <button className="primary-button" type="button" disabled>
+            View My Schedule
+          </button>
+          <button
+            className="ghost-button"
+            type="button"
+            onClick={() => onNavigate("calendar")}
+          >
+            Calendar Export
+          </button>
+          <button
+            className="ghost-button"
+            type="button"
+            onClick={() => onNavigate("settings")}
+          >
+            Settings
+          </button>
+          <button
+            className="ghost-button"
+            type="button"
+            onClick={() => onNavigate("feedback")}
+          >
+            Feedback
+          </button>
+        </div>
+      </section>
 
       {errorMessage && (
         <article className="card empty-state" role="alert">

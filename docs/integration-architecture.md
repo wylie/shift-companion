@@ -6,10 +6,10 @@ The `v0.2.0` milestone prepares the app for future Microsoft Entra authenticatio
 
 The app can now evolve auth and schedule integrations behind stable internal contracts while keeping the current MVP behavior unchanged:
 
-- personal unavailability stays app-owned
 - personal schedule review stays lightweight
 - calendar export stays one-time and individual-only
 - demo and persisted Neon-backed data remain the working source today
+- dormant unavailability stays app-owned and can be re-enabled later without API or database rewrites
 
 ## Design principles
 
@@ -17,7 +17,7 @@ The app can now evolve auth and schedule integrations behind stable internal con
 - The application service asks an integration registry for providers.
 - Providers expose status and capabilities without making network calls.
 - External provider shapes are mapped into internal models before they reach the UI.
-- Unavailability remains app-owned unless a future Microsoft capability clearly replaces it.
+- Unavailability remains app-owned unless a future Microsoft capability clearly replaces it, but it is not part of the current primary MVP flow.
 
 ## Integration Registry
 
@@ -192,7 +192,7 @@ Ready-to-test means the documented placeholder config is present for that path. 
 Today:
 
 - published shifts are served from the Neon/demo repository layer
-- unavailability rules are app-owned and stay in the app database
+- unavailability rules are app-owned, stay in the app database, and are currently dormant in the UI
 - manager review remains a demo/read-only capability built on the same persisted data model
 
 Later:

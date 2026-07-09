@@ -82,7 +82,13 @@ export type StaffMember = {
 export type { UnavailabilityRuleType, UnavailabilityRule, Shift, ShiftAssignment };
 
 export type NavItem = {
-  id: "unavailability" | "schedule" | "manager" | "settings";
+  id:
+    | "calendar"
+    | "feedback"
+    | "manager"
+    | "schedule"
+    | "settings"
+    | "unavailability";
   label: string;
 };
 

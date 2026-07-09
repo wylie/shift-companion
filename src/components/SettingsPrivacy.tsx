@@ -18,7 +18,6 @@ type Props = {
   currentUser: CurrentUser;
   dataSource: "in-memory" | "postgres";
   documentationUrl?: string;
-  feedbackEmail?: string;
   microsoftReadiness: MicrosoftIntegrationReadiness;
   providerStatus: {
     calendarExport: ProviderStatus;
@@ -94,42 +93,6 @@ function formatProviderLabel(status: ProviderStatus): string {
   return status.name;
 }
 
-function buildFeedbackHref(params: {
-  appVersion: string;
-  currentUserName: string;
-  feedbackEmail: string;
-  type: "bug" | "feature";
-}) {
-  const subject =
-    params.type === "feature"
-      ? `Feature request for Teams Shifts Companion v${params.appVersion}`
-      : `Bug report for Teams Shifts Companion v${params.appVersion}`;
-  const body =
-    params.type === "feature"
-      ? [
-          "What should change?",
-          "",
-          "Why does it matter for your workflow?",
-          "",
-          `Current app version: ${params.appVersion}`,
-          `Current app user: ${params.currentUserName}`,
-        ].join("\n")
-      : [
-          "What happened?",
-          "",
-          "What did you expect to happen?",
-          "",
-          "How can this be reproduced?",
-          "",
-          `Current app version: ${params.appVersion}`,
-          `Current app user: ${params.currentUserName}`,
-        ].join("\n");
-
-  return `mailto:${params.feedbackEmail}?subject=${encodeURIComponent(
-    subject,
-  )}&body=${encodeURIComponent(body)}`;
-}
-
 export function SettingsPrivacy({
   auth,
   appVersion,
@@ -137,7 +100,6 @@ export function SettingsPrivacy({
   currentUser,
   dataSource,
   documentationUrl,
-  feedbackEmail,
   microsoftReadiness,
   providerStatus,
 }: Props) {
@@ -182,19 +144,19 @@ export function SettingsPrivacy({
     <section className="screen">
       <div className="section-header">
         <div>
-          <p className="eyebrow">Settings / Privacy</p>
-          <h2>Privacy by default</h2>
+          <p className="eyebrow">Settings</p>
+          <h2>Schedule access settings</h2>
         </div>
-        <span className="pill">No live data</span>
+        <span className="pill">Companion boundaries</span>
       </div>
 
       <div className="card-grid">
         <article className="card">
-          <h3>Staff visibility</h3>
-          <p>Staff only see their own schedule and unavailability.</p>
+          <h3>Personal schedule scope</h3>
+          <p>Staff only see their own schedule and calendar export data.</p>
         </article>
         <article className="card">
-          <h3>Manager visibility</h3>
+          <h3>Manager review scope</h3>
           <p>
             Managers only see staff and conflict data for teams they manage.
           </p>
@@ -203,14 +165,14 @@ export function SettingsPrivacy({
           <h3>Calendar export</h3>
           <p>
             Server-side `.ics` downloads are individual-only now. Private
-            subscription links remain a future revocable feature.
+            calendar subscriptions remain a planned future feature.
           </p>
         </article>
         <article className="card">
           <h3>Current environment</h3>
           <p>
             {auth.providerId === "preview-demo"
-              ? "Preview/demo auth is active. No real Shifts, Microsoft Graph, YMCA, or production auth is connected yet."
+              ? "Preview/demo auth is active. No real Teams Shifts, Microsoft Graph, or production sign-in is connected yet."
               : "Microsoft Entra auth is reserved for a future phase. This environment stays in a safe setup-needed state until real sign-in is implemented."}
           </p>
         </article>
@@ -235,6 +197,44 @@ export function SettingsPrivacy({
           <p>{dataSource === "postgres" ? "Postgres / Neon" : "In-memory demo data"}</p>
         </article>
       </div>
+
+      <section className="card">
+        <div className="group-header">
+          <h3>Upcoming Features</h3>
+          <span className="muted">Planned, not live</span>
+        </div>
+        <p className="muted">
+          The MVP stays focused on getting your Teams Shifts schedule into the
+          calendar you already use. These items are planned next steps, not
+          active functionality.
+        </p>
+        <div className="card-grid">
+          <article className="card inset-card">
+            <h4>Teams sign-in</h4>
+            <p className="muted">
+              Replace preview-only identity switching with real Microsoft sign-in.
+            </p>
+          </article>
+          <article className="card inset-card">
+            <h4>Live Teams Shifts synchronization</h4>
+            <p className="muted">
+              Read published Shifts schedule data directly from Microsoft Graph.
+            </p>
+          </article>
+          <article className="card inset-card">
+            <h4>Calendar subscriptions</h4>
+            <p className="muted">
+              Offer private personal subscription links instead of one-time exports.
+            </p>
+          </article>
+          <article className="card inset-card">
+            <h4>Optional recurring availability</h4>
+            <p className="muted">
+              Dormant availability workflows may return later as an optional feature.
+            </p>
+          </article>
+        </div>
+      </section>
 
       <section className="card">
         <div className="group-header">
@@ -348,54 +348,13 @@ export function SettingsPrivacy({
       <section className="card">
         <div className="group-header">
           <h3>Feedback</h3>
-          <span className="muted">Settings entry point</span>
+          <span className="muted">Dedicated navigation item</span>
         </div>
         <p className="muted">
-          New feature requests should be submitted here so product scope stays
-          intentional and traceable. Bugs should use the same path so support
-          has the current version and workflow context.
+          Use the Feedback view to send feature requests or bug reports without
+          expanding product scope by accident. It remains the place to propose
+          improvements like subscriptions and live sync.
         </p>
-
-        {feedbackEmail ? (
-          <div className="feedback-stack">
-            <div className="calendar-actions">
-              <a
-                className="primary-button button-link"
-                href={buildFeedbackHref({
-                  appVersion,
-                  currentUserName: currentUser.name,
-                  feedbackEmail,
-                  type: "feature",
-                })}
-              >
-                Request a feature
-              </a>
-              <a
-                className="ghost-button button-link"
-                href={buildFeedbackHref({
-                  appVersion,
-                  currentUserName: currentUser.name,
-                  feedbackEmail,
-                  type: "bug",
-                })}
-              >
-                Report a bug
-              </a>
-            </div>
-            <p className="muted">
-              Opens your mail app to {feedbackEmail}. Include screenshots or
-              steps when reporting bugs.
-            </p>
-          </div>
-        ) : (
-          <article className="card inset-card empty-state" role="alert">
-            <h4>Feedback email not configured</h4>
-            <p className="muted">
-              Set `FEEDBACK_EMAIL` on the server to enable feature request and
-              bug report links from Settings.
-            </p>
-          </article>
-        )}
       </section>
 
       <section className="card">

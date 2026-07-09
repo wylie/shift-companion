@@ -8,7 +8,7 @@ The product boundary matters:
 
 - Teams remains the primary collaboration surface
 - Teams Shifts remains the scheduling system of record
-- This app handles lightweight, privacy-sensitive self-service around availability and personal schedule review
+- This app handles lightweight, privacy-sensitive self-service around personal schedule review and calendar access
 
 ## Lightweight companion philosophy
 
@@ -26,12 +26,13 @@ That is why the current implementation favors:
 
 Current and likely in-scope responsibilities:
 
-- personal unavailability management
 - personal schedule review
 - personal calendar export
+- future personal calendar subscriptions
 - read-only conflict review for managers with assigned departments
 - privacy and audit-oriented status messaging
 - narrow identity-backed workflows that do not duplicate Teams collaboration features
+- dormant availability support preserved outside the default MVP navigation
 
 ## What intentionally belongs in Microsoft Teams
 
@@ -89,7 +90,7 @@ Current state:
 
 - `neon-demo` is the active schedule provider by default
 - `microsoft-graph` is present only as a stub
-- app-owned unavailability remains in the existing repository layer
+- app-owned unavailability remains in the existing repository layer as a dormant feature
 
 This keeps published shifts replaceable later without forcing a rewrite of the current UI flows.
 
@@ -116,7 +117,7 @@ Typical flow:
 5. Schedule and calendar-export routes resolve shifts through the active schedule provider.
 6. Unavailability, manager review, audit events, and other app-owned behaviors continue through the repository and service layers.
 
-The important constraint is that identity and authorization live on the server, not only in client state.
+The important constraints are that identity and authorization live on the server, not only in client state, and that schedule access stays primary while secondary workflows remain de-emphasized.
 
 ## Runtime modes
 

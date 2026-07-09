@@ -4,6 +4,8 @@
 
 The `v0.2.0` milestone extends the MVP with an auth-provider boundary so future Microsoft Entra sign-in can replace preview identity selection without forcing a rewrite of the UI or API contracts.
 
+That work supports the current product direction: easier access to a user’s Teams Shifts schedule and calendar workflows, not a broader workforce-management surface.
+
 This phase does not add:
 
 - real OAuth flows
@@ -40,6 +42,8 @@ The new boundary keeps three concerns separate:
 - authorization against app-owned users and roles
 
 That separation matters because future Entra work should only replace the provider implementation, not the schedule UI, unavailability UI, or calendar export flow.
+
+Unavailability remains in the codebase, but it is currently dormant and hidden from the primary MVP navigation.
 
 ## Current provider implementations
 

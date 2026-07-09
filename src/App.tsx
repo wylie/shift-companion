@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import { featureFlags } from "./config/features";
 import { AppSidebar } from "./components/AppSidebar";
+import { CalendarExport } from "./components/CalendarExport";
+import { FeedbackCenter } from "./components/FeedbackCenter";
 import { ManagerView } from "./components/ManagerView";
 import { MySchedule } from "./components/MySchedule";
 import { MyUnavailability } from "./components/MyUnavailability";
@@ -11,14 +14,18 @@ import { useTeamsRuntime } from "./lib/teams";
 import type { AppBootstrap, NavItem } from "./types";
 
 const navItems: NavItem[] = [
-  { id: "unavailability", label: "My Unavailability" },
   { id: "schedule", label: "My Schedule" },
-  { id: "manager", label: "Manager View" },
-  { id: "settings", label: "Settings / Privacy" },
+  { id: "calendar", label: "Calendar" },
+  { id: "settings", label: "Settings" },
+  { id: "feedback", label: "Feedback" },
+  ...(featureFlags.unavailability
+    ? ([{ id: "unavailability", label: "My Unavailability" }] satisfies NavItem[])
+    : []),
+  { id: "manager", label: "Manager Review" },
 ];
 
 export default function App() {
-  const [activeView, setActiveView] = useState<NavItem["id"]>("unavailability");
+  const [activeView, setActiveView] = useState<NavItem["id"]>("schedule");
   const [selectedPreviewUserId, setSelectedPreviewUserId] = useState<string>();
   const [bootstrap, setBootstrap] = useState<AppBootstrap | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -114,7 +121,12 @@ export default function App() {
       !canAccessManagerView(currentUser) &&
       activeView === "manager"
     ) {
-      setActiveView("unavailability");
+      setActiveView("schedule");
+      return;
+    }
+
+    if (!featureFlags.unavailability && activeView === "unavailability") {
+      setActiveView("schedule");
     }
   }, [activeView, currentUser]);
 
@@ -128,7 +140,7 @@ export default function App() {
             </h2>
             <p className="muted">
               {isBrowserPreview
-                ? "Connecting to the current preview data source for demo identities, schedules, and unavailable rules."
+                ? "Connecting to the current preview data source for demo identities, schedules, and calendar export."
                 : "Checking the current auth mode and loading the scoped workspace for this environment."}
             </p>
           </article>
@@ -274,10 +286,22 @@ export default function App() {
           </article>
         )}
 
-        {activeView === "unavailability" && (
+        {featureFlags.unavailability && activeView === "unavailability" && (
           <MyUnavailability currentUser={currentUser} />
         )}
-        {activeView === "schedule" && <MySchedule currentUser={currentUser} />}
+        {activeView === "schedule" && (
+          <MySchedule currentUser={currentUser} onNavigate={setActiveView} />
+        )}
+        {activeView === "calendar" && (
+          <CalendarExport currentUser={currentUser} />
+        )}
+        {activeView === "feedback" && (
+          <FeedbackCenter
+            appVersion={bootstrap.appVersion}
+            currentUserName={currentUser.name}
+            feedbackEmail={bootstrap.feedbackEmail}
+          />
+        )}
         {activeView === "manager" && <ManagerView currentUser={currentUser} />}
         {activeView === "settings" && (
           <SettingsPrivacy
@@ -287,7 +311,6 @@ export default function App() {
             currentUser={currentUser}
             dataSource={bootstrap.dataSource}
             documentationUrl={bootstrap.documentationUrl}
-            feedbackEmail={bootstrap.feedbackEmail}
             microsoftReadiness={bootstrap.microsoftReadiness}
             providerStatus={bootstrap.providerStatus}
           />

@@ -2,15 +2,14 @@
 
 ## Product direction
 
-The roadmap favors operational maturity and careful integration over rapid feature sprawl. The app should remain a companion, not drift toward becoming a second workforce platform.
+The roadmap favors operational maturity and careful integration over rapid feature sprawl. The app should remain a companion that makes Teams Shifts more useful, not drift toward becoming a second workforce platform.
 
 ## Completed phases
 
-### Phase 1: Staff MVP
+### Phase 1: Personal schedule MVP
 
 Completed.
 
-- staff unavailability management
 - personal weekly schedule review
 - one-time personal calendar export
 - Teams-compatible tab shell
@@ -65,9 +64,11 @@ Scope should stay narrow:
 - keep preview/demo auth and Neon/demo schedule data working while Microsoft paths stay stubbed
 - future app-user mapping from verified Entra identity to internal users
 - read-only schedule ingestion first
+- personal calendar subscription support after identity and revocation controls exist
 - least-privilege permissions
 - no attempt to replace Shifts authoring
 - no broad collaboration features
+- dormant unavailability remains disabled unless it supports the schedule-access mission clearly
 
 ## Later options
 
@@ -78,6 +79,7 @@ Possible after identity and revocation controls mature.
 - private calendar subscription URLs
 - token rotation and revocation
 - privacy review around third-party calendar clients
+- automatic synchronization messaging once real subscriptions exist
 
 ### Phase 8: Broader admin or scheduling workflows
 
