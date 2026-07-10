@@ -10,10 +10,8 @@ import {
 } from "./access";
 
 const navItems = [
-  { id: "schedule", label: "My Schedule" },
-  { id: "calendar", label: "Calendar" },
-  { id: "settings", label: "Settings" },
-  { id: "feedback", label: "Feedback" },
+  { id: "schedule", label: "Schedule & Calendar" },
+  { id: "settings", label: "Settings & Feedback" },
   { id: "manager", label: "Manager Review" },
 ] as const;
 

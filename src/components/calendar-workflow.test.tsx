@@ -13,8 +13,8 @@ const currentUser: CurrentUser = {
   isDemo: true,
 };
 
-describe("calendar page workflow", () => {
-  it("keeps download, subscription, setup, and privacy sections on Calendar", () => {
+describe("schedule and calendar workflow", () => {
+  it("keeps download, subscription, setup, and privacy sections in calendar management", () => {
     const markup = renderToStaticMarkup(
       <CalendarExport currentUser={currentUser} />,
     );
@@ -29,7 +29,7 @@ describe("calendar page workflow", () => {
     expect(markup).toContain("Privacy notes");
   });
 
-  it("keeps My Schedule focused on viewing shifts and linking to Calendar", () => {
+  it("keeps the schedule section focused on viewing shifts and linking to calendar management", () => {
     const markup = renderToStaticMarkup(
       <MySchedule currentUser={currentUser} onNavigate={() => undefined} />,
     );

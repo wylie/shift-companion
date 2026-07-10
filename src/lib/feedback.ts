@@ -1,7 +1,9 @@
 export function buildFeedbackHref(params: {
   appVersion: string;
+  contactEmail?: string;
   currentUserName: string;
   feedbackEmail: string;
+  message?: string;
   type: "bug" | "feature";
 }) {
   const subject =
@@ -11,20 +13,26 @@ export function buildFeedbackHref(params: {
   const body =
     params.type === "feature"
       ? [
-          "What should change?",
+          params.message?.trim() || "What should change?",
           "",
           "Why would it make your schedule easier to access?",
           "",
+          params.contactEmail
+            ? `Reply-to contact: ${params.contactEmail}`
+            : "Reply-to contact: not provided",
           `Current app version: ${params.appVersion}`,
           `Current app user: ${params.currentUserName}`,
         ].join("\n")
       : [
-          "What happened?",
+          params.message?.trim() || "What happened?",
           "",
           "What did you expect to happen?",
           "",
           "How can this be reproduced?",
           "",
+          params.contactEmail
+            ? `Reply-to contact: ${params.contactEmail}`
+            : "Reply-to contact: not provided",
           `Current app version: ${params.appVersion}`,
           `Current app user: ${params.currentUserName}`,
         ].join("\n");

@@ -14,11 +14,11 @@ import {
   parseLocalDateTime,
   startOfWeek,
 } from "../lib/date";
-import type { CurrentUser, NavItem, Shift } from "../types";
+import type { CurrentUser, Shift } from "../types";
 
 type Props = {
   currentUser: CurrentUser;
-  onNavigate: (view: Extract<NavItem["id"], "calendar" | "feedback" | "settings">) => void;
+  onNavigate: (section: "calendar") => void;
 };
 
 type ScheduleViewMode = "week" | "four-week";
@@ -139,15 +139,16 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
     <section className="screen">
       <div className="section-header">
         <div>
-          <p className="eyebrow">My Schedule</p>
+          <p className="eyebrow">Schedule &amp; Calendar</p>
           <h2>See what you&apos;re working</h2>
         </div>
-        <span className="pill">My Schedule first</span>
+        <span className="pill">Schedule first</span>
       </div>
 
       <p className="lead">
         Review only your own Teams Shifts schedule here. Downloads,
-        subscriptions, and calendar setup guidance live on the Calendar page.
+        subscriptions, and calendar setup guidance live below in Calendar
+        management.
       </p>
 
       <section className="card hero-panel">
@@ -209,7 +210,7 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
           <p className="muted">
             {viewMode === "week"
               ? "Use week controls to review today, upcoming shifts, and the rest of your week."
-              : "Showing four consecutive weeks so you can scan your broader schedule without leaving My Schedule."}
+              : "Showing four consecutive weeks so you can scan your broader schedule without leaving this page."}
           </p>
         </div>
 
@@ -360,7 +361,7 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
           <p className="eyebrow">Calendar</p>
           <h3>Manage calendar</h3>
           <p className="muted">
-            Use the Calendar page for one-time downloads, private
+            Use the Calendar section below for one-time downloads, private
             subscriptions, setup guidance, and privacy details.
           </p>
         </div>

@@ -53,7 +53,7 @@ These workflows should stay in Teams or Shifts unless a future decision explicit
 
 Key responsibilities:
 
-- one consolidated companion page with in-page section navigation
+- two primary pages with in-page section navigation inside each page
 - Teams host detection
 - browser preview fallback
 - user-facing loading, empty, and error states
@@ -119,16 +119,14 @@ Typical flow:
 
 The important constraints are that identity and authorization live on the server, not only in client state, and that schedule access stays primary while secondary workflows remain de-emphasized.
 
-## Consolidated page shell
+## Primary page shell
 
-The default app shell now renders one scrollable page that stacks:
+The default app shell now renders two primary pages:
 
-1. Schedule
-2. Calendar
-3. Settings
-4. Feedback
+1. Schedule & Calendar
+2. Settings & Feedback
 
-The sidebar is a jump-link control surface for those anchors, not a multi-page router. Legacy paths such as `/schedule`, `/calendar`, `/settings`, and `/feedback` are normalized to `/#schedule`, `/#calendar`, `/#settings`, and `/#feedback`.
+Within those pages, section anchors still handle direct jumps to `#schedule`, `#calendar`, `#settings`, and `#feedback`. Legacy paths such as `/schedule`, `/calendar`, `/settings`, and `/feedback` are normalized to the matching section hash on the correct primary page.
 
 ## Runtime modes
 

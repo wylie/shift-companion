@@ -467,6 +467,11 @@ h2 {
   margin-top: 1rem;
 }
 
+.feedback-form {
+  display: grid;
+  gap: 1rem;
+}
+
 .primary-button,
 .ghost-button,
 .button-link {

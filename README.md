@@ -32,7 +32,7 @@ The current MVP includes:
 - React + Vite client with a Teams-compatible tab shell
 - Express API with repository/service boundaries
 - Browser preview mode with demo identity switching for development only
-- One consolidated companion page with in-page jump links for Schedule, Calendar, Settings, and Feedback
+- Two primary pages: Schedule & Calendar, plus Settings & Feedback
 - Persisted personal schedule view
 - Personal `.ics` calendar download
 - Private, revocable calendar subscription feeds
@@ -267,16 +267,14 @@ This app should stay narrow:
 
 - Teams Shifts remains the system of record for schedule publishing
 
-## Consolidated page flow
+## Primary page flow
 
-The companion now runs as one primary scrollable page:
+The companion now uses two primary pages:
 
-1. Schedule
-2. Calendar
-3. Settings
-4. Feedback
+1. Schedule & Calendar
+2. Settings & Feedback
 
-The sidebar uses in-page jump links instead of switching between separate page-like destinations. Legacy paths such as `/calendar` or `/settings` are redirected to the matching section hash on the consolidated page.
+The first page combines personal schedule review with all calendar-management tasks. The second page combines settings, developer-facing diagnostics, and feedback. Legacy paths such as `/calendar` or `/feedback` are redirected to the matching section hash on the correct primary page.
 - this app focuses on personal schedule access and calendar portability
 - feedback should reinforce that scope rather than expand into workforce-management sprawl
 - dormant availability tooling can return later, but it is not part of the current MVP

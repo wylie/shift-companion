@@ -10,23 +10,36 @@ import { useTeamsRuntime } from "./lib/teams";
 import type { AppBootstrap, NavItem } from "./types";
 
 const navItems: NavItem[] = [
-  { id: "schedule", label: "Schedule" },
-  { id: "calendar", label: "Calendar" },
-  { id: "settings", label: "Settings" },
-  { id: "feedback", label: "Feedback" },
+  { id: "schedule", label: "Schedule & Calendar" },
+  { id: "settings", label: "Settings & Feedback" },
 ];
 
-const legacySectionPaths: Record<string, NavItem["id"]> = {
+const legacySectionPaths: Record<string, "schedule" | "calendar" | "settings" | "feedback"> = {
   "/calendar": "calendar",
   "/feedback": "feedback",
   "/schedule": "schedule",
   "/settings": "settings",
 };
 
-function resolveHashSection(hash: string): NavItem["id"] {
+function resolveHashSection(hash: string): "schedule" | "calendar" | "settings" | "feedback" {
   const normalized = hash.replace(/^#/, "");
-  return navItems.some((item) => item.id === normalized)
-    ? (normalized as NavItem["id"])
+
+  if (
+    normalized === "calendar" ||
+    normalized === "feedback" ||
+    normalized === "settings"
+  ) {
+    return normalized;
+  }
+
+  return "schedule";
+}
+
+function getPageForSection(
+  section: "schedule" | "calendar" | "settings" | "feedback",
+): NavItem["id"] {
+  return section === "settings" || section === "feedback"
+    ? "settings"
     : "schedule";
 }
 
@@ -68,7 +81,7 @@ export default function App() {
     }
 
     const syncSectionFromHash = () => {
-      setActiveView(resolveHashSection(window.location.hash));
+      setActiveView(getPageForSection(resolveHashSection(window.location.hash)));
     };
 
     syncSectionFromHash();
@@ -172,7 +185,7 @@ export default function App() {
         block: "start",
       });
     });
-  }, [bootstrap, currentUser]);
+  }, [activeView, bootstrap, currentUser]);
 
   if (isLoading && !bootstrap) {
     return (
@@ -292,20 +305,32 @@ export default function App() {
     .map((department) => department.name)
     .join(" + ");
 
-  function handleSelectView(view: NavItem["id"]) {
-    setActiveView(view);
-
+  function scrollToSection(section: "schedule" | "calendar" | "settings" | "feedback") {
     if (typeof window === "undefined") {
       return;
     }
 
-    if (window.location.hash !== `#${view}`) {
-      window.history.pushState(null, "", `/#${view}`);
+    if (window.location.hash !== `#${section}`) {
+      window.history.pushState(null, "", `/#${section}`);
     }
 
-    document.getElementById(view)?.scrollIntoView({
+    document.getElementById(section)?.scrollIntoView({
       behavior: "smooth",
       block: "start",
+    });
+  }
+
+  function handleSelectView(view: NavItem["id"]) {
+    setActiveView(view);
+    scrollToSection(view === "settings" ? "settings" : "schedule");
+  }
+
+  function handleSelectSection(section: "schedule" | "calendar" | "settings" | "feedback") {
+    const nextPage = getPageForSection(section);
+    setActiveView(nextPage);
+
+    requestAnimationFrame(() => {
+      scrollToSection(section);
     });
   }
 
@@ -346,36 +371,40 @@ export default function App() {
           </article>
         )}
 
-        <div className="consolidated-page">
-          <div className="anchor-section" id="schedule">
-            <MySchedule currentUser={currentUser} onNavigate={handleSelectView} />
-          </div>
+        {activeView === "schedule" ? (
+          <div className="consolidated-page">
+            <div className="anchor-section" id="schedule">
+              <MySchedule currentUser={currentUser} onNavigate={handleSelectSection} />
+            </div>
 
-          <div className="anchor-section" id="calendar">
-            <CalendarExport currentUser={currentUser} />
+            <div className="anchor-section" id="calendar">
+              <CalendarExport currentUser={currentUser} />
+            </div>
           </div>
+        ) : (
+          <div className="consolidated-page">
+            <div className="anchor-section" id="settings">
+              <SettingsPrivacy
+                auth={bootstrap.auth}
+                appVersion={bootstrap.appVersion}
+                buildEnvironment={bootstrap.buildEnvironment}
+                currentUser={currentUser}
+                dataSource={bootstrap.dataSource}
+                documentationUrl={bootstrap.documentationUrl}
+                microsoftReadiness={bootstrap.microsoftReadiness}
+                providerStatus={bootstrap.providerStatus}
+              />
+            </div>
 
-          <div className="anchor-section" id="settings">
-            <SettingsPrivacy
-              auth={bootstrap.auth}
-              appVersion={bootstrap.appVersion}
-              buildEnvironment={bootstrap.buildEnvironment}
-              currentUser={currentUser}
-              dataSource={bootstrap.dataSource}
-              documentationUrl={bootstrap.documentationUrl}
-              microsoftReadiness={bootstrap.microsoftReadiness}
-              providerStatus={bootstrap.providerStatus}
-            />
+            <div className="anchor-section" id="feedback">
+              <FeedbackCenter
+                appVersion={bootstrap.appVersion}
+                currentUserName={currentUser.name}
+                feedbackEmail={bootstrap.feedbackEmail}
+              />
+            </div>
           </div>
-
-          <div className="anchor-section" id="feedback">
-            <FeedbackCenter
-              appVersion={bootstrap.appVersion}
-              currentUserName={currentUser.name}
-              feedbackEmail={bootstrap.feedbackEmail}
-            />
-          </div>
-        </div>
+        )}
       </main>
     </div>
   );
