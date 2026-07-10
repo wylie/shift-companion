@@ -20,9 +20,9 @@ describe("schedule and calendar workflow", () => {
     );
 
     expect(markup).toContain("Download calendar (.ics)");
-    expect(markup).toContain("Calendar subscription");
+    expect(markup).toContain(">Subscription<");
     expect(markup).toContain("Loading subscription status");
-    expect(markup).toContain("Calendar apps");
+    expect(markup).toContain(">Apps<");
     expect(markup).toContain("Apple Calendar");
     expect(markup).toContain("Google Calendar");
     expect(markup).toContain("Outlook");

@@ -271,9 +271,8 @@ export function CalendarExport({ currentUser }: Props) {
       <div className="section-header">
         <div>
           <p className="eyebrow">Calendar</p>
-          <h2>My Calendar</h2>
+          <h2>Calendar</h2>
         </div>
-        <span className="pill">Calendar tools</span>
       </div>
 
       {currentUser.isDemo && (
@@ -286,8 +285,8 @@ export function CalendarExport({ currentUser }: Props) {
       <div className="download-grid">
         <section className="card hero-panel download-controls-card">
           <div>
-            <h3>Download calendar (.ics)</h3>
-            <p className="muted">Downloads a one-time .ics file.</p>
+            <h3>Download</h3>
+            <p className="muted">One-time .ics file.</p>
           </div>
 
           <div className="hero-actions">
@@ -340,7 +339,7 @@ export function CalendarExport({ currentUser }: Props) {
             </span>
           </div>
 
-          <div className="calendar-actions">
+          <div className="calendar-actions card-actions-bottom">
             <button
               className="primary-button"
               type="button"
@@ -368,23 +367,20 @@ export function CalendarExport({ currentUser }: Props) {
 
       <section className="card calendar-section">
         <div className="group-header">
-          <h3>Calendar subscription</h3>
+          <h3>Subscription</h3>
           <span className="muted">Private feed</span>
         </div>
 
-        <p className="muted">Keeps your calendar updated automatically.</p>
+        <p className="muted">Updates automatically.</p>
 
         {isLoadingSubscription ? (
           <article className="card inset-card empty-state" aria-live="polite">
             <h4>Loading subscription status</h4>
-            <p className="muted">
-              Checking whether the current preview identity already has a
-              private calendar feed.
-            </p>
+            <p className="muted">Checking subscription.</p>
           </article>
         ) : (
           <div className="subscription-stack">
-            <div className="subscription-actions">
+            <div className="subscription-actions card-actions-bottom">
               <button
                 className="primary-button"
                 type="button"
@@ -460,9 +456,7 @@ export function CalendarExport({ currentUser }: Props) {
             ) : subscriptionStatus.active ? (
               <article className="card inset-card empty-state" role="note">
                 <h4>Active subscription exists</h4>
-                <p className="muted">
-                  Regenerate to reveal a new URL, or revoke to disable the feed.
-                </p>
+                <p className="muted">Regenerate for a new URL, or revoke it.</p>
               </article>
             ) : (
               <article className="card inset-card empty-state" role="note">
@@ -484,22 +478,21 @@ export function CalendarExport({ currentUser }: Props) {
 
       <section className="card calendar-section">
         <div className="group-header">
-          <h3>Calendar apps</h3>
-          <span className="muted">ICS subscription</span>
+          <h3>Apps</h3>
         </div>
 
         <div className="privacy-grid">
           <article className="card inset-card">
             <h4>Apple Calendar</h4>
-            <p className="muted">Add a new calendar subscription and paste the URL.</p>
+            <p className="muted">Add a subscription. Paste the URL.</p>
           </article>
           <article className="card inset-card">
             <h4>Google Calendar</h4>
-            <p className="muted">Use Add by URL and paste the private feed.</p>
+            <p className="muted">Use Add by URL. Paste the feed.</p>
           </article>
           <article className="card inset-card">
             <h4>Outlook</h4>
-            <p className="muted">Use Subscribe from web and paste the URL.</p>
+            <p className="muted">Use Subscribe from web. Paste the URL.</p>
           </article>
         </div>
       </section>
@@ -507,7 +500,6 @@ export function CalendarExport({ currentUser }: Props) {
       <section className="card calendar-section">
         <div className="group-header">
           <h3>Privacy</h3>
-          <span className="muted">Feed access</span>
         </div>
 
         <ul className="privacy-list">

@@ -55,16 +55,14 @@ export function AppSidebar({
               ))}
             </select>
             <span className="sidebar-helper" id="identity-preview-help">
-              Mocked identity preview only. Real Microsoft sign-in is planned,
-              and this selector remains the active local MVP path for now.
+              Demo identity only.
             </span>
           </label>
         ) : (
           <div className="runtime-indicator" role="note">
-            <strong>Future Teams sign-in</strong>
+            <strong>Microsoft sign-in</strong>
             <span className="sidebar-helper">
-              Microsoft Entra mode has been selected, but this phase only
-              exposes a safe setup-needed boundary until real sign-in is added.
+              Setup needed.
             </span>
           </div>
         )}
@@ -87,14 +85,11 @@ export function AppSidebar({
 
         {isPreviewAuth ? (
           <div className="demo-notice" role="note">
-            <strong>Demo data only.</strong> No Microsoft Graph or live Teams
-            Shifts data is connected yet.
+            <strong>Demo data only.</strong> No live Teams data.
           </div>
         ) : (
           <div className="demo-notice" role="note">
-            <strong>Setup required.</strong> Microsoft Entra auth is still
-            stubbed. No Microsoft Graph or live Teams Shifts data is connected
-            yet.
+            <strong>Setup required.</strong> No live Teams data.
           </div>
         )}
       </div>
@@ -115,7 +110,7 @@ export function AppSidebar({
             <span>{auth.message ?? "Microsoft auth is not configured yet."}</span>
             <span>
               {teamsRuntime.context?.hostName ?? "Microsoft Teams"} ready for a
-              future sign-in path
+              later sign-in path
             </span>
             <span>
               {teamsRuntime.context?.clientType

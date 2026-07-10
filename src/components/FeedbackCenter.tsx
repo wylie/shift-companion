@@ -54,7 +54,6 @@ export function FeedbackCenter({
           <p className="eyebrow">Feedback</p>
           <h2>Feedback</h2>
         </div>
-        <span className="pill">Email draft</span>
       </div>
 
       {feedbackEmail ? (
@@ -95,18 +94,16 @@ export function FeedbackCenter({
                 onChange={(event) => setContactEmail(event.target.value)}
                 placeholder="Optional"
               />
-              <span className="field-help">
-                Optional reply address.
-              </span>
+              <span className="field-help">Optional reply address.</span>
             </label>
 
-            <div className="calendar-actions">
+            <div className="calendar-actions card-actions-bottom">
               <button className="primary-button" type="submit">
                 Open feedback draft
               </button>
             </div>
 
-            <p className="muted">Opens your mail app to {feedbackEmail}.</p>
+            <p className="muted">Opens your mail app.</p>
 
             {statusMessage && (
               <p className="success-message" role="status">

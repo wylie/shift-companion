@@ -147,7 +147,6 @@ export function SettingsPrivacy({
           <p className="eyebrow">Settings</p>
           <h2>Settings</h2>
         </div>
-        <span className="pill">App info</span>
       </div>
 
       <div className="card-grid">
@@ -172,6 +171,7 @@ export function SettingsPrivacy({
           <p>{dataSource === "postgres" ? "Postgres / Neon" : "In-memory demo data"}</p>
         </article>
         <article className="card">
+          <h3>Mode</h3>
           <p>
             {auth.providerId === "preview-demo" ? "Preview/demo" : "Setup needed"}
           </p>
@@ -188,7 +188,6 @@ export function SettingsPrivacy({
       <section className="card">
         <div className="group-header">
           <h3>Upcoming Features</h3>
-          <span className="muted">Planned, not live</span>
         </div>
         <div className="card-grid">
           <article className="card inset-card">
@@ -209,10 +208,9 @@ export function SettingsPrivacy({
       <section className="card">
         <div className="group-header">
           <h3>Developer details</h3>
-          <span className="muted">Diagnostics</span>
         </div>
         <details className="diagnostics-panel">
-          <summary>Developer details</summary>
+          <summary>Open details</summary>
 
           <div className="diagnostics-stack">
             <div className="card-grid">
@@ -276,7 +274,6 @@ export function SettingsPrivacy({
             <section className="card inset-card">
               <div className="group-header">
                 <h4>Microsoft Setup Checklist</h4>
-                <span className="muted">Informational only</span>
               </div>
               <article className="card inset-card">
                 <h4>Current readiness</h4>
@@ -297,7 +294,6 @@ export function SettingsPrivacy({
             <section className="card inset-card">
               <div className="group-header">
                 <h4>Documentation</h4>
-                <span className="muted">MVP guidance</span>
               </div>
               {documentationUrl ? (
                 <div className="feedback-stack">
@@ -322,7 +318,6 @@ export function SettingsPrivacy({
             <section className="card inset-card">
               <div className="group-header">
                 <h4>Mock audit trail</h4>
-                <span className="muted">Persisted demo data</span>
               </div>
 
               {errorMessage && (
@@ -335,9 +330,7 @@ export function SettingsPrivacy({
               {isLoading ? (
                 <article className="card inset-card empty-state" aria-live="polite">
                   <h4>Loading demo audit events</h4>
-                  <p className="muted">
-                    Fetching only the selected preview identity&apos;s audit trail.
-                  </p>
+                  <p className="muted">Loading audit events.</p>
                 </article>
               ) : visibleAuditEvents.length > 0 ? (
                 <div className="audit-list">
@@ -353,10 +346,7 @@ export function SettingsPrivacy({
               ) : (
                 <article className="card inset-card empty-state">
                   <h4>No demo audit events yet</h4>
-                  <p className="muted">
-                    This preview identity has no persisted demo audit entries
-                    right now.
-                  </p>
+                  <p className="muted">No audit events.</p>
                 </article>
               )}
             </section>

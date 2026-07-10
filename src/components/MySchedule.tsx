@@ -139,7 +139,6 @@ export function MySchedule({ currentUser }: Props) {
           <p className="eyebrow">Schedule &amp; Calendar</p>
           <h2>Schedule</h2>
         </div>
-        <span className="pill">Schedule first</span>
       </div>
 
       <section className="card hero-panel">
@@ -218,10 +217,7 @@ export function MySchedule({ currentUser }: Props) {
       {isLoading ? (
         <article className="card empty-state" aria-live="polite">
           <h3>Loading your schedule</h3>
-          <p className="muted">
-            Fetching only the selected preview staff member&apos;s persisted
-            demo shifts.
-          </p>
+          <p className="muted">Loading shifts.</p>
         </article>
       ) : visibleShifts.length > 0 ? (
         <div className="schedule-weeks-stack">
@@ -230,9 +226,7 @@ export function MySchedule({ currentUser }: Props) {
               {viewMode === "four-week" && (
                 <div className="week-block-header">
                   <h3>{formatWeekRange(scheduleWeek.weekStart)}</h3>
-                  <p className="muted">
-                    Week {index + 1} of 4 in your current planning window.
-                  </p>
+                  <p className="muted">Week {index + 1} of 4</p>
                 </div>
               )}
 
@@ -299,11 +293,7 @@ export function MySchedule({ currentUser }: Props) {
               ? "No shifts scheduled for this week"
               : "No shifts scheduled for these four weeks"}
           </h3>
-          <p className="muted">
-            {viewMode === "week"
-              ? "Try another week, or return to This week to check your current preview schedule."
-              : "Try another starting week, or return to This week to check your current four-week preview schedule."}
-          </p>
+          <p className="muted">Try another week.</p>
         </article>
       )}
     </section>

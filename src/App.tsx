@@ -195,11 +195,7 @@ export default function App() {
             <h2>
               {isBrowserPreview ? "Loading demo workspace" : "Loading workspace"}
             </h2>
-            <p className="muted">
-              {isBrowserPreview
-                ? "Connecting to the current preview data source for demo identities, schedules, and calendar export."
-                : "Checking the current auth mode and loading the scoped workspace for this environment."}
-            </p>
+            <p className="muted">Loading current workspace data.</p>
           </article>
         </section>
       </main>
@@ -212,10 +208,7 @@ export default function App() {
         <section className="screen">
           <article className="card empty-state" aria-live="polite">
             <h2>Connecting to Teams workspace</h2>
-            <p className="muted">
-              Initializing the Microsoft Teams runtime and requesting a
-              tab-scoped sign-in token.
-            </p>
+            <p className="muted">Starting the Teams runtime.</p>
           </article>
         </section>
       </main>
@@ -342,12 +335,8 @@ export default function App() {
       <main className="content">
         {!isPreviewAuth && (
           <article className="card empty-state" role="note">
-            <h3>Future Microsoft auth boundary</h3>
-            <p className="muted">
-              This environment is using the reserved Microsoft auth boundary.
-              Real Entra sign-in, token verification, and app-user mapping are
-              still intentionally disabled for this MVP.
-            </p>
+            <h3>Microsoft sign-in</h3>
+            <p className="muted">Reserved for a later release.</p>
           </article>
         )}
 
