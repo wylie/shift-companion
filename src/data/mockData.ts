@@ -8,6 +8,7 @@ import type {
   StaffMember,
   UnavailabilityRule,
 } from "../types";
+import { addDays, addWeeks, startOfWeek } from "../lib/date";
 
 export const demoOrganization: Organization = {
   id: "org-demo-ymca",
@@ -17,6 +18,312 @@ export const demoOrganization: Organization = {
 };
 
 const demoTenantId = "11111111-2222-3333-4444-555555555555";
+
+function getDemoReferenceDate(): Date {
+  if (typeof process !== "undefined" && process.env.NODE_ENV === "test") {
+    return new Date("2026-06-24T12:00:00");
+  }
+
+  return new Date();
+}
+
+function toLocalDateTime(value: Date, hours: number, minutes = 0): string {
+  const next = new Date(value);
+  next.setHours(hours, minutes, 0, 0);
+
+  const year = next.getFullYear();
+  const month = String(next.getMonth() + 1).padStart(2, "0");
+  const day = String(next.getDate()).padStart(2, "0");
+  const paddedHours = String(next.getHours()).padStart(2, "0");
+  const paddedMinutes = String(next.getMinutes()).padStart(2, "0");
+
+  return `${year}-${month}-${day}T${paddedHours}:${paddedMinutes}:00`;
+}
+
+function createShift(
+  id: string,
+  userId: string,
+  departmentId: string,
+  title: string,
+  department: string,
+  day: Date,
+  startHours: number,
+  startMinutes: number,
+  endHours: number,
+  endMinutes: number,
+  location: string,
+): Shift {
+  return {
+    id,
+    userId,
+    departmentId,
+    title,
+    department,
+    start: toLocalDateTime(day, startHours, startMinutes),
+    end: toLocalDateTime(day, endHours, endMinutes),
+    location,
+  };
+}
+
+function buildRelativeDemoShifts(referenceDate: Date): Shift[] {
+  const currentWeekStart = startOfWeek(referenceDate);
+  const nextWeekStart = addWeeks(currentWeekStart, 1);
+  const thirdWeekStart = addWeeks(currentWeekStart, 2);
+  const fourthWeekStart = addWeeks(currentWeekStart, 3);
+  const fifthWeekStart = addWeeks(currentWeekStart, 4);
+  const todayOrTomorrow =
+    referenceDate.getHours() >= 18 ? addDays(referenceDate, 1) : referenceDate;
+
+  return [
+    createShift(
+      "shift-1",
+      "user-staff-1",
+      "wellness",
+      "Wellness Attendant",
+      "Wellness",
+      addDays(currentWeekStart, 0),
+      6,
+      0,
+      12,
+      0,
+      "Wellness Center",
+    ),
+    createShift(
+      "shift-2",
+      "user-staff-1",
+      "wellness",
+      "Wellness Closing Support",
+      "Wellness",
+      addDays(currentWeekStart, 0),
+      16,
+      30,
+      20,
+      30,
+      "Wellness Center",
+    ),
+    createShift(
+      "shift-3",
+      "user-staff-2",
+      "membership",
+      "Membership Support",
+      "Membership",
+      addDays(currentWeekStart, 4),
+      9,
+      0,
+      13,
+      0,
+      "Member Services",
+    ),
+    createShift(
+      "shift-4",
+      "user-staff-4",
+      "front-desk",
+      "Front Desk Opener",
+      "Front Desk",
+      addDays(currentWeekStart, 2),
+      12,
+      0,
+      18,
+      0,
+      "Front Desk",
+    ),
+    createShift(
+      "shift-5",
+      "user-staff-6",
+      "wellness",
+      "Wellness Floor Support",
+      "Wellness",
+      addDays(currentWeekStart, 2),
+      8,
+      0,
+      12,
+      0,
+      "Wellness Center",
+    ),
+    createShift(
+      "shift-6",
+      "user-staff-6",
+      "wellness",
+      "Equipment Reset",
+      "Wellness",
+      addDays(currentWeekStart, 3),
+      9,
+      0,
+      13,
+      0,
+      "Wellness Center",
+    ),
+    createShift(
+      "shift-7",
+      "user-staff-1",
+      "wellness",
+      "Wellness Floor Support",
+      "Wellness",
+      addDays(currentWeekStart, 2),
+      15,
+      0,
+      19,
+      0,
+      "Wellness Center",
+    ),
+    createShift(
+      "shift-8",
+      "user-staff-1",
+      "wellness",
+      "Member Check-in Support",
+      "Wellness",
+      addDays(currentWeekStart, 5),
+      9,
+      0,
+      13,
+      0,
+      "Wellness Center",
+    ),
+    createShift(
+      "shift-9",
+      "user-staff-2",
+      "membership",
+      "Membership Welcome Desk",
+      "Membership",
+      addDays(nextWeekStart, 4),
+      9,
+      30,
+      13,
+      30,
+      "Member Services",
+    ),
+    createShift(
+      "shift-10",
+      "user-staff-4",
+      "front-desk",
+      "Front Desk Midday",
+      "Front Desk",
+      addDays(nextWeekStart, 2),
+      13,
+      30,
+      18,
+      30,
+      "Front Desk",
+    ),
+    createShift(
+      "shift-11",
+      "user-staff-5",
+      "facilities",
+      "Facilities Walkthrough",
+      "Facilities",
+      addDays(thirdWeekStart, 3),
+      10,
+      0,
+      14,
+      0,
+      "Main Building",
+    ),
+    createShift(
+      "shift-12",
+      "user-manager-1",
+      "wellness",
+      "Wellness Floor Review",
+      "Wellness",
+      addDays(currentWeekStart, 1),
+      8,
+      30,
+      11,
+      30,
+      "Wellness Center",
+    ),
+    createShift(
+      "shift-13",
+      "user-staff-1",
+      "wellness",
+      "Front Desk Check-in Support",
+      "Front Desk",
+      todayOrTomorrow,
+      11,
+      0,
+      15,
+      0,
+      "Front Desk",
+    ),
+    createShift(
+      "shift-14",
+      "user-staff-1",
+      "wellness",
+      "Child Watch Coverage",
+      "Child Watch",
+      addDays(nextWeekStart, 3),
+      14,
+      0,
+      18,
+      0,
+      "Child Watch",
+    ),
+    createShift(
+      "shift-15",
+      "user-staff-1",
+      "wellness",
+      "Facilities Reset Support",
+      "Facilities",
+      addDays(nextWeekStart, 1),
+      8,
+      0,
+      12,
+      0,
+      "Main Building",
+    ),
+    createShift(
+      "shift-16",
+      "user-staff-1",
+      "wellness",
+      "Weekend Wellness Coverage",
+      "Wellness",
+      addDays(nextWeekStart, 6),
+      10,
+      0,
+      14,
+      0,
+      "Wellness Center",
+    ),
+    createShift(
+      "shift-17",
+      "user-staff-1",
+      "wellness",
+      "Front Desk Midday Support",
+      "Front Desk",
+      addDays(thirdWeekStart, 2),
+      12,
+      30,
+      17,
+      30,
+      "Front Desk",
+    ),
+    createShift(
+      "shift-18",
+      "user-staff-1",
+      "wellness",
+      "Membership Follow-up Desk",
+      "Membership",
+      addDays(fourthWeekStart, 4),
+      9,
+      30,
+      13,
+      30,
+      "Member Services",
+    ),
+    createShift(
+      "shift-19",
+      "user-staff-1",
+      "wellness",
+      "Facilities Walkthrough Support",
+      "Facilities",
+      addDays(fifthWeekStart, 1),
+      10,
+      0,
+      14,
+      0,
+      "Main Building",
+    ),
+  ];
+}
 
 export const departments: Department[] = [
   {
@@ -280,128 +587,7 @@ export const unavailabilityRules: UnavailabilityRule[] = [
   },
 ];
 
-export const shifts: Shift[] = [
-  {
-    id: "shift-1",
-    userId: "user-staff-1",
-    departmentId: "wellness",
-    title: "Wellness Attendant",
-    department: "Wellness",
-    start: "2026-06-22T06:00:00",
-    end: "2026-06-22T14:00:00",
-    location: "Wellness Center",
-  },
-  {
-    id: "shift-2",
-    userId: "user-staff-1",
-    departmentId: "wellness",
-    title: "Wellness Closing Support",
-    department: "Wellness",
-    start: "2026-06-22T17:00:00",
-    end: "2026-06-22T21:00:00",
-    location: "Wellness Center",
-  },
-  {
-    id: "shift-3",
-    userId: "user-staff-2",
-    departmentId: "membership",
-    title: "Membership Support",
-    department: "Membership",
-    start: "2026-06-26T09:00:00",
-    end: "2026-06-26T13:00:00",
-    location: "Member Services",
-  },
-  {
-    id: "shift-4",
-    userId: "user-staff-4",
-    departmentId: "front-desk",
-    title: "Front Desk Opener",
-    department: "Front Desk",
-    start: "2026-06-24T12:00:00",
-    end: "2026-06-24T18:00:00",
-    location: "Front Desk",
-  },
-  {
-    id: "shift-5",
-    userId: "user-staff-6",
-    departmentId: "wellness",
-    title: "Wellness Floor Support",
-    department: "Wellness",
-    start: "2026-06-24T08:00:00",
-    end: "2026-06-24T12:00:00",
-    location: "Wellness Center",
-  },
-  {
-    id: "shift-6",
-    userId: "user-staff-6",
-    departmentId: "wellness",
-    title: "Equipment Reset",
-    department: "Wellness",
-    start: "2026-06-25T09:00:00",
-    end: "2026-06-25T13:00:00",
-    location: "Wellness Center",
-  },
-  {
-    id: "shift-7",
-    userId: "user-staff-1",
-    departmentId: "wellness",
-    title: "Wellness Floor Support",
-    department: "Wellness",
-    start: "2026-06-24T15:00:00",
-    end: "2026-06-24T19:00:00",
-    location: "Wellness Center",
-  },
-  {
-    id: "shift-8",
-    userId: "user-staff-1",
-    departmentId: "wellness",
-    title: "Member Check-in Support",
-    department: "Wellness",
-    start: "2026-06-27T09:00:00",
-    end: "2026-06-27T13:00:00",
-    location: "Wellness Center",
-  },
-  {
-    id: "shift-9",
-    userId: "user-staff-2",
-    departmentId: "membership",
-    title: "Membership Welcome Desk",
-    department: "Membership",
-    start: "2026-07-03T09:30:00",
-    end: "2026-07-03T13:30:00",
-    location: "Member Services",
-  },
-  {
-    id: "shift-10",
-    userId: "user-staff-4",
-    departmentId: "front-desk",
-    title: "Front Desk Midday",
-    department: "Front Desk",
-    start: "2026-07-01T13:30:00",
-    end: "2026-07-01T18:30:00",
-    location: "Front Desk",
-  },
-  {
-    id: "shift-11",
-    userId: "user-staff-5",
-    departmentId: "facilities",
-    title: "Facilities Walkthrough",
-    department: "Facilities",
-    start: "2026-07-09T10:00:00",
-    end: "2026-07-09T14:00:00",
-    location: "Main Building",
-  },
-  {
-    id: "shift-12",
-    userId: "user-manager-1",
-    departmentId: "wellness",
-    title: "Wellness Floor Review",
-    department: "Wellness",
-    start: "2026-06-23T08:30:00",
-    end: "2026-06-23T11:30:00",
-    location: "Wellness Center",
-  },
-];
+export const shifts: Shift[] = buildRelativeDemoShifts(getDemoReferenceDate());
 
 export const auditEvents: AuditEvent[] = [
   {

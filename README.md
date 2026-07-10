@@ -32,10 +32,10 @@ The current MVP includes:
 - React + Vite client with a Teams-compatible tab shell
 - Express API with repository/service boundaries
 - Browser preview mode with demo identity switching for development only
+- One consolidated companion page with in-page jump links for Schedule, Calendar, Settings, and Feedback
 - Persisted personal schedule view
 - Personal `.ics` calendar download
 - Private, revocable calendar subscription feeds
-- Dedicated calendar export view and feedback entry point
 - Settings with provider diagnostics and planned-feature messaging
 - Teams runtime detection plus preview-first auth and schedule boundaries for future Microsoft/Graph integration
 - Postgres persistence through Neon, with in-memory fallback when `DATABASE_URL` is absent
@@ -149,6 +149,14 @@ npm run db:seed
 
 The seed data exists to preserve the browser preview workflow. It is not production data and should not be treated as a real tenant model.
 
+Demo shifts are generated relative to the current date in normal development and seeded Postgres environments. If your persisted preview schedule looks stale, rerun:
+
+```bash
+npm run db:seed
+```
+
+That reseed refreshes the demo organization with current-week and future-week shifts so the 1-week and 4-week views stay useful.
+
 ## Integration architecture
 
 Published schedule data now passes through a schedule-provider boundary on the server.
@@ -258,6 +266,17 @@ See [docs/calendar-subscriptions.md](docs/calendar-subscriptions.md) for setup g
 This app should stay narrow:
 
 - Teams Shifts remains the system of record for schedule publishing
+
+## Consolidated page flow
+
+The companion now runs as one primary scrollable page:
+
+1. Schedule
+2. Calendar
+3. Settings
+4. Feedback
+
+The sidebar uses in-page jump links instead of switching between separate page-like destinations. Legacy paths such as `/calendar` or `/settings` are redirected to the matching section hash on the consolidated page.
 - this app focuses on personal schedule access and calendar portability
 - feedback should reinforce that scope rather than expand into workforce-management sprawl
 - dormant availability tooling can return later, but it is not part of the current MVP

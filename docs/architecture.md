@@ -53,7 +53,7 @@ These workflows should stay in Teams or Shifts unless a future decision explicit
 
 Key responsibilities:
 
-- view state and navigation
+- one consolidated companion page with in-page section navigation
 - Teams host detection
 - browser preview fallback
 - user-facing loading, empty, and error states
@@ -118,6 +118,17 @@ Typical flow:
 6. Unavailability, manager review, audit events, and other app-owned behaviors continue through the repository and service layers.
 
 The important constraints are that identity and authorization live on the server, not only in client state, and that schedule access stays primary while secondary workflows remain de-emphasized.
+
+## Consolidated page shell
+
+The default app shell now renders one scrollable page that stacks:
+
+1. Schedule
+2. Calendar
+3. Settings
+4. Feedback
+
+The sidebar is a jump-link control surface for those anchors, not a multi-page router. Legacy paths such as `/schedule`, `/calendar`, `/settings`, and `/feedback` are normalized to `/#schedule`, `/#calendar`, `/#settings`, and `/#feedback`.
 
 ## Runtime modes
 

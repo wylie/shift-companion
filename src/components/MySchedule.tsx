@@ -23,7 +23,7 @@ type Props = {
 
 type ScheduleViewMode = "week" | "four-week";
 
-const today = new Date("2026-06-24T12:00:00");
+const today = new Date();
 const weekdayCount = 7;
 
 function getShiftCountLabel(count: number): string {

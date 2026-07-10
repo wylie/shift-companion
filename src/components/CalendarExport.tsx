@@ -19,7 +19,7 @@ type Props = {
 
 type CalendarWindow = 1 | 4;
 
-const today = new Date("2026-06-24T12:00:00");
+const today = new Date();
 
 function downloadBlob(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob);

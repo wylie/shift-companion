@@ -142,6 +142,15 @@ h2 {
   gap: 0.55rem;
 }
 
+.consolidated-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.anchor-section {
+  scroll-margin-top: 1.5rem;
+}
+
 .demo-notice {
   padding: 0.85rem 0.9rem;
   border-radius: 14px;
@@ -152,6 +161,7 @@ h2 {
 }
 
 .nav-item {
+  display: block;
   border: 0;
   padding: 0.9rem 1rem;
   text-align: left;
@@ -159,6 +169,7 @@ h2 {
   background: rgba(255, 255, 255, 0.08);
   color: inherit;
   cursor: pointer;
+  text-decoration: none;
   transition:
     transform 120ms ease,
     background 120ms ease;
@@ -436,6 +447,24 @@ h2 {
 
 .field-help {
   color: #6a7888;
+}
+
+.diagnostics-panel {
+  border: 1px solid #d9e4f0;
+  border-radius: 16px;
+  background: #f7fbff;
+  padding: 1rem;
+}
+
+.diagnostics-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.diagnostics-stack {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .primary-button,
@@ -863,6 +892,10 @@ select[aria-invalid="true"] {
 
   .toolbar-side {
     justify-items: stretch;
+  }
+
+  .nav-list {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
 
   .staff-stats {

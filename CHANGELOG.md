@@ -9,6 +9,8 @@ The format follows Keep a Changelog, and versions follow Semantic Versioning.
 ### Changed
 
 - Documentation, CI/CD, runtime validation, health reporting, and release infrastructure are being hardened without expanding product scope.
+- The companion now renders as one consolidated page with in-page Schedule, Calendar, Settings, and Feedback sections plus hash-based legacy path redirects.
+- Demo shifts now seed relative to the current date so preview schedules stay useful in the current week and across the 4-week view.
 
 ## [0.3.0] - 2026-07-09
 

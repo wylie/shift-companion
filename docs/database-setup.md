@@ -58,6 +58,8 @@ The seed process creates one persisted demo organization with:
 
 Seed data is explicitly demo-only and is meant to preserve the current browser preview experience.
 
+Demo shifts are generated relative to the current date when the seed runs. If the preview schedule does not show useful current-week data, rerun `npm run db:seed`.
+
 ## Fallback mode
 
 If `DATABASE_URL` is missing, the app falls back to an in-memory demo repository for visual development only. That fallback is not the normal Phase 3 path and does not persist changes across restarts.

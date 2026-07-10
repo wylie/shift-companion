@@ -10,7 +10,7 @@ type Props = {
   currentUser: CurrentUser;
 };
 
-const today = new Date("2026-06-24T12:00:00");
+const today = new Date();
 
 export function ManagerView({ currentUser }: Props) {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));

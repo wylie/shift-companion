@@ -17,7 +17,7 @@ import { AppService } from "./services/appService";
 
 function parseWeekStart(value: unknown): Date {
   if (typeof value !== "string" || value.length === 0) {
-    return startOfWeek(new Date("2026-06-24T12:00:00"));
+    return startOfWeek(new Date());
   }
 
   return startOfWeek(new Date(`${value}T12:00:00`));

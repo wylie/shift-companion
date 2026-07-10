@@ -1,28 +1,34 @@
 import { useEffect, useState } from "react";
-import { featureFlags } from "./config/features";
 import { AppSidebar } from "./components/AppSidebar";
 import { CalendarExport } from "./components/CalendarExport";
 import { FeedbackCenter } from "./components/FeedbackCenter";
-import { ManagerView } from "./components/ManagerView";
 import { MySchedule } from "./components/MySchedule";
-import { MyUnavailability } from "./components/MyUnavailability";
 import { SettingsPrivacy } from "./components/SettingsPrivacy";
 import { apiClient } from "./data/apiClient";
 import { toErrorMessage } from "./lib/errors";
-import { canAccessManagerView, getVisibleNavItems } from "./lib/access";
 import { useTeamsRuntime } from "./lib/teams";
 import type { AppBootstrap, NavItem } from "./types";
 
 const navItems: NavItem[] = [
-  { id: "schedule", label: "My Schedule" },
+  { id: "schedule", label: "Schedule" },
   { id: "calendar", label: "Calendar" },
   { id: "settings", label: "Settings" },
   { id: "feedback", label: "Feedback" },
-  ...(featureFlags.unavailability
-    ? ([{ id: "unavailability", label: "My Unavailability" }] satisfies NavItem[])
-    : []),
-  { id: "manager", label: "Manager Review" },
 ];
+
+const legacySectionPaths: Record<string, NavItem["id"]> = {
+  "/calendar": "calendar",
+  "/feedback": "feedback",
+  "/schedule": "schedule",
+  "/settings": "settings",
+};
+
+function resolveHashSection(hash: string): NavItem["id"] {
+  const normalized = hash.replace(/^#/, "");
+  return navItems.some((item) => item.id === normalized)
+    ? (normalized as NavItem["id"])
+    : "schedule";
+}
 
 export default function App() {
   const [activeView, setActiveView] = useState<NavItem["id"]>("schedule");
@@ -38,6 +44,40 @@ export default function App() {
   const teamsToken = teamsRuntime.sso.status === "tokenReady"
     ? teamsRuntime.sso.token
     : undefined;
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const redirectedSection = legacySectionPaths[window.location.pathname];
+
+    if (redirectedSection) {
+      window.history.replaceState(null, "", `/#${redirectedSection}`);
+    } else if (
+      window.location.pathname !== "/" &&
+      window.location.pathname !== ""
+    ) {
+      window.history.replaceState(
+        null,
+        "",
+        `/#${resolveHashSection(window.location.hash)}`,
+      );
+    } else if (!window.location.hash) {
+      window.history.replaceState(null, "", "/#schedule");
+    }
+
+    const syncSectionFromHash = () => {
+      setActiveView(resolveHashSection(window.location.hash));
+    };
+
+    syncSectionFromHash();
+    window.addEventListener("hashchange", syncSectionFromHash);
+
+    return () => {
+      window.removeEventListener("hashchange", syncSectionFromHash);
+    };
+  }, []);
 
   useEffect(() => {
     apiClient.configureSession(
@@ -116,19 +156,23 @@ export default function App() {
   const isPreviewAuth = authSession?.providerId === "preview-demo";
 
   useEffect(() => {
-    if (
-      currentUser &&
-      !canAccessManagerView(currentUser) &&
-      activeView === "manager"
-    ) {
-      setActiveView("schedule");
+    if (typeof window === "undefined" || !bootstrap || !currentUser) {
       return;
     }
 
-    if (!featureFlags.unavailability && activeView === "unavailability") {
-      setActiveView("schedule");
+    const sectionId = resolveHashSection(window.location.hash);
+    const element = document.getElementById(sectionId);
+
+    if (!element) {
+      return;
     }
-  }, [activeView, currentUser]);
+
+    requestAnimationFrame(() => {
+      element.scrollIntoView({
+        block: "start",
+      });
+    });
+  }, [bootstrap, currentUser]);
 
   if (isLoading && !bootstrap) {
     return (
@@ -244,10 +288,26 @@ export default function App() {
     );
   }
 
-  const visibleNavItems = getVisibleNavItems(navItems, currentUser);
   const currentUserDepartmentLabel = bootstrap.currentUserDepartments
     .map((department) => department.name)
     .join(" + ");
+
+  function handleSelectView(view: NavItem["id"]) {
+    setActiveView(view);
+
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (window.location.hash !== `#${view}`) {
+      window.history.pushState(null, "", `/#${view}`);
+    }
+
+    document.getElementById(view)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
 
   return (
     <div className="app-shell">
@@ -258,8 +318,8 @@ export default function App() {
         currentUserDepartmentLabel={currentUserDepartmentLabel}
         teamsRuntime={teamsRuntime}
         mockUsers={bootstrap.previewUsers}
-        navItems={visibleNavItems}
-        onSelectView={setActiveView}
+        navItems={navItems}
+        onSelectView={handleSelectView}
         onUserChange={setSelectedPreviewUserId}
       />
 
@@ -286,35 +346,36 @@ export default function App() {
           </article>
         )}
 
-        {featureFlags.unavailability && activeView === "unavailability" && (
-          <MyUnavailability currentUser={currentUser} />
-        )}
-        {activeView === "schedule" && (
-          <MySchedule currentUser={currentUser} onNavigate={setActiveView} />
-        )}
-        {activeView === "calendar" && (
-          <CalendarExport currentUser={currentUser} />
-        )}
-        {activeView === "feedback" && (
-          <FeedbackCenter
-            appVersion={bootstrap.appVersion}
-            currentUserName={currentUser.name}
-            feedbackEmail={bootstrap.feedbackEmail}
-          />
-        )}
-        {activeView === "manager" && <ManagerView currentUser={currentUser} />}
-        {activeView === "settings" && (
-          <SettingsPrivacy
-            auth={bootstrap.auth}
-            appVersion={bootstrap.appVersion}
-            buildEnvironment={bootstrap.buildEnvironment}
-            currentUser={currentUser}
-            dataSource={bootstrap.dataSource}
-            documentationUrl={bootstrap.documentationUrl}
-            microsoftReadiness={bootstrap.microsoftReadiness}
-            providerStatus={bootstrap.providerStatus}
-          />
-        )}
+        <div className="consolidated-page">
+          <div className="anchor-section" id="schedule">
+            <MySchedule currentUser={currentUser} onNavigate={handleSelectView} />
+          </div>
+
+          <div className="anchor-section" id="calendar">
+            <CalendarExport currentUser={currentUser} />
+          </div>
+
+          <div className="anchor-section" id="settings">
+            <SettingsPrivacy
+              auth={bootstrap.auth}
+              appVersion={bootstrap.appVersion}
+              buildEnvironment={bootstrap.buildEnvironment}
+              currentUser={currentUser}
+              dataSource={bootstrap.dataSource}
+              documentationUrl={bootstrap.documentationUrl}
+              microsoftReadiness={bootstrap.microsoftReadiness}
+              providerStatus={bootstrap.providerStatus}
+            />
+          </div>
+
+          <div className="anchor-section" id="feedback">
+            <FeedbackCenter
+              appVersion={bootstrap.appVersion}
+              currentUserName={currentUser.name}
+              feedbackEmail={bootstrap.feedbackEmail}
+            />
+          </div>
+        </div>
       </main>
     </div>
   );

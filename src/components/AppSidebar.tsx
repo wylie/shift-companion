@@ -75,17 +75,17 @@ export function AppSidebar({
 
         <nav className="nav-list" aria-label="Primary">
           {navItems.map((item) => (
-            <button
+            <a
               key={item.id}
-              type="button"
               aria-current={item.id === activeView ? "page" : undefined}
+              href={`#${item.id}`}
               className={
                 item.id === activeView ? "nav-item active" : "nav-item"
               }
               onClick={() => onSelectView(item.id)}
             >
               {item.label}
-            </button>
+            </a>
           ))}
         </nav>
 

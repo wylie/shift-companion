@@ -78,6 +78,8 @@ npm run db:seed
 
 The seed exists to support product demos, browser preview parity, and local development. It is intentionally demo-only.
 
+Persisted demo shifts are generated relative to the current date when the seed runs. Rerun `npm run db:seed` whenever you want the preview schedule refreshed around the current week.
+
 ## Current schema coverage
 
 The current schema supports:
