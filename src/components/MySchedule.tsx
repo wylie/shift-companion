@@ -14,6 +14,7 @@ import {
   parseLocalDateTime,
   startOfWeek,
 } from "../lib/date";
+import { ScheduleSummaryCards } from "./ScheduleSummaryCards.js";
 import type { CurrentUser, Shift } from "../types";
 
 type Props = {
@@ -22,7 +23,6 @@ type Props = {
 
 type ScheduleViewMode = "week" | "four-week";
 
-const today = new Date();
 const weekdayCount = 7;
 
 function getShiftCountLabel(count: number): string {
@@ -30,11 +30,22 @@ function getShiftCountLabel(count: number): string {
 }
 
 export function MySchedule({ currentUser }: Props) {
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
+  const [now, setNow] = useState(() => new Date());
+  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [viewMode, setViewMode] = useState<ScheduleViewMode>("week");
   const [myShifts, setMyShifts] = useState<Shift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNow(new Date());
+    }, 60_000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
 
   useEffect(() => {
     let isCancelled = false;
@@ -42,6 +53,7 @@ export function MySchedule({ currentUser }: Props) {
     async function loadSchedule() {
       setIsLoading(true);
       setErrorMessage(null);
+      setMyShifts([]);
 
       try {
         const nextShifts = await apiClient.getMySchedule(currentUser.id);
@@ -108,20 +120,6 @@ export function MySchedule({ currentUser }: Props) {
       }),
     [visibleShifts, visibleWeekCount, weekStart],
   );
-
-  const todayShifts = useMemo(
-    () =>
-      myShifts.filter((shift) =>
-        isSameDay(parseLocalDateTime(shift.start), today),
-      ),
-    [myShifts],
-  );
-  const nextShift = useMemo(
-    () =>
-      myShifts.find((shift) => parseLocalDateTime(shift.start).getTime() >= today.getTime()) ??
-      null,
-    [myShifts],
-  );
   function goToPreviousWeek() {
     setWeekStart((currentWeekStart) => addWeeks(currentWeekStart, -1));
   }
@@ -131,7 +129,7 @@ export function MySchedule({ currentUser }: Props) {
   }
 
   function goToThisWeek() {
-    setWeekStart(startOfWeek(today));
+    setWeekStart(startOfWeek(now));
   }
 
   return (
@@ -145,36 +143,12 @@ export function MySchedule({ currentUser }: Props) {
       </div>
 
       <section className="card hero-panel">
-        <div className="schedule-snapshot-grid">
-          <article className="card inset-card snapshot-card">
-            <p className="eyebrow">Today&apos;s Shifts</p>
-            <h3>{todayShifts.length === 0 ? "Off today" : getShiftCountLabel(todayShifts.length)}</h3>
-            <p className="muted">
-              {todayShifts.length > 0
-                ? todayShifts
-                    .map((shift) =>
-                      formatTimeRange(
-                        parseLocalDateTime(shift.start),
-                        parseLocalDateTime(shift.end),
-                      ),
-                    )
-                    .join(" • ")
-                : "No shifts are scheduled in today’s preview window."}
-            </p>
-          </article>
-          <article className="card inset-card snapshot-card">
-            <p className="eyebrow">Next Shift</p>
-            <h3>{nextShift ? nextShift.title : "Nothing upcoming yet"}</h3>
-            <p className="muted">
-              {nextShift
-                ? `${formatDateLabel(parseLocalDateTime(nextShift.start))} • ${formatTimeRange(
-                    parseLocalDateTime(nextShift.start),
-                    parseLocalDateTime(nextShift.end),
-                  )}`
-                : "Check back later for your next published Teams Shifts assignment."}
-            </p>
-          </article>
-        </div>
+        <ScheduleSummaryCards
+          errorMessage={errorMessage}
+          isLoading={isLoading}
+          now={now}
+          shifts={myShifts}
+        />
       </section>
 
       {errorMessage && (

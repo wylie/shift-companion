@@ -209,7 +209,12 @@ h2 {
 }
 
 .snapshot-card {
+  color: #122033;
   justify-content: flex-start;
+}
+
+.snapshot-card .muted {
+  color: #6a7888;
 }
 
 .status-card {
@@ -744,6 +749,16 @@ h2 {
 
 .summary-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.summary-shift-stack {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.summary-shift-item {
+  display: grid;
+  gap: 0.2rem;
 }
 
 .manager-layout {
