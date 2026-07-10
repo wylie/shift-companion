@@ -502,6 +502,7 @@ h2 {
 .toolbar-actions,
 .download-controls-card,
 .download-summary-card,
+.schedule-calendar-cta,
 .schedule-weeks-stack,
 .schedule-week-block,
 .week-block-header,
@@ -566,16 +567,22 @@ h2 {
 }
 
 .schedule-week {
-  grid-template-columns: repeat(7, minmax(180px, 1fr));
-  align-items: start;
+  grid-template-columns: repeat(7, minmax(220px, 1fr));
+  align-items: stretch;
   overflow-x: auto;
   padding-bottom: 0.25rem;
 }
 
+.schedule-week > * {
+  min-width: 0;
+}
+
 .day-column {
+  min-width: 0;
   min-height: 100%;
   align-content: start;
   gap: 0.85rem;
+  overflow-wrap: anywhere;
 }
 
 .day-column-header {
@@ -583,34 +590,41 @@ h2 {
   gap: 0.25rem;
   align-content: start;
   min-height: 3.75rem;
+  min-width: 0;
 }
 
 .day-column-title {
   margin-bottom: 0;
-  white-space: nowrap;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .day-column-count {
   display: block;
   min-height: 1.5rem;
+  min-width: 0;
 }
 
 .day-column-shifts {
   display: grid;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .shift-card-header {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
 .shift-time-pill {
   display: inline-flex;
   align-items: center;
-  white-space: nowrap;
+  justify-self: start;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
   padding: 0.25rem 0.55rem;
   border-radius: 999px;
   background: #d9e9ff;
@@ -631,6 +645,26 @@ h2 {
   background: #f7fbff;
 }
 
+.shift-card,
+.day-empty-state,
+.shift-card h4,
+.shift-card p {
+  min-width: 0;
+}
+
+.shift-card h4,
+.shift-card p,
+.shift-primary-line,
+.muted.day-column-count {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.shift-card h4,
+.shift-card p {
+  margin-bottom: 0;
+}
+
 .toolbar-actions {
   grid-template-columns: repeat(3, auto);
   justify-content: end;
@@ -645,6 +679,10 @@ h2 {
   align-content: start;
   min-height: 100%;
   gap: 0.8rem;
+}
+
+.schedule-calendar-cta {
+  align-content: start;
 }
 
 .calendar-actions {

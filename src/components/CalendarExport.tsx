@@ -368,27 +368,10 @@ export function CalendarExport({ currentUser }: Props) {
         </div>
 
         <p className="muted">
-          A subscription updates automatically when external calendar apps fetch
-          the feed again. The URL is private and belongs only to the current
-          user. Anyone with the URL could view that schedule, so it should not
+          A subscription updates when external calendar apps fetch the feed
+          again. The URL belongs only to the current user, so it should never
           be shared.
         </p>
-
-        <div className="card-grid">
-          <article className="card inset-card">
-            <h4>One-time download</h4>
-            <p className="muted">
-              Use when you want a snapshot you can import once.
-            </p>
-          </article>
-          <article className="card inset-card">
-            <h4>Private subscription</h4>
-            <p className="muted">
-              Use when you want Apple Calendar, Google Calendar, Outlook, or
-              another ICS-compatible app to refresh this schedule over time.
-            </p>
-          </article>
-        </div>
 
         {isLoadingSubscription ? (
           <article className="card inset-card empty-state" aria-live="polite">
@@ -494,15 +477,9 @@ export function CalendarExport({ currentUser }: Props) {
           </div>
         )}
 
-        <ul className="privacy-list">
-          <li>External calendar providers receive the shift data when they fetch the feed.</li>
-          <li>The feed contains only the current user&apos;s shifts.</li>
-          <li>Regenerating a URL invalidates the previous one immediately.</li>
-          <li>Revoking a subscription disables the feed immediately.</li>
-        </ul>
       </section>
 
-      <section className="card">
+      <section className="card calendar-section">
         <div className="group-header">
           <h3>Setup guidance</h3>
           <span className="muted">ICS-compatible calendars</span>
@@ -531,6 +508,20 @@ export function CalendarExport({ currentUser }: Props) {
             </p>
           </article>
         </div>
+      </section>
+
+      <section className="card calendar-section">
+        <div className="group-header">
+          <h3>Privacy notes</h3>
+          <span className="muted">Before you subscribe</span>
+        </div>
+
+        <ul className="privacy-list">
+          <li>External calendar providers receive the shift data when they fetch the feed.</li>
+          <li>The feed contains only the current user&apos;s shifts.</li>
+          <li>Regenerating a URL invalidates the previous one immediately.</li>
+          <li>Revoking a subscription disables the feed immediately.</li>
+        </ul>
       </section>
     </section>
   );

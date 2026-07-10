@@ -30,20 +30,9 @@ function getShiftCountLabel(count: number): string {
   return `${count} ${count === 1 ? "shift" : "shifts"}`;
 }
 
-function downloadBlob(filename: string, blob: Blob) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
 export function MySchedule({ currentUser, onNavigate }: Props) {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
   const [viewMode, setViewMode] = useState<ScheduleViewMode>("week");
-  const [downloadMessage, setDownloadMessage] = useState<string | null>(null);
-  const [isDownloadingCalendar, setIsDownloadingCalendar] = useState(false);
   const [myShifts, setMyShifts] = useState<Shift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -121,8 +110,6 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
     [visibleShifts, visibleWeekCount, weekStart],
   );
 
-  const exportRangeStart = weekStart;
-  const exportRangeEnd = addDays(visibleRangeEnd, -1);
   const todayShifts = useMemo(
     () =>
       myShifts.filter((shift) =>
@@ -136,68 +123,16 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
       null,
     [myShifts],
   );
-  const thisWeekShiftCount = useMemo(
-    () =>
-      myShifts.filter((shift) =>
-        isWithinRange(
-          parseLocalDateTime(shift.start),
-          startOfWeek(today),
-          addWeeks(startOfWeek(today), 1),
-        ),
-      ).length,
-    [myShifts],
-  );
-  const thisWeekDayCount = useMemo(
-    () =>
-      myShifts.reduce((dayKeys, shift) => {
-        const date = parseLocalDateTime(shift.start);
-        if (
-          isWithinRange(date, startOfWeek(today), addWeeks(startOfWeek(today), 1))
-        ) {
-          dayKeys.add(date.toISOString().slice(0, 10));
-        }
-
-        return dayKeys;
-      }, new Set<string>()).size,
-    [myShifts],
-  );
-
   function goToPreviousWeek() {
     setWeekStart((currentWeekStart) => addWeeks(currentWeekStart, -1));
-    setDownloadMessage(null);
   }
 
   function goToNextWeek() {
     setWeekStart((currentWeekStart) => addWeeks(currentWeekStart, 1));
-    setDownloadMessage(null);
   }
 
   function goToThisWeek() {
     setWeekStart(startOfWeek(today));
-    setDownloadMessage(null);
-  }
-
-  async function handleDownloadCalendar() {
-    try {
-      setIsDownloadingCalendar(true);
-      setErrorMessage(null);
-      setDownloadMessage(null);
-      const blob = await apiClient.downloadCalendar(
-        currentUser.id,
-        weekStart.toISOString().slice(0, 10),
-        visibleWeekCount,
-      );
-      downloadBlob("my-shifts.ics", blob);
-      setDownloadMessage(
-        `Downloaded my-shifts.ics with your shifts from ${formatDateLabel(
-          exportRangeStart,
-        )} through ${formatDateLabel(exportRangeEnd)}.`,
-      );
-    } catch (error) {
-      setErrorMessage(toErrorMessage(error, "Calendar download failed."));
-    } finally {
-      setIsDownloadingCalendar(false);
-    }
   }
 
   return (
@@ -205,15 +140,14 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
       <div className="section-header">
         <div>
           <p className="eyebrow">My Schedule</p>
-          <h2>Take your Teams Shifts schedule with you</h2>
+          <h2>See what you&apos;re working</h2>
         </div>
         <span className="pill">My Schedule first</span>
       </div>
 
       <p className="lead">
-        Review only your own shifts, then move them into the calendar
-        application you already use. Export is available now, and automatic
-        synchronization is planned for a future release.
+        Review only your own Teams Shifts schedule here. Downloads,
+        subscriptions, and calendar setup guidance live on the Calendar page.
       </p>
 
       <section className="card hero-panel">
@@ -221,8 +155,8 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
           <h3>What am I working?</h3>
           <p className="muted">
             This companion is built to make Teams Shifts more useful, not to
-            replace it. Check today, see what is next, and take your Teams
-            Shifts schedule with you.
+            replace it. Check today, see what is next, and review the current
+            week without leaving this screen.
           </p>
         </div>
 
@@ -255,49 +189,6 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
                 : "Check back later for your next published Teams Shifts assignment."}
             </p>
           </article>
-          <article className="card inset-card snapshot-card">
-            <p className="eyebrow">This Week</p>
-            <h3>{getShiftCountLabel(thisWeekShiftCount)}</h3>
-            <p className="muted">
-              {thisWeekShiftCount > 0
-                ? `${thisWeekDayCount} scheduled day${thisWeekDayCount === 1 ? "" : "s"} in the current preview week.`
-                : "This preview week is currently clear."}
-            </p>
-          </article>
-        </div>
-
-        <div className="hero-actions">
-          <button
-            className="primary-button"
-            type="button"
-            onClick={goToThisWeek}
-          >
-            View My Schedule
-          </button>
-          <button
-            className="ghost-button"
-            type="button"
-            onClick={() => onNavigate("calendar")}
-          >
-            Open Calendar
-          </button>
-          <button
-            className="ghost-button"
-            type="button"
-            disabled={isDownloadingCalendar}
-            onClick={() => void handleDownloadCalendar()}
-          >
-            {isDownloadingCalendar
-              ? "Preparing calendar..."
-              : "Download Calendar (.ics)"}
-          </button>
-          <button
-            className="ghost-button"
-            type="button"
-            onClick={() => onNavigate("feedback")}
-          >
-            Feedback
-          </button>
         </div>
       </section>
 
@@ -318,9 +209,7 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
           <p className="muted">
             {viewMode === "week"
               ? "Use week controls to review today, upcoming shifts, and the rest of your week."
-              : `Showing four consecutive weeks from ${formatDateLabel(
-                  weekStart,
-                )} through ${formatDateLabel(exportRangeEnd)}.`}
+              : "Showing four consecutive weeks so you can scan your broader schedule without leaving My Schedule."}
           </p>
         </div>
 
@@ -466,80 +355,25 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
         </article>
       )}
 
-      <section className="card calendar-section">
-        <div className="section-header">
-          <div>
-            <p className="eyebrow">Calendar & Privacy</p>
-            <h3>Personal schedule export</h3>
-          </div>
+      <section className="card schedule-calendar-cta">
+        <div>
+          <p className="eyebrow">Calendar</p>
+          <h3>Manage calendar</h3>
+          <p className="muted">
+            Use the Calendar page for one-time downloads, private
+            subscriptions, setup guidance, and privacy details.
+          </p>
         </div>
 
-        <p className="muted">
-          Download calendar (.ics) is available now as a one-time server-backed
-          file. Each download includes only your shifts for the currently
-          displayed {viewMode === "week" ? "week" : "4-week"} window:
-          {" "}
-          {formatDateLabel(exportRangeStart)} through{" "}
-          {formatDateLabel(exportRangeEnd)}.
-        </p>
-
         <div className="calendar-actions">
-          <button
-            className="primary-button"
-            type="button"
-            disabled={isDownloadingCalendar}
-            onClick={() => void handleDownloadCalendar()}
-          >
-            {isDownloadingCalendar
-              ? "Preparing calendar..."
-              : "Download calendar (.ics)"}
-          </button>
           <button
             className="ghost-button"
             type="button"
             onClick={() => onNavigate("calendar")}
           >
-            Open Calendar
+            Manage calendar
           </button>
         </div>
-
-        {downloadMessage && (
-          <p className="success-message" role="status">
-            {downloadMessage}
-          </p>
-        )}
-
-        <div className="privacy-grid">
-          <article className="card inset-card">
-            <h4>Download calendar (.ics)</h4>
-            <p className="muted">
-              Creates a one-time file you can import into another calendar.
-            </p>
-          </article>
-          <article className="card inset-card">
-            <h4>Stay in sync</h4>
-            <p className="muted">
-              Private subscription feeds are available from Calendar when you
-              want your schedule to refresh automatically.
-            </p>
-          </article>
-        </div>
-
-        <ul className="privacy-list">
-          <li>
-            Private subscriptions are individual-only and include only your
-            shifts.
-          </li>
-          <li>
-            Subscription URLs can be revoked or regenerated if access ever
-            needs to be replaced.
-          </li>
-          <li>It should not be shared with other people.</li>
-          <li>
-            Apple Calendar and Google Calendar subscriptions live outside Teams
-            and may receive your shift event data.
-          </li>
-        </ul>
       </section>
     </section>
   );
