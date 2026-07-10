@@ -34,7 +34,7 @@ describe("schedule and calendar workflow", () => {
       <MySchedule currentUser={currentUser} />,
     );
 
-    expect(markup).toContain("See what you&#x27;re working");
+    expect(markup).toContain("<h2>Schedule</h2>");
     expect(markup).not.toContain("Personal schedule export");
     expect(markup).not.toContain("Download calendar (.ics)");
     expect(markup).not.toContain(">Feedback<");

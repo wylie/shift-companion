@@ -139,27 +139,12 @@ export function MySchedule({ currentUser }: Props) {
       <div className="section-header">
         <div>
           <p className="eyebrow">Schedule &amp; Calendar</p>
-          <h2>See what you&apos;re working</h2>
+          <h2>Schedule</h2>
         </div>
         <span className="pill">Schedule first</span>
       </div>
 
-      <p className="lead">
-        Review only your own Teams Shifts schedule here. Downloads,
-        subscriptions, and calendar setup guidance live below in Calendar
-        management.
-      </p>
-
       <section className="card hero-panel">
-        <div>
-          <h3>What am I working?</h3>
-          <p className="muted">
-            This companion is built to make Teams Shifts more useful, not to
-            replace it. Check today, see what is next, and review the current
-            week without leaving this screen.
-          </p>
-        </div>
-
         <div className="schedule-snapshot-grid">
           <article className="card inset-card snapshot-card">
             <p className="eyebrow">Today&apos;s Shifts</p>
@@ -204,14 +189,7 @@ export function MySchedule({ currentUser }: Props) {
         role="group"
         aria-label="Schedule controls"
       >
-        <div>
-          <h3>{formatWeekRange(weekStart)}</h3>
-          <p className="muted">
-            {viewMode === "week"
-              ? "Use week controls to review today, upcoming shifts, and the rest of your week."
-              : "Showing four consecutive weeks so you can scan your broader schedule without leaving this page."}
-          </p>
-        </div>
+        <h3>{formatWeekRange(weekStart)}</h3>
 
         <div className="toolbar-side">
           <div className="view-toggle" role="group" aria-label="Schedule view">

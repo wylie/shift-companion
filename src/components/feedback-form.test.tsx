@@ -12,7 +12,7 @@ describe("FeedbackCenter", () => {
       />,
     );
 
-    expect(markup).toContain("Help improve the companion");
+    expect(markup).toContain("<h2>Feedback</h2>");
     expect(markup).toContain("Category");
     expect(markup).toContain("Message");
     expect(markup).toContain("Contact email");

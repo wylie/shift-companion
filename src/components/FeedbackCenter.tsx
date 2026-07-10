@@ -52,27 +52,13 @@ export function FeedbackCenter({
       <div className="section-header">
         <div>
           <p className="eyebrow">Feedback</p>
-          <h2>Help improve the companion</h2>
+          <h2>Feedback</h2>
         </div>
-        <span className="pill">Lightweight by design</span>
+        <span className="pill">Email draft</span>
       </div>
 
-      <p className="lead">
-        Send feedback when something blocks schedule access or when a calendar
-        workflow would make Teams Shifts more useful without replacing it.
-      </p>
-
       {feedbackEmail ? (
-        <section className="card hero-panel">
-          <div>
-            <h3>Share product feedback</h3>
-            <p className="muted">
-              Use feature requests for ideas like better calendar access. Use
-              bug reports when schedule access, export, subscription, or
-              settings do not behave as expected.
-            </p>
-          </div>
-
+        <section className="card">
           <form className="feedback-form" onSubmit={handleSubmit}>
             <label className="field">
               Category
@@ -110,8 +96,7 @@ export function FeedbackCenter({
                 placeholder="Optional"
               />
               <span className="field-help">
-                Optional. Include this if you want a reply in the drafted
-                email.
+                Optional reply address.
               </span>
             </label>
 
@@ -121,10 +106,7 @@ export function FeedbackCenter({
               </button>
             </div>
 
-            <p className="muted">
-              Opens your mail app to {feedbackEmail}. Include screenshots or
-              reproduction steps when reporting a bug.
-            </p>
+            <p className="muted">Opens your mail app to {feedbackEmail}.</p>
 
             {statusMessage && (
               <p className="success-message" role="status">
@@ -143,29 +125,9 @@ export function FeedbackCenter({
       ) : (
         <article className="card empty-state" role="alert">
           <h3>Feedback email not configured</h3>
-          <p className="muted">
-            Set `FEEDBACK_EMAIL` on the server to enable feature and bug report
-            links.
-          </p>
+          <p className="muted">Set `FEEDBACK_EMAIL` on the server.</p>
         </article>
       )}
-
-      <div className="card-grid">
-        <article className="card">
-          <h3>Best-fit feedback</h3>
-          <p>
-            Ask for improvements that help people access their Teams Shifts
-            schedule from the calendar they already use.
-          </p>
-        </article>
-        <article className="card">
-          <h3>Out of scope signals</h3>
-          <p>
-            Requests to replace Teams Shifts authoring, approvals, payroll, or
-            chat should be treated as product boundary checks.
-          </p>
-        </article>
-      </div>
     </section>
   );
 }

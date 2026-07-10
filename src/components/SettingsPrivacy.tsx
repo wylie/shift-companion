@@ -145,22 +145,22 @@ export function SettingsPrivacy({
       <div className="section-header">
         <div>
           <p className="eyebrow">Settings</p>
-          <h2>Companion settings and diagnostics</h2>
+          <h2>Settings</h2>
         </div>
-        <span className="pill">Companion boundaries</span>
+        <span className="pill">App info</span>
       </div>
 
       <div className="card-grid">
         <article className="card">
-          <h3>App version</h3>
-          <p>Current release: v{appVersion}</p>
+          <h3>Version</h3>
+          <p>v{appVersion}</p>
         </article>
         <article className="card">
-          <h3>Build environment</h3>
+          <h3>Environment</h3>
           <p>{buildEnvironment}</p>
         </article>
         <article className="card">
-          <h3>Authentication mode</h3>
+          <h3>Auth</h3>
           <p>{auth.mode}</p>
         </article>
         <article className="card">
@@ -172,22 +172,12 @@ export function SettingsPrivacy({
           <p>{dataSource === "postgres" ? "Postgres / Neon" : "In-memory demo data"}</p>
         </article>
         <article className="card">
-          <h3>Calendar access</h3>
           <p>
-            One-time `.ics` downloads and private subscription controls stay on
-            the Calendar section and remain individual-only.
+            {auth.providerId === "preview-demo" ? "Preview/demo" : "Setup needed"}
           </p>
         </article>
         <article className="card">
-          <h3>Current environment</h3>
-          <p>
-            {auth.providerId === "preview-demo"
-              ? "Preview/demo auth is active. No real Teams Shifts, Microsoft Graph, or production sign-in is connected yet."
-              : "Microsoft Entra auth is reserved for a future phase. This environment stays in a safe setup-needed state until real sign-in is implemented."}
-          </p>
-        </article>
-        <article className="card">
-          <h3>Microsoft integration status</h3>
+          <h3>Microsoft</h3>
           <p>
             Auth: {formatReadinessLabel(microsoftReadiness.auth)}. Graph:{" "}
             {formatReadinessLabel(microsoftReadiness.graph)}.
@@ -200,81 +190,51 @@ export function SettingsPrivacy({
           <h3>Upcoming Features</h3>
           <span className="muted">Planned, not live</span>
         </div>
-        <p className="muted">
-          The MVP stays focused on getting your Teams Shifts schedule into the
-          calendar you already use. These items are planned next steps, not
-          active functionality.
-        </p>
         <div className="card-grid">
           <article className="card inset-card">
             <h4>Teams sign-in</h4>
-            <p className="muted">
-              Replace preview-only identity switching with real Microsoft sign-in.
-            </p>
           </article>
           <article className="card inset-card">
             <h4>Live Teams Shifts synchronization</h4>
-            <p className="muted">
-              Read published Shifts schedule data directly from Microsoft Graph.
-            </p>
           </article>
           <article className="card inset-card">
-            <h4>Broader calendar support</h4>
-            <p className="muted">
-              Improve provider-specific guidance and refresh expectations across
-              calendar clients.
-            </p>
+            <h4>Calendar improvements</h4>
           </article>
           <article className="card inset-card">
             <h4>Optional recurring availability</h4>
-            <p className="muted">
-              Dormant availability workflows may return later as an optional feature.
-            </p>
           </article>
         </div>
       </section>
 
       <section className="card">
         <div className="group-header">
-          <h3>Integration Status</h3>
-          <span className="muted">Collapsible diagnostics</span>
+          <h3>Developer details</h3>
+          <span className="muted">Diagnostics</span>
         </div>
-        <p className="muted">
-          Expand the diagnostics below for provider details, Microsoft
-          readiness, documentation pointers, and demo audit information.
-        </p>
         <details className="diagnostics-panel">
-          <summary>Open developer diagnostics</summary>
+          <summary>Developer details</summary>
 
           <div className="diagnostics-stack">
             <div className="card-grid">
               <article className="card inset-card">
                 <h4>Preview / demo mode</h4>
                 <p>Active: {auth.providerId === "preview-demo" ? "Yes" : "No"}</p>
-                <p className="muted">
-                  {auth.providerId === "preview-demo"
-                    ? "Preview/demo mode is active. No Microsoft tenant or live sign-in is required for this environment."
-                    : "This environment is reserved for the future Microsoft auth boundary and remains in a safe setup-needed state."}
-                </p>
               </article>
               <article className="card inset-card">
                 <h4>Authentication</h4>
                 <p>Active provider: {formatProviderLabel(providerStatus.currentAuth)}</p>
                 <p>Status: {formatStatusLabel(providerStatus.currentAuth)}</p>
                 <p>Mode: {auth.mode}</p>
-                <p className="muted">{providerStatus.currentAuth.message}</p>
               </article>
               <article className="card inset-card">
                 <h4>Schedule</h4>
                 <p>Active provider: {formatProviderLabel(providerStatus.currentSchedule)}</p>
                 <p>Status: {formatStatusLabel(providerStatus.currentSchedule)}</p>
-                <p className="muted">{providerStatus.currentSchedule.message}</p>
               </article>
               <article className="card inset-card">
                 <h4>Calendar export</h4>
                 <p>Active provider: {formatProviderLabel(providerStatus.calendarExport)}</p>
                 <p>Status: {formatStatusLabel(providerStatus.calendarExport)}</p>
-                <p className="muted">{providerStatus.calendarExport.message}</p>
               </article>
               <article className="card inset-card">
                 <h4>Database</h4>
@@ -290,7 +250,6 @@ export function SettingsPrivacy({
                 <h4>Microsoft auth</h4>
                 <p>Active provider: {formatProviderLabel(providerStatus.microsoftAuth)}</p>
                 <p>Status: {formatReadinessLabel(microsoftReadiness.auth)}</p>
-                <p className="muted">{microsoftReadiness.auth.message}</p>
                 {microsoftReadiness.auth.missingEnvVars.length > 0 && (
                   <p className="muted">
                     Missing config: {microsoftReadiness.auth.missingEnvVars.join(", ")}
@@ -301,7 +260,6 @@ export function SettingsPrivacy({
                 <h4>Microsoft Graph</h4>
                 <p>Active provider: {formatProviderLabel(providerStatus.microsoftGraph)}</p>
                 <p>Status: {formatReadinessLabel(microsoftReadiness.graph)}</p>
-                <p className="muted">{microsoftReadiness.graph.message}</p>
                 {microsoftReadiness.graph.missingEnvVars.length > 0 && (
                   <p className="muted">
                     Missing config: {microsoftReadiness.graph.missingEnvVars.join(", ")}
@@ -312,7 +270,6 @@ export function SettingsPrivacy({
                 <h4>Feedback</h4>
                 <p>Active provider: {formatProviderLabel(providerStatus.feedback)}</p>
                 <p>Status: {formatStatusLabel(providerStatus.feedback)}</p>
-                <p className="muted">{providerStatus.feedback.message}</p>
               </article>
             </div>
 
@@ -321,18 +278,9 @@ export function SettingsPrivacy({
                 <h4>Microsoft Setup Checklist</h4>
                 <span className="muted">Informational only</span>
               </div>
-              <p className="muted">
-                Use this checklist when real Microsoft integration work begins.
-                It does not enable sign-in or Graph access by itself.
-              </p>
               <article className="card inset-card">
                 <h4>Current readiness</h4>
                 <p>Overall state: {formatReadinessStateLabel(microsoftReadiness.overall)}</p>
-                <p className="muted">
-                  Ready to test means the documented Microsoft environment
-                  variables and flags are present for the selected path. It
-                  does not mean real Entra sign-in or Graph calls exist yet.
-                </p>
               </article>
               <div className="audit-list">
                 {microsoftSetupChecklist.map((item) => (
@@ -351,11 +299,6 @@ export function SettingsPrivacy({
                 <h4>Documentation</h4>
                 <span className="muted">MVP guidance</span>
               </div>
-              <p className="muted">
-                The project documentation explains setup, release flow, and the
-                lightweight companion boundaries that keep this app from
-                expanding into a full workflow manager.
-              </p>
               {documentationUrl ? (
                 <div className="feedback-stack">
                   <div className="calendar-actions">
@@ -368,15 +311,10 @@ export function SettingsPrivacy({
                       Open project documentation
                     </a>
                   </div>
-                  <p className="muted">Opens the configured public documentation URL.</p>
                 </div>
               ) : (
                 <article className="card inset-card empty-state">
                   <h4>Documentation lives in the repository</h4>
-                  <p className="muted">
-                    Keep README and the `docs/` folder current as part of
-                    release preparation and maintenance work.
-                  </p>
                 </article>
               )}
             </section>
@@ -386,11 +324,6 @@ export function SettingsPrivacy({
                 <h4>Mock audit trail</h4>
                 <span className="muted">Persisted demo data</span>
               </div>
-              <p className="muted">
-                These demo events are filtered to the selected preview
-                identity. They remain demo-only and are not connected to live
-                YMCA or Teams data.
-              </p>
 
               {errorMessage && (
                 <article className="card inset-card empty-state" role="alert">

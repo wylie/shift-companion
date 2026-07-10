@@ -36,11 +36,7 @@ export function AppSidebar({
       <div className="sidebar-top">
         <div>
           <p className="eyebrow">Teams Shifts Companion</p>
-          <h1>Your schedule, in the calendar you already use</h1>
-          <p className="muted sidebar-muted">
-            A lightweight companion for viewing Teams Shifts and exporting your
-            schedule to Apple Calendar, Google Calendar, or Outlook.
-          </p>
+          <h1>Teams Shifts Companion</h1>
         </div>
 
         {isPreviewAuth ? (
