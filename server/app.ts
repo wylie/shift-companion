@@ -3,10 +3,19 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildCalendarIcs } from "../src/lib/calendar.js";
+import {
+  calendarDownloadPath,
+  calendarSubscriptionCreatePath,
+  calendarSubscriptionFeedRoutePath,
+  calendarSubscriptionRegeneratePath,
+  calendarSubscriptionRevokePath,
+  calendarSubscriptionStatusPath,
+} from "../src/lib/calendarRoutes.js";
 import { startOfWeek } from "../src/lib/date.js";
 import type { UnavailabilityRuleInput } from "../src/types.js";
 import { resolveRequestUser } from "./auth/requestContext.js";
 import { appConfig } from "./config.js";
+import type { AppDataAccess } from "./data/types.js";
 import { getHealthSnapshot } from "./health.js";
 import { createDataAccess } from "./data/index.js";
 import {
@@ -43,9 +52,13 @@ function sanitizePathForLogs(value: string): string {
   );
 }
 
-export function createApp() {
+type CreateAppOptions = {
+  dataAccess?: AppDataAccess;
+};
+
+export function createApp(options: CreateAppOptions = {}) {
   const app = express();
-  const dataAccess = createDataAccess();
+  const dataAccess = options.dataAccess ?? createDataAccess();
   const integrationRegistry = createIntegrationRegistry({
     config: appConfig,
     dataAccess,
@@ -225,7 +238,7 @@ export function createApp() {
     }
   });
 
-  app.get("/api/calendar/subscription", async (request, response, next) => {
+  app.get(calendarSubscriptionStatusPath, async (request, response, next) => {
     try {
       const currentUser = await appService.requireCurrentUser(
         resolveRequestUser(request),
@@ -240,7 +253,7 @@ export function createApp() {
     }
   });
 
-  app.post("/api/calendar/subscription", async (request, response, next) => {
+  app.post(calendarSubscriptionCreatePath, async (request, response, next) => {
     try {
       const currentUser = await appService.requireCurrentUser(
         resolveRequestUser(request),
@@ -256,7 +269,23 @@ export function createApp() {
     }
   });
 
-  app.delete("/api/calendar/subscription", async (request, response, next) => {
+  app.post(calendarSubscriptionRegeneratePath, async (request, response, next) => {
+    try {
+      const currentUser = await appService.requireCurrentUser(
+        resolveRequestUser(request),
+      );
+      response.json(
+        await appService.createOrRegenerateOwnCalendarSubscription(
+          currentUser.currentUser,
+          getRequestBaseUrl(request),
+        ),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.delete(calendarSubscriptionRevokePath, async (request, response, next) => {
     try {
       const currentUser = await appService.requireCurrentUser(
         resolveRequestUser(request),
@@ -269,7 +298,7 @@ export function createApp() {
     }
   });
 
-  app.get("/api/calendar.ics", async (request, response, next) => {
+  app.get(calendarDownloadPath, async (request, response, next) => {
     try {
       const currentUser = await appService.requireCurrentUser(
         resolveRequestUser(request),
@@ -295,7 +324,7 @@ export function createApp() {
   });
 
   app.get(
-    "/api/calendar/subscriptions/:token/calendar.ics",
+    calendarSubscriptionFeedRoutePath,
     async (request, response, next) => {
       try {
         const shifts = await appService.getCalendarSubscriptionShiftsByToken(
@@ -342,7 +371,13 @@ export function createApp() {
   });
 
   app.use(
-    (error: unknown, request: express.Request, response: express.Response) => {
+    (
+      error: unknown,
+      request: express.Request,
+      response: express.Response,
+      next: express.NextFunction,
+    ) => {
+      void next;
       const { payload, statusCode } = buildErrorResponse(
         error,
         response.locals.requestId as string | undefined,

@@ -67,10 +67,32 @@ export function CalendarExport({ currentUser }: Props) {
     };
   }, []);
 
+  async function loadSubscriptionStatus() {
+    setIsLoadingSubscription(true);
+    setSubscriptionError(null);
+    setSubscriptionMessage(null);
+    setSubscriptionUrl(null);
+
+    try {
+      const nextStatus = await apiClient.getCalendarSubscriptionStatus(
+        currentUser.id,
+      );
+
+      setSubscriptionStatus(nextStatus);
+    } catch (error) {
+      setSubscriptionStatus(emptySubscriptionStatus);
+      setSubscriptionError(
+        toErrorMessage(error, "Unable to load subscription status."),
+      );
+    } finally {
+      setIsLoadingSubscription(false);
+    }
+  }
+
   useEffect(() => {
     let isCancelled = false;
 
-    async function loadSubscriptionStatus() {
+    async function load() {
       setIsLoadingSubscription(true);
       setSubscriptionError(null);
       setSubscriptionMessage(null);
@@ -98,7 +120,7 @@ export function CalendarExport({ currentUser }: Props) {
       }
     }
 
-    void loadSubscriptionStatus();
+    void load();
 
     return () => {
       isCancelled = true;
@@ -137,8 +159,9 @@ export function CalendarExport({ currentUser }: Props) {
       setSubscriptionMessage(null);
       setCopyFeedback(null);
 
-      const nextSubscription =
-        await apiClient.createOrRegenerateCalendarSubscription(currentUser.id);
+      const nextSubscription = subscriptionStatus.active
+        ? await apiClient.regenerateCalendarSubscription(currentUser.id)
+        : await apiClient.createCalendarSubscription(currentUser.id);
 
       setSubscriptionStatus(nextSubscription.status);
       setSubscriptionUrl(nextSubscription.subscriptionUrl);
@@ -419,7 +442,22 @@ export function CalendarExport({ currentUser }: Props) {
               )}
             </div>
 
-            {subscriptionUrl ? (
+            {subscriptionError ? (
+              <article className="card inset-card empty-state" role="alert">
+                <h4>Subscription needs attention</h4>
+                <p className="muted">{subscriptionError}</p>
+                <div className="calendar-actions">
+                  <button
+                    className="ghost-button"
+                    type="button"
+                    disabled={isLoadingSubscription || isMutatingSubscription}
+                    onClick={() => void loadSubscriptionStatus()}
+                  >
+                    Retry
+                  </button>
+                </div>
+              </article>
+            ) : subscriptionUrl ? (
               <label className="field">
                 Private subscription URL
                 <input
@@ -468,12 +506,6 @@ export function CalendarExport({ currentUser }: Props) {
               </p>
             )}
 
-            {subscriptionError && (
-              <article className="card inset-card empty-state" role="alert">
-                <h4>Subscription needs attention</h4>
-                <p className="muted">{subscriptionError}</p>
-              </article>
-            )}
           </div>
         )}
 

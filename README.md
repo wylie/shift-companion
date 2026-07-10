@@ -269,6 +269,7 @@ Subscription feed behavior:
 - Privacy: tokens are high-entropy, hashed at rest, revocable, and regenerated on demand
 - Feed contents: shift title, start time, end time, and location when available
 - Excluded data: coworker names, feedback, unavailability, audit data, and internal comments
+- Management routes: singular `/api/calendar/subscription` paths for status, create, regenerate, and revoke; plural `/api/calendar/subscriptions/:token/calendar.ics` for the public feed
 
 Important limitations:
 

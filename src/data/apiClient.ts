@@ -10,6 +10,13 @@ import type {
   UnavailabilityRule,
   UnavailabilityRuleInput,
 } from "../types";
+import {
+  calendarDownloadPath,
+  calendarSubscriptionCreatePath,
+  calendarSubscriptionRegeneratePath,
+  calendarSubscriptionRevokePath,
+  calendarSubscriptionStatusPath,
+} from "../lib/calendarRoutes.js";
 
 type RequestOptions = {
   body?: unknown;
@@ -171,11 +178,20 @@ export const apiClient = {
       body: input,
     });
   },
-  createOrRegenerateCalendarSubscription(previewUserId: string) {
-    return requestJson<CalendarSubscriptionSecret>("/api/calendar/subscription", {
+  createCalendarSubscription(previewUserId: string) {
+    return requestJson<CalendarSubscriptionSecret>(calendarSubscriptionCreatePath, {
       method: "POST",
       previewUserId,
     });
+  },
+  regenerateCalendarSubscription(previewUserId: string) {
+    return requestJson<CalendarSubscriptionSecret>(
+      calendarSubscriptionRegeneratePath,
+      {
+        method: "POST",
+        previewUserId,
+      },
+    );
   },
   updateUnavailabilityRule(
     previewUserId: string,
@@ -189,15 +205,21 @@ export const apiClient = {
     });
   },
   getCalendarSubscriptionStatus(previewUserId: string) {
-    return requestJson<CalendarSubscriptionStatus>("/api/calendar/subscription", {
-      previewUserId,
-    });
+    return requestJson<CalendarSubscriptionStatus>(
+      calendarSubscriptionStatusPath,
+      {
+        previewUserId,
+      },
+    );
   },
   revokeCalendarSubscription(previewUserId: string) {
-    return requestJson<CalendarSubscriptionStatus>("/api/calendar/subscription", {
-      method: "DELETE",
-      previewUserId,
-    });
+    return requestJson<CalendarSubscriptionStatus>(
+      calendarSubscriptionRevokePath,
+      {
+        method: "DELETE",
+        previewUserId,
+      },
+    );
   },
   async downloadCalendar(
     previewUserId: string,
@@ -208,7 +230,7 @@ export const apiClient = {
 
     try {
       response = await fetch(
-        `/api/calendar.ics?weekStart=${encodeURIComponent(
+        `${calendarDownloadPath}?weekStart=${encodeURIComponent(
           weekStart,
         )}&weeks=${weeks}`,
         {

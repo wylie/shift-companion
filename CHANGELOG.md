@@ -12,6 +12,7 @@ The format follows Keep a Changelog, and versions follow Semantic Versioning.
 - The companion now renders as two primary pages: Schedule & Calendar, plus Settings & Feedback, with hash-based legacy path redirects to the correct section.
 - Demo shifts now seed relative to the current date so preview schedules stay useful in the current week and across the 4-week view.
 - The Vercel API build now shares a dedicated NodeNext server typecheck with local builds so Node ESM imports, server-safe package version loading, and sanitized HTTP error handling fail locally instead of breaking only in production.
+- Calendar subscription management now uses one documented singular management route set plus the existing plural public feed route, with explicit nested Vercel function entry points reusing the shared Express app for deployed subscription requests.
 
 ## [0.3.0] - 2026-07-09
 

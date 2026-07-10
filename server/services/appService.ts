@@ -44,6 +44,7 @@ import {
   isWithinRange,
   parseLocalDateTime,
 } from "../../src/lib/date.js";
+import { buildCalendarSubscriptionFeedPath } from "../../src/lib/calendarRoutes.js";
 import { appConfig, getOptionalEnv } from "../config.js";
 import {
   generateCalendarSubscriptionToken,
@@ -637,7 +638,7 @@ export class AppService {
       userId: currentUser.id,
     });
     const subscriptionUrl = new URL(
-      `/api/calendar/subscriptions/${encodeURIComponent(rawToken)}/calendar.ics`,
+      buildCalendarSubscriptionFeedPath(rawToken),
       baseUrl,
     ).toString();
 

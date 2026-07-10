@@ -15,12 +15,14 @@ The production deployment uses:
 
 - Vite static output from `dist/`
 - a Vercel Node function entry point at `api/[...path].ts`
+- explicit nested Vercel calendar subscription entry points under `api/calendar/**` that reuse the same handler
 - the existing Express application from `server/app.ts`
 
 This keeps local Express development and production route behavior aligned:
 
 - `server/index.ts` starts the local API on port `8787`
 - `api/[...path].ts` reuses the same Express app for Vercel-hosted `/api/*` requests
+- `api/calendar/subscription.ts`, `api/calendar/subscription/regenerate.ts`, and `api/calendar/subscriptions/[token]/calendar.ics.ts` reuse that same handler for nested subscription paths
 - `vercel.json` points the static site at `dist/` and rewrites non-API routes to `index.html` without swallowing `/api/*`
 
 If `/api/bootstrap` or other API routes return `404` in production, confirm that the deployment includes the root-level `api/` directory and that Vercel is building with `npm run build`.

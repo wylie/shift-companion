@@ -17,6 +17,21 @@ This feature complements, but does not replace, the existing one-time `.ics` dow
   - external calendar apps refresh the feed over time
   - best when the user wants their schedule to stay updated outside Teams
 
+## Route contract
+
+Authenticated subscription management uses the singular route:
+
+- `GET /api/calendar/subscription`
+- `POST /api/calendar/subscription`
+- `POST /api/calendar/subscription/regenerate`
+- `DELETE /api/calendar/subscription`
+
+The public token-authenticated feed intentionally uses the plural route:
+
+- `GET /api/calendar/subscriptions/:token/calendar.ics`
+
+That distinction keeps user-authenticated management separate from the public feed URL shape.
+
 ## Feed range
 
 The private feed currently includes:
