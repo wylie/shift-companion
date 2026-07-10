@@ -16,7 +16,7 @@ const status: IntegrationProviderStatus = {
     "Using the persisted Neon/demo schedule provider backed by the current repository layer.",
   name: "NeonScheduleProvider",
   providerId: "neon-demo",
-  version: "0.2.0",
+  version: "0.3.0",
 };
 
 export function createNeonDemoScheduleProvider(

@@ -3,6 +3,8 @@ import type {
   AppBootstrap,
   AppErrorResponse,
   AuditEvent,
+  CalendarSubscriptionSecret,
+  CalendarSubscriptionStatus,
   ManagerReviewData,
   Shift,
   UnavailabilityRule,
@@ -169,6 +171,12 @@ export const apiClient = {
       body: input,
     });
   },
+  createOrRegenerateCalendarSubscription(previewUserId: string) {
+    return requestJson<CalendarSubscriptionSecret>("/api/calendar/subscription", {
+      method: "POST",
+      previewUserId,
+    });
+  },
   updateUnavailabilityRule(
     previewUserId: string,
     ruleId: string,
@@ -178,6 +186,17 @@ export const apiClient = {
       method: "PUT",
       previewUserId,
       body: input,
+    });
+  },
+  getCalendarSubscriptionStatus(previewUserId: string) {
+    return requestJson<CalendarSubscriptionStatus>("/api/calendar/subscription", {
+      previewUserId,
+    });
+  },
+  revokeCalendarSubscription(previewUserId: string) {
+    return requestJson<CalendarSubscriptionStatus>("/api/calendar/subscription", {
+      method: "DELETE",
+      previewUserId,
     });
   },
   async downloadCalendar(

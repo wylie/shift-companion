@@ -20,7 +20,7 @@ export function getMicrosoftGraphScheduleProviderStatus(
       message: readiness.message,
       name: "MicrosoftGraphScheduleProvider",
       providerId: "microsoft-graph",
-      version: "0.2.0",
+      version: "0.3.0",
     };
   }
 
@@ -33,7 +33,7 @@ export function getMicrosoftGraphScheduleProviderStatus(
       message: readiness.message,
       name: "MicrosoftGraphScheduleProvider",
       providerId: "microsoft-graph",
-      version: "0.2.0",
+      version: "0.3.0",
     };
   }
 
@@ -45,7 +45,7 @@ export function getMicrosoftGraphScheduleProviderStatus(
     message: readiness.message,
     name: "MicrosoftGraphScheduleProvider",
     providerId: "microsoft-graph",
-    version: "0.2.0",
+    version: "0.3.0",
   };
 }
 
@@ -83,7 +83,7 @@ export function createMicrosoftGraphScheduleProvider(
     },
     async getProviderStatus() {
       // Future Graph and Teams Shifts lookups will live behind this provider.
-      // This v0.2.0 stub exists only to hold the contract and selection path.
+      // This groundwork stub exists only to hold the contract and selection path.
       return getMicrosoftGraphScheduleProviderStatus(config);
     },
   };

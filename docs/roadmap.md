@@ -61,10 +61,10 @@ In progress.
 Scope should stay narrow:
 
 - v0.2.0: integration registry, shared provider models, mapping seams, Microsoft setup checklist/readiness states, explicit configuration placeholders, provider status UI, and safer disabled defaults
+- v0.3.0: private, revocable calendar subscription feeds backed by the current schedule provider and current resolved app user
 - keep preview/demo auth and Neon/demo schedule data working while Microsoft paths stay stubbed
 - future app-user mapping from verified Entra identity to internal users
 - read-only schedule ingestion first
-- personal calendar subscription support after identity and revocation controls exist
 - least-privilege permissions
 - no attempt to replace Shifts authoring
 - no broad collaboration features
@@ -76,8 +76,8 @@ Scope should stay narrow:
 
 Possible after identity and revocation controls mature.
 
-- private calendar subscription URLs
 - token rotation and revocation
+- provider-specific subscription guidance and reliability testing
 - privacy review around third-party calendar clients
 - automatic synchronization messaging once real subscriptions exist
 

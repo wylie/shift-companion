@@ -242,7 +242,7 @@ export function validateAppConfig(config: AppConfig): StartupValidation {
   if (config.scheduleProvider === "microsoft-graph") {
     warnings.push(
       config.microsoftGraphEnabled
-        ? 'SCHEDULE_PROVIDER is set to "microsoft-graph", but that provider remains a safe v0.2.0 groundwork stub.'
+        ? 'SCHEDULE_PROVIDER is set to "microsoft-graph", but that provider remains a safe groundwork stub.'
         : 'SCHEDULE_PROVIDER is set to "microsoft-graph", but MICROSOFT_GRAPH_ENABLED is false so the app will stay in a safe disabled state.',
     );
   }
@@ -309,7 +309,7 @@ export function validateAppConfig(config: AppConfig): StartupValidation {
       !config.microsoftAuthEnabled
         ? 'AUTH_MODE is set to "microsoft-entra", but MICROSOFT_AUTH_ENABLED is false so the app will stay in a safe setup-needed state.'
         : isMicrosoftAuthConfigured(config)
-          ? 'AUTH_MODE is set to "microsoft-entra", but that provider remains a safe v0.2.0 groundwork stub.'
+          ? 'AUTH_MODE is set to "microsoft-entra", but that provider remains a safe groundwork stub.'
           : 'AUTH_MODE is set to "microsoft-entra", but Microsoft auth setup is incomplete. The app will stay in a safe setup-needed state.',
     );
   }

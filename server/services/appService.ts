@@ -10,6 +10,8 @@ import { detectManagerConflicts } from "../../src/lib/conflicts";
 import type {
   AppBootstrap,
   AuditEvent,
+  CalendarSubscriptionSecret,
+  CalendarSubscriptionStatus,
   CurrentUser,
   Department,
   ManagerReviewData,
@@ -20,6 +22,7 @@ import type {
   AppAuthSession,
 } from "../../src/types";
 import type { AppDataAccess } from "../data/types";
+import type { CalendarSubscriptionRecord } from "../data/types";
 import type {
   AuthenticatedUser,
   AuthProvider,
@@ -42,6 +45,10 @@ import {
   parseLocalDateTime,
 } from "../../src/lib/date";
 import { appConfig, getOptionalEnv } from "../config";
+import {
+  generateCalendarSubscriptionToken,
+  hashCalendarSubscriptionToken,
+} from "../security/calendarSubscriptionToken";
 
 function toPreviewUser(
   user: CurrentUser,
@@ -97,12 +104,14 @@ function describeRule(rule: UnavailabilityRule): string {
 
 type AppServiceOptions = {
   integrationRegistry?: IntegrationRegistry;
+  now?: () => Date;
 };
 
 export class AppService {
   private readonly calendarExportProvider: CalendarExportProvider;
   private readonly authProvider: AuthProvider;
   private readonly integrationRegistry: IntegrationRegistry;
+  private readonly now: () => Date;
   private readonly scheduleProvider: ScheduleProvider;
 
   constructor(
@@ -119,6 +128,31 @@ export class AppService {
     this.scheduleProvider = this.integrationRegistry.getScheduleProvider();
     this.calendarExportProvider =
       this.integrationRegistry.getCalendarExportProvider();
+    this.now = options.now ?? (() => new Date());
+  }
+
+  private toCalendarSubscriptionStatus(
+    record: CalendarSubscriptionRecord | undefined,
+  ): CalendarSubscriptionStatus {
+    if (!record) {
+      return {
+        active: false,
+      };
+    }
+
+    return {
+      active: !record.revokedAt,
+      createdAt: record.createdAt,
+      revokedAt: record.revokedAt,
+      updatedAt: record.updatedAt,
+    };
+  }
+
+  private getCalendarSubscriptionRange(now: Date) {
+    return {
+      endDate: addDays(now, 91),
+      startDate: addDays(now, -30),
+    };
   }
 
   async getPreviewUser(previewUserId?: string): Promise<CurrentUser> {
@@ -561,6 +595,134 @@ export class AppService {
     });
 
     return exportableShifts;
+  }
+
+  async getOwnCalendarSubscriptionStatus(
+    currentUser: CurrentUser,
+  ): Promise<CalendarSubscriptionStatus> {
+    if (!canDownloadOwnCalendar(currentUser, currentUser.id)) {
+      throw new HttpError(
+        403,
+        "You cannot manage another staff member's calendar subscription.",
+      );
+    }
+
+    return this.toCalendarSubscriptionStatus(
+      await this.dataAccess.calendarSubscriptions.getForUser(currentUser.id),
+    );
+  }
+
+  async createOrRegenerateOwnCalendarSubscription(
+    currentUser: CurrentUser,
+    baseUrl: string,
+  ): Promise<CalendarSubscriptionSecret> {
+    if (!canDownloadOwnCalendar(currentUser, currentUser.id)) {
+      throw new HttpError(
+        403,
+        "You cannot manage another staff member's calendar subscription.",
+      );
+    }
+
+    const existing = await this.dataAccess.calendarSubscriptions.getForUser(
+      currentUser.id,
+    );
+    const rawToken = generateCalendarSubscriptionToken();
+    const now = this.now().toISOString();
+    const savedSubscription = await this.dataAccess.calendarSubscriptions.save({
+      createdAt: existing?.createdAt ?? now,
+      id: existing?.id ?? `calendar-subscription-${randomUUID()}`,
+      revokedAt: undefined,
+      tokenHash: hashCalendarSubscriptionToken(rawToken),
+      updatedAt: now,
+      userId: currentUser.id,
+    });
+    const subscriptionUrl = new URL(
+      `/api/calendar/subscriptions/${encodeURIComponent(rawToken)}/calendar.ics`,
+      baseUrl,
+    ).toString();
+
+    await this.recordAuditEvent({
+      actorUserId: currentUser.id,
+      eventType: existing?.revokedAt || !existing
+        ? "calendar.subscription.created"
+        : "calendar.subscription.regenerated",
+      summary:
+        existing?.revokedAt || !existing
+          ? `${currentUser.name} created a private calendar subscription.`
+          : `${currentUser.name} regenerated a private calendar subscription.`,
+    });
+
+    return {
+      status: this.toCalendarSubscriptionStatus(savedSubscription),
+      subscriptionUrl,
+    };
+  }
+
+  async revokeOwnCalendarSubscription(
+    currentUser: CurrentUser,
+  ): Promise<CalendarSubscriptionStatus> {
+    if (!canDownloadOwnCalendar(currentUser, currentUser.id)) {
+      throw new HttpError(
+        403,
+        "You cannot manage another staff member's calendar subscription.",
+      );
+    }
+
+    const existing = await this.dataAccess.calendarSubscriptions.getForUser(
+      currentUser.id,
+    );
+
+    if (!existing || existing.revokedAt) {
+      return this.toCalendarSubscriptionStatus(existing);
+    }
+
+    const revokedSubscription = await this.dataAccess.calendarSubscriptions.save({
+      ...existing,
+      revokedAt: this.now().toISOString(),
+      updatedAt: this.now().toISOString(),
+    });
+
+    await this.recordAuditEvent({
+      actorUserId: currentUser.id,
+      eventType: "calendar.subscription.revoked",
+      summary: `${currentUser.name} revoked a private calendar subscription.`,
+    });
+
+    return this.toCalendarSubscriptionStatus(revokedSubscription);
+  }
+
+  async getCalendarSubscriptionShiftsByToken(
+    token: string,
+    now = this.now(),
+  ): Promise<Shift[]> {
+    const subscription =
+      await this.dataAccess.calendarSubscriptions.getActiveByTokenHash(
+        hashCalendarSubscriptionToken(token),
+      );
+
+    if (!subscription) {
+      throw new HttpError(404, "Not found.");
+    }
+
+    const scheduleRange = this.getCalendarSubscriptionRange(now);
+    const scheduleResult =
+      await this.calendarExportProvider.getCurrentUserScheduleRange({
+        endDate: scheduleRange.endDate,
+        startDate: scheduleRange.startDate,
+        userId: subscription.userId,
+      });
+
+    if (!scheduleResult.ok) {
+      throw new HttpError(503, scheduleResult.message);
+    }
+
+    return scheduleResult.data.filter((shift) =>
+      isWithinRange(
+        parseLocalDateTime(shift.start),
+        scheduleRange.startDate,
+        scheduleRange.endDate,
+      ),
+    );
   }
 
   private async recordAuditEvent(event: {

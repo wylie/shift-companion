@@ -11,7 +11,7 @@ const status: AuthProviderStatus = {
     "Preview/demo auth is active and resolves the selected local demo identity.",
   name: "PreviewAuthProvider",
   providerId: "preview-demo",
-  version: "0.2.0",
+  version: "0.3.0",
 };
 
 export function createPreviewAuthProvider(

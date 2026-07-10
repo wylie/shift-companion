@@ -93,4 +93,4 @@ If these Entra values are missing:
 - No Microsoft Graph access
 - No Teams Shifts data access
 - No YMCA source-system integration
-- No live calendar subscription URLs or tokens
+- No Microsoft-authenticated calendar subscription URLs yet

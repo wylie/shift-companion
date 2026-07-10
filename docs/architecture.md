@@ -28,7 +28,7 @@ Current and likely in-scope responsibilities:
 
 - personal schedule review
 - personal calendar export
-- future personal calendar subscriptions
+- private personal calendar subscriptions
 - read-only conflict review for managers with assigned departments
 - privacy and audit-oriented status messaging
 - narrow identity-backed workflows that do not duplicate Teams collaboration features

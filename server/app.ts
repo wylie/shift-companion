@@ -27,6 +27,19 @@ function parseCalendarWeeks(value: unknown): 1 | 4 {
   return value === "4" ? 4 : 1;
 }
 
+function getRequestBaseUrl(request: express.Request): string {
+  const forwardedProto = request.header("x-forwarded-proto");
+  const protocol = forwardedProto?.split(",")[0]?.trim() || request.protocol;
+  return `${protocol}://${request.get("host")}`;
+}
+
+function sanitizePathForLogs(value: string): string {
+  return value.replace(
+    /\/api\/calendar\/subscriptions\/[^/]+\/calendar\.ics/g,
+    "/api/calendar/subscriptions/[redacted]/calendar.ics",
+  );
+}
+
 export function createApp() {
   const app = express();
   const dataAccess = createDataAccess();
@@ -60,7 +73,7 @@ export function createApp() {
       log(eventName, {
         durationMs: Date.now() - startedAt,
         method: request.method,
-        path: request.originalUrl,
+        path: sanitizePathForLogs(request.originalUrl),
         requestId,
         statusCode: response.statusCode,
       });
@@ -208,6 +221,50 @@ export function createApp() {
     }
   });
 
+  app.get("/api/calendar/subscription", async (request, response, next) => {
+    try {
+      const currentUser = await appService.requireCurrentUser(
+        resolveRequestUser(request),
+      );
+      response.json(
+        await appService.getOwnCalendarSubscriptionStatus(
+          currentUser.currentUser,
+        ),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/calendar/subscription", async (request, response, next) => {
+    try {
+      const currentUser = await appService.requireCurrentUser(
+        resolveRequestUser(request),
+      );
+      response.json(
+        await appService.createOrRegenerateOwnCalendarSubscription(
+          currentUser.currentUser,
+          getRequestBaseUrl(request),
+        ),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.delete("/api/calendar/subscription", async (request, response, next) => {
+    try {
+      const currentUser = await appService.requireCurrentUser(
+        resolveRequestUser(request),
+      );
+      response.json(
+        await appService.revokeOwnCalendarSubscription(currentUser.currentUser),
+      );
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/calendar.ics", async (request, response, next) => {
     try {
       const currentUser = await appService.requireCurrentUser(
@@ -233,6 +290,42 @@ export function createApp() {
     }
   });
 
+  app.get(
+    "/api/calendar/subscriptions/:token/calendar.ics",
+    async (request, response, next) => {
+      try {
+        const shifts = await appService.getCalendarSubscriptionShiftsByToken(
+          request.params.token,
+        );
+        const ics = buildCalendarIcs(shifts);
+
+        response
+          .status(200)
+          .setHeader("Content-Type", "text/calendar; charset=utf-8")
+          .setHeader(
+            "Content-Disposition",
+            'inline; filename="my-shifts-subscription.ics"',
+          )
+          .setHeader("Cache-Control", "private, no-store, max-age=0")
+          .setHeader("Pragma", "no-cache")
+          .setHeader("Referrer-Policy", "no-referrer")
+          .setHeader("X-Robots-Tag", "noindex, nofollow, noarchive")
+          .send(ics);
+      } catch (error) {
+        if (error instanceof HttpError && error.statusCode === 404) {
+          response
+            .status(404)
+            .setHeader("Cache-Control", "no-store")
+            .setHeader("Content-Type", "text/plain; charset=utf-8")
+            .send("Not found.");
+          return;
+        }
+
+        next(error);
+      }
+    },
+  );
+
   app.use(express.static(distPath));
 
   app.use((request, response, next) => {
@@ -252,7 +345,7 @@ export function createApp() {
       if (statusCode >= 500) {
         logError("request.exception", error, {
           method: request.method,
-          path: request.originalUrl,
+          path: sanitizePathForLogs(request.originalUrl),
           requestId,
           statusCode,
         });

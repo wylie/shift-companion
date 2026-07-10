@@ -162,10 +162,11 @@ export function SettingsPrivacy({
           </p>
         </article>
         <article className="card">
-          <h3>Calendar export</h3>
+          <h3>Calendar access</h3>
           <p>
-            Server-side `.ics` downloads are individual-only now. Private
-            calendar subscriptions remain a planned future feature.
+            Server-side `.ics` downloads are individual-only, and private
+            calendar subscriptions can be generated, regenerated, or revoked
+            from the Calendar page.
           </p>
         </article>
         <article className="card">
@@ -222,9 +223,10 @@ export function SettingsPrivacy({
             </p>
           </article>
           <article className="card inset-card">
-            <h4>Calendar subscriptions</h4>
+            <h4>Broader calendar support</h4>
             <p className="muted">
-              Offer private personal subscription links instead of one-time exports.
+              Improve provider-specific guidance and refresh expectations across
+              calendar clients.
             </p>
           </article>
           <article className="card inset-card">

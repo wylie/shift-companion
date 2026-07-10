@@ -6,7 +6,7 @@
 - Managers can only see staff and related conflict data for departments they manage.
 - Access scope should stay narrow at every phase.
 - Broad Microsoft Graph permissions should be deferred until clearly required.
-- Calendar export should remain personal, explicit, and revocable when subscriptions exist later.
+- Calendar export should remain personal, explicit, and revocable.
 
 ## Current Phase 3 posture
 
@@ -53,8 +53,16 @@
 - Current `.ics` downloads are individual-only.
 - Downloads contain only the selected preview staff member&apos;s shifts.
 - Downloads exclude coworker names, unavailability notes, and internal scheduling comments.
-- Live calendar subscriptions remain deferred until token storage, revocation, and privacy controls exist.
-- Future subscription tokens must be revocable and hashed at rest.
+- Private subscription feeds are individual-only and authenticated by high-entropy tokens.
+- Subscription tokens are hashed at rest. Raw tokens are shown only when first generated or regenerated.
+- Regenerating a subscription immediately invalidates the old feed URL.
+- Revoking a subscription immediately disables the feed.
+- Feed requests do not depend on cookies or an existing browser session.
+- Feed URLs contain no names, emails, department labels, or raw database IDs.
+- Feed responses use generic 404 behavior for invalid or revoked tokens.
+- Feed responses discourage indexing and caching.
+- External calendar providers receive shift data when they fetch the feed.
+- The current implementation intentionally does not track `lastUsedAt` to avoid extra access surveillance.
 
 ## Developer demo checklist
 

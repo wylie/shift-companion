@@ -20,6 +20,7 @@ Build a Teams-contained companion to Microsoft Teams Shifts that helps staff acc
 - Demo-only Preview identity selector
 - Persisted weekly personal schedule view
 - Server-side personal `.ics` calendar download
+- Private, revocable calendar subscription feed
 - Dedicated calendar export view
 - Dedicated feedback view
 - Persisted read-only manager conflict review
@@ -51,7 +52,7 @@ Build a Teams-contained companion to Microsoft Teams Shifts that helps staff acc
 - Preview identity remains a demo/developer tool, not real authentication.
 - Real authorization still needs Teams SSO and Microsoft Entra identity later.
 - No Microsoft Graph, Teams Shifts, or YMCA data is connected yet.
-- Live calendar subscriptions remain deferred until secure backend token and revocation support exist.
+- Private subscriptions currently use the resolved preview/demo identity rather than a real Microsoft-authenticated user.
 - Availability management is preserved behind a feature flag and is intentionally not part of the current primary experience until validated by real users.
 
 ## Default department assumptions

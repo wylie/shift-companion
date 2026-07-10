@@ -1,7 +1,8 @@
-import { and, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull } from "drizzle-orm";
 import { getDb } from "../db/connection";
 import {
   auditEventsTable,
+  calendarSubscriptionsTable,
   departmentMembershipsTable,
   departmentsTable,
   organizationsTable,
@@ -116,6 +117,19 @@ function mapMembership(
     userId: row.userId,
     departmentId: row.departmentId,
     role: row.role as DepartmentMembership["role"],
+  };
+}
+
+function mapCalendarSubscription(
+  row: typeof calendarSubscriptionsTable.$inferSelect,
+) {
+  return {
+    id: row.id,
+    userId: row.userId,
+    tokenHash: row.tokenHash,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    revokedAt: row.revokedAt?.toISOString(),
   };
 }
 
@@ -245,6 +259,63 @@ export function createPostgresDataAccess(): AppDataAccess {
           .where(eq(auditEventsTable.actorUserId, userId))
           .orderBy(desc(auditEventsTable.createdAt));
         return rows.map(mapAuditEvent);
+      },
+    },
+    calendarSubscriptions: {
+      async getActiveByTokenHash(tokenHash) {
+        const [row] = await db
+          .select()
+          .from(calendarSubscriptionsTable)
+          .where(
+            and(
+              eq(calendarSubscriptionsTable.tokenHash, tokenHash),
+              isNull(calendarSubscriptionsTable.revokedAt),
+            ),
+          )
+          .limit(1);
+
+        return row ? mapCalendarSubscription(row) : undefined;
+      },
+      async getForUser(userId) {
+        const [row] = await db
+          .select()
+          .from(calendarSubscriptionsTable)
+          .where(eq(calendarSubscriptionsTable.userId, userId))
+          .limit(1);
+
+        return row ? mapCalendarSubscription(row) : undefined;
+      },
+      async save(subscription) {
+        await db
+          .insert(calendarSubscriptionsTable)
+          .values({
+            id: subscription.id,
+            userId: subscription.userId,
+            tokenHash: subscription.tokenHash,
+            createdAt: new Date(subscription.createdAt),
+            updatedAt: new Date(subscription.updatedAt),
+            revokedAt: subscription.revokedAt
+              ? new Date(subscription.revokedAt)
+              : null,
+          })
+          .onConflictDoUpdate({
+            target: calendarSubscriptionsTable.userId,
+            set: {
+              tokenHash: subscription.tokenHash,
+              updatedAt: new Date(subscription.updatedAt),
+              revokedAt: subscription.revokedAt
+                ? new Date(subscription.revokedAt)
+                : null,
+            },
+          });
+
+        const saved = await this.getForUser(subscription.userId);
+
+        if (!saved) {
+          throw new Error("Failed to save calendar subscription.");
+        }
+
+        return saved;
       },
     },
     departments: {

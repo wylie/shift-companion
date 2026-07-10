@@ -2,12 +2,13 @@
 
 ## Goal
 
-The `v0.2.0` milestone prepares the app for future Microsoft Entra authentication and Microsoft Graph / Teams Shifts schedule reads without connecting to Microsoft services yet.
+The current architecture prepares the app for future Microsoft Entra authentication and Microsoft Graph / Teams Shifts schedule reads without connecting to Microsoft services yet.
 
 The app can now evolve auth and schedule integrations behind stable internal contracts while keeping the current MVP behavior unchanged:
 
 - personal schedule review stays lightweight
 - calendar export stays one-time and individual-only
+- private calendar subscriptions stay individual-only and token-authenticated
 - demo and persisted Neon-backed data remain the working source today
 - dormant unavailability stays app-owned and can be re-enabled later without API or database rewrites
 
@@ -116,6 +117,25 @@ Microsoft Graph / Teams Shifts payload
 
 This is why the UI never talks directly to Neon or Graph. The UI consumes app-owned models, not provider payloads.
 
+## Calendar subscriptions
+
+Private calendar subscriptions are implemented as a server-owned layer on top of the active schedule provider.
+
+Current flow:
+
+1. The current resolved app user creates or regenerates a private subscription.
+2. The server stores only a token hash in the `calendar_subscriptions` table.
+3. The public feed endpoint hashes the presented token and resolves the matching active subscription.
+4. The server asks the active `CalendarExportProvider` for that subscribed user&apos;s schedule range.
+5. The feed returns a minimal ICS calendar with stable opaque UIDs.
+
+Current rolling range:
+
+- previous 30 days
+- next 90 days
+
+This keeps recently edited shifts available while still giving calendar apps enough future visibility.
+
 ## Current provider implementations
 
 ### `neon-demo`
@@ -192,6 +212,7 @@ Ready-to-test means the documented placeholder config is present for that path. 
 Today:
 
 - published shifts are served from the Neon/demo repository layer
+- one-time calendar downloads and private subscriptions both resolve shifts through the active calendar export provider
 - unavailability rules are app-owned, stay in the app database, and are currently dormant in the UI
 - manager review remains a demo/read-only capability built on the same persisted data model
 
@@ -224,13 +245,13 @@ Behavior:
 
 ## No Microsoft setup required yet
 
-`v0.2.0` does not require:
+The current subscription implementation still does not require:
 
 - Microsoft credentials
 - Graph SDK dependencies
 - OAuth setup
 - a Microsoft tenant
-- background sync
+- background sync jobs
 - Teams Shifts API calls
 
 That is intentional. This phase is only about creating clean seams for future work.

@@ -49,12 +49,12 @@
 - Privacy notes: audit visibility stays narrowly scoped to the current preview identity in the current product.
 - Status: persisted demo data now
 
-## CalendarExportToken
+## CalendarSubscription
 
-- Purpose: future-only token for revocable calendar subscription access outside the app.
-- Key fields: `id`, `userId`, `tokenHash`, `createdAt`, `revokedAt`, `lastUsedAt`
-- Privacy notes: future subscription tokens must be revocable, individual-only, and hashed at rest.
-- Status: future persisted data only
+- Purpose: revocable token record for private calendar subscription access outside the app.
+- Key fields: `id`, `userId`, `tokenHash`, `createdAt`, `updatedAt`, `revokedAt`
+- Privacy notes: subscription tokens are individual-only, high-entropy, and hashed at rest.
+- Status: persisted data now
 
 ## Privacy modeling notes
 
@@ -62,4 +62,4 @@
 - Staff unavailability access remains current-user-only.
 - Manager access remains department-scoped.
 - Calendar export remains individual-only.
-- Future subscription tokens should be revocable and hashed at rest.
+- Subscription tokens should remain revocable and hashed at rest.

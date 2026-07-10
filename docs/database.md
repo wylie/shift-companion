@@ -101,12 +101,12 @@ The database currently owns data that the companion creates or needs directly:
 - personal unavailability rules
 - persisted demo shifts
 - audit events for app actions
+- revocable calendar subscription tokens
 
 The database does not yet own:
 
 - live Teams Shifts schedules
 - Microsoft Graph sync state
-- revocable calendar subscription tokens
 - external calendar provider credentials
 
 ## Operational notes

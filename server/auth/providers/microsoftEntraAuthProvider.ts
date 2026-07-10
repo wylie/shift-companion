@@ -16,7 +16,7 @@ export function getMicrosoftEntraProviderStatus(
       message: readiness.message,
       name: "MicrosoftEntraAuthProvider",
       providerId: "microsoft-entra",
-      version: "0.2.0",
+      version: "0.3.0",
     };
   }
 
@@ -29,7 +29,7 @@ export function getMicrosoftEntraProviderStatus(
       message: readiness.message,
       name: "MicrosoftEntraAuthProvider",
       providerId: "microsoft-entra",
-      version: "0.2.0",
+      version: "0.3.0",
     };
   }
 
@@ -41,7 +41,7 @@ export function getMicrosoftEntraProviderStatus(
     message: readiness.message,
     name: "MicrosoftEntraAuthProvider",
     providerId: "microsoft-entra",
-    version: "0.2.0",
+    version: "0.3.0",
   };
 }
 

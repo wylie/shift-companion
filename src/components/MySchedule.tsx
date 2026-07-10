@@ -519,20 +519,20 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
           <article className="card inset-card">
             <h4>Stay in sync</h4>
             <p className="muted">
-              Calendar subscriptions will arrive later as a private, personal
-              sync option.
+              Private subscription feeds are available from Calendar when you
+              want your schedule to refresh automatically.
             </p>
           </article>
         </div>
 
         <ul className="privacy-list">
           <li>
-            A future subscription would be individual-only and include only your
+            Private subscriptions are individual-only and include only your
             shifts.
           </li>
           <li>
-            It would be revocable or regenerable if access ever needs to be
-            replaced.
+            Subscription URLs can be revoked or regenerated if access ever
+            needs to be replaced.
           </li>
           <li>It should not be shared with other people.</li>
           <li>

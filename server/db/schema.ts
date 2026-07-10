@@ -198,3 +198,27 @@ export const auditEventsTable = pgTable(
     eventTypeIndex: index("audit_events_type_idx").on(table.eventType),
   }),
 );
+
+export const calendarSubscriptionsTable = pgTable(
+  "calendar_subscriptions",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => usersTable.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  },
+  (table) => ({
+    tokenHashIndex: uniqueIndex("calendar_subscriptions_token_hash_uidx").on(
+      table.tokenHash,
+    ),
+    userIndex: uniqueIndex("calendar_subscriptions_user_uidx").on(table.userId),
+  }),
+);

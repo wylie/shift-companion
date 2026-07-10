@@ -22,6 +22,14 @@ import { normalizeUnavailabilityRule } from "../../src/lib/unavailability";
 
 type MockState = {
   auditEvents: AuditEvent[];
+  calendarSubscriptions: Array<{
+    createdAt: string;
+    id: string;
+    revokedAt?: string;
+    tokenHash: string;
+    updatedAt: string;
+    userId: string;
+  }>;
   departments: Department[];
   memberships: DepartmentMembership[];
   shifts: Shift[];
@@ -69,6 +77,7 @@ function cloneUser(user: CurrentUser): CurrentUser {
 function createInitialState(): MockState {
   return {
     auditEvents: auditEvents.map(cloneAuditEvent),
+    calendarSubscriptions: [],
     departments: departments.map(cloneDepartment),
     memberships: departmentMemberships.map(cloneMembership),
     shifts: shifts.map(cloneShift),
@@ -113,6 +122,33 @@ export function createMockDataAccess(): AppDataAccess {
         return state.auditEvents
           .filter((event) => event.actorUserId === userId)
           .map(cloneAuditEvent);
+      },
+    },
+    calendarSubscriptions: {
+      async getActiveByTokenHash(tokenHash) {
+        const subscription = state.calendarSubscriptions.find(
+          (item) => item.tokenHash === tokenHash && !item.revokedAt,
+        );
+        return subscription ? { ...subscription } : undefined;
+      },
+      async getForUser(userId) {
+        const subscription = state.calendarSubscriptions.find(
+          (item) => item.userId === userId,
+        );
+        return subscription ? { ...subscription } : undefined;
+      },
+      async save(subscription) {
+        const existingIndex = state.calendarSubscriptions.findIndex(
+          (item) => item.userId === subscription.userId,
+        );
+
+        if (existingIndex >= 0) {
+          state.calendarSubscriptions[existingIndex] = { ...subscription };
+        } else {
+          state.calendarSubscriptions.push({ ...subscription });
+        }
+
+        return { ...subscription };
       },
     },
     departments: {

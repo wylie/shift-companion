@@ -12,6 +12,14 @@ import type {
 export type UnavailabilityRuleRecord = UnavailabilityRule;
 export type ShiftRecord = Shift;
 export type AuditEventRecord = AuditEvent;
+export type CalendarSubscriptionRecord = {
+  id: string;
+  userId: string;
+  tokenHash: string;
+  createdAt: string;
+  updatedAt: string;
+  revokedAt?: string;
+};
 
 export type OrganizationsRepository = {
   getDemoOrganization(): Promise<Organization>;
@@ -72,8 +80,19 @@ export type AuditEventsRepository = {
   listForUser(userId: string): Promise<AuditEventRecord[]>;
 };
 
+export type CalendarSubscriptionsRepository = {
+  getActiveByTokenHash(
+    tokenHash: string,
+  ): Promise<CalendarSubscriptionRecord | undefined>;
+  getForUser(userId: string): Promise<CalendarSubscriptionRecord | undefined>;
+  save(
+    subscription: CalendarSubscriptionRecord,
+  ): Promise<CalendarSubscriptionRecord>;
+};
+
 export type AppDataAccess = {
   auditEvents: AuditEventsRepository;
+  calendarSubscriptions: CalendarSubscriptionsRepository;
   departments: DepartmentsRepository;
   memberships: MembershipsRepository;
   organizations: OrganizationsRepository;

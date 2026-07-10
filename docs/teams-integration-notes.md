@@ -60,4 +60,4 @@
 - Wire Teams theme and host context handling more fully
 - Expand persisted authorization records tied to real identities
 - Introduce read-only Graph / Teams Shifts integration after role and privacy boundaries are enforced
-- Keep live calendar subscription work deferred until backend identity, revocable token support, and privacy controls exist
+- Reuse the current private subscription model after backend identity becomes Microsoft-authenticated

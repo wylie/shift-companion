@@ -7,6 +7,12 @@ import type { IntegrationRegistry } from "../integrations/registry";
 import type { ScheduleProvider } from "../integrations/types";
 import { AppService } from "./appService";
 
+function extractSubscriptionToken(subscriptionUrl: string): string {
+  const url = new URL(subscriptionUrl);
+  const parts = url.pathname.split("/");
+  return parts[parts.length - 2] ?? "";
+}
+
 function createScheduleProviderStub(shifts: Shift[]): ScheduleProvider {
   return {
     async getCurrentUserScheduleRange() {
@@ -250,6 +256,118 @@ describe("AppService calendar export", () => {
     expect(shifts.every((shift) => shift.userId === authenticatedUser.currentUser.id)).toBe(
       true,
     );
+  });
+
+  it("persists only token hashes for private calendar subscriptions", async () => {
+    const dataAccess = createMockDataAccess();
+    const service = new AppService(dataAccess, {
+      now: () => new Date("2026-07-09T12:00:00Z"),
+    });
+    const currentUser = await service.getPreviewUser("user-staff-1");
+    const created = await service.createOrRegenerateOwnCalendarSubscription(
+      currentUser,
+      "https://example.test",
+    );
+    const storedSubscription = await dataAccess.calendarSubscriptions.getForUser(
+      currentUser.id,
+    );
+    const rawToken = extractSubscriptionToken(created.subscriptionUrl);
+
+    expect(storedSubscription).toBeDefined();
+    expect(storedSubscription?.tokenHash).not.toBe(rawToken);
+    expect(storedSubscription?.tokenHash).toHaveLength(64);
+    expect(created.subscriptionUrl).toContain("/api/calendar/subscriptions/");
+  });
+
+  it("invalidates the previous private feed when the subscription is regenerated", async () => {
+    const service = new AppService(createMockDataAccess(), {
+      now: () => new Date("2026-07-09T12:00:00Z"),
+    });
+    const currentUser = await service.getPreviewUser("user-staff-1");
+    const firstSubscription =
+      await service.createOrRegenerateOwnCalendarSubscription(
+        currentUser,
+        "https://example.test",
+      );
+    const secondSubscription =
+      await service.createOrRegenerateOwnCalendarSubscription(
+        currentUser,
+        "https://example.test",
+      );
+    const firstToken = extractSubscriptionToken(firstSubscription.subscriptionUrl);
+    const secondToken = extractSubscriptionToken(
+      secondSubscription.subscriptionUrl,
+    );
+
+    await expect(
+      service.getCalendarSubscriptionShiftsByToken(firstToken),
+    ).rejects.toMatchObject({
+      statusCode: 404,
+    });
+
+    const shifts = await service.getCalendarSubscriptionShiftsByToken(
+      secondToken,
+    );
+
+    expect(shifts.length).toBeGreaterThan(0);
+    expect(shifts.every((shift) => shift.userId === currentUser.id)).toBe(true);
+  });
+
+  it("fails safely after a private subscription is revoked", async () => {
+    const service = new AppService(createMockDataAccess(), {
+      now: () => new Date("2026-07-09T12:00:00Z"),
+    });
+    const currentUser = await service.getPreviewUser("user-staff-1");
+    const created = await service.createOrRegenerateOwnCalendarSubscription(
+      currentUser,
+      "https://example.test",
+    );
+    const token = extractSubscriptionToken(created.subscriptionUrl);
+
+    await service.revokeOwnCalendarSubscription(currentUser);
+
+    await expect(
+      service.getCalendarSubscriptionShiftsByToken(token),
+    ).rejects.toMatchObject({
+      statusCode: 404,
+    });
+  });
+
+  it("never exposes another user's shifts through a private subscription feed", async () => {
+    const service = new AppService(createMockDataAccess(), {
+      now: () => new Date("2026-07-09T12:00:00Z"),
+    });
+    const currentUser = await service.getPreviewUser("user-staff-1");
+    const created = await service.createOrRegenerateOwnCalendarSubscription(
+      currentUser,
+      "https://example.test",
+    );
+    const token = extractSubscriptionToken(created.subscriptionUrl);
+    const shifts = await service.getCalendarSubscriptionShiftsByToken(token);
+
+    expect(shifts.every((shift) => shift.userId === currentUser.id)).toBe(true);
+    expect(shifts.some((shift) => shift.userId === "user-staff-2")).toBe(false);
+  });
+
+  it("builds a valid ICS calendar from a private subscription feed", async () => {
+    const service = new AppService(createMockDataAccess(), {
+      now: () => new Date("2026-07-09T12:00:00Z"),
+    });
+    const currentUser = await service.getPreviewUser("user-staff-1");
+    const created = await service.createOrRegenerateOwnCalendarSubscription(
+      currentUser,
+      "https://example.test",
+    );
+    const token = extractSubscriptionToken(created.subscriptionUrl);
+    const shifts = await service.getCalendarSubscriptionShiftsByToken(token);
+    const ics = buildCalendarIcs(shifts, {
+      generatedAt: new Date("2026-07-09T12:00:00Z"),
+      productId: "-//Test//EN",
+    });
+
+    expect(ics).toContain("BEGIN:VCALENDAR");
+    expect(ics).toContain("SUMMARY:Wellness Attendant");
+    expect(ics).not.toContain("Taylor Gomez");
   });
 
   it("returns a safe setup-needed bootstrap state for the Entra auth stub", async () => {

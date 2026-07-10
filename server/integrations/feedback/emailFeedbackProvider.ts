@@ -12,7 +12,7 @@ function getFeedbackProviderStatus(config: AppConfig): FeedbackProviderStatus {
         "Feedback email is not configured. Settings can still render, but feedback links stay disabled until FEEDBACK_EMAIL is set.",
       name: "EmailFeedbackProvider",
       providerId: "feedback-email",
-      version: "0.2.0",
+      version: "0.3.0",
     };
   }
 
@@ -25,7 +25,7 @@ function getFeedbackProviderStatus(config: AppConfig): FeedbackProviderStatus {
       "Feedback uses the configured support email address and stays intentionally lightweight.",
     name: "EmailFeedbackProvider",
     providerId: "feedback-email",
-    version: "0.2.0",
+    version: "0.3.0",
   };
 }
 

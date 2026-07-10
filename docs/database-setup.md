@@ -64,7 +64,6 @@ If `DATABASE_URL` is missing, the app falls back to an in-memory demo repository
 
 ## Future work
 
-- calendar subscription token storage
 - revocation and regeneration support
 - secure identity-backed authorization records
 - real Teams/Entra/Graph integration

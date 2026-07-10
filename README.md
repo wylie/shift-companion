@@ -12,7 +12,7 @@ The product exists because Teams Shifts is strong at manager-owned schedule publ
 
 - Let staff view only their own Teams Shifts schedule
 - Let staff export only their own schedule as a one-time calendar file
-- Prepare for future personal calendar subscriptions
+- Let staff keep a private, revocable calendar subscription for their own schedule
 - Preserve a clean path toward future Microsoft sign-in and Teams-backed schedule access
 - Keep dormant secondary features available without making them part of the MVP
 - Keep the availability feature in the codebase behind `features.unavailability = false` until real user demand is validated
@@ -34,6 +34,7 @@ The current MVP includes:
 - Browser preview mode with demo identity switching for development only
 - Persisted personal schedule view
 - Personal `.ics` calendar download
+- Private, revocable calendar subscription feeds
 - Dedicated calendar export view and feedback entry point
 - Settings with provider diagnostics and planned-feature messaging
 - Teams runtime detection plus preview-first auth and schedule boundaries for future Microsoft/Graph integration
@@ -44,7 +45,7 @@ The current MVP includes:
 - A Microsoft setup readiness layer that reports `disabled`, `missing_config`, or `ready_to_test` without making Microsoft network calls
 - Dormant unavailability and manager-review functionality preserved behind the current product boundary
 
-The MVP intentionally does not connect to Microsoft Graph, live Teams Shifts data, or external calendar subscriptions yet. It is not a replacement for Teams Shifts. It exists to make Teams Shifts more useful.
+The MVP intentionally does not connect to Microsoft Graph or live Teams Shifts data yet. It uses the active schedule provider to power one-time downloads and private ICS subscriptions. It is not a replacement for Teams Shifts. It exists to make Teams Shifts more useful.
 
 ## Architecture overview
 
@@ -178,7 +179,6 @@ Planned next steps:
 
 - Microsoft / Teams sign-in
 - live Teams Shifts schedule reads
-- private calendar subscriptions
 - optional return of recurring availability as a secondary feature
 
 Future Entra work should map a verified Microsoft identity to an existing app user without changing the current UI contracts.
@@ -227,6 +227,31 @@ npm run dev
 ```
 
 Without `DATABASE_URL`, the API uses in-memory demo data. That mode is acceptable for UI development but not for persistence or release validation.
+
+## Calendar subscriptions
+
+The app now supports two calendar paths:
+
+- Download `.ics`: a one-time snapshot for a selected 1-week or 4-week window
+- Subscribe to calendar: a private ICS feed that external calendar apps can refresh over time
+
+Subscription feed behavior:
+
+- Rolling range: previous 30 days plus next 90 days
+- Supported apps: Apple Calendar, Google Calendar, Outlook, and other ICS-compatible clients
+- Privacy: tokens are high-entropy, hashed at rest, revocable, and regenerated on demand
+- Feed contents: shift title, start time, end time, and location when available
+- Excluded data: coworker names, feedback, unavailability, audit data, and internal comments
+
+Important limitations:
+
+- In preview/demo mode, subscription state is tied to the currently selected preview identity
+- The raw subscription URL is only shown when first generated or regenerated
+- Regenerating a URL immediately invalidates the old feed
+- Revoking a subscription immediately disables the feed
+- External calendar providers receive the shift data when they fetch the feed
+
+See [docs/calendar-subscriptions.md](docs/calendar-subscriptions.md) for setup guidance and privacy details.
 
 ## Product boundary
 

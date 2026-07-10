@@ -10,6 +10,19 @@ The format follows Keep a Changelog, and versions follow Semantic Versioning.
 
 - Documentation, CI/CD, runtime validation, health reporting, and release infrastructure are being hardened without expanding product scope.
 
+## [0.3.0] - 2026-07-09
+
+### Added
+
+- Private, revocable calendar subscription feeds backed by the active schedule provider and the resolved current app user.
+- Calendar subscription management APIs for generate/regenerate, status, revoke, and token-authenticated ICS feed access.
+- Preview/demo-aware Calendar UI controls for managing private subscription URLs without exposing stored raw tokens.
+
+### Changed
+
+- Hardened calendar event generation with stable opaque UIDs, minimal event content, and safer feed headers.
+- Clarified documentation around rolling calendar feed ranges, preview/demo limitations, and subscription privacy expectations.
+
 ## [0.2.0] - 2026-06-26
 
 ### Added

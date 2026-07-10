@@ -115,6 +115,18 @@ export type AuditEvent = {
   eventType?: string;
 };
 
+export type CalendarSubscriptionStatus = {
+  active: boolean;
+  createdAt?: string;
+  revokedAt?: string;
+  updatedAt?: string;
+};
+
+export type CalendarSubscriptionSecret = {
+  status: CalendarSubscriptionStatus;
+  subscriptionUrl: string;
+};
+
 export type AppBootstrap = {
   auth: AppAuthSession;
   appVersion: string;
