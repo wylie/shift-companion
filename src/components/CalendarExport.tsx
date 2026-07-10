@@ -271,25 +271,15 @@ export function CalendarExport({ currentUser }: Props) {
       <div className="section-header">
         <div>
           <p className="eyebrow">Calendar</p>
-          <h2>My work schedule outside Teams</h2>
+          <h2>My Calendar</h2>
         </div>
-        <span className="pill">Download and subscribe</span>
+        <span className="pill">Calendar tools</span>
       </div>
-
-      <p className="lead">
-        Use your favorite calendar without replacing Teams Shifts. Download a
-        one-time snapshot or create a private subscription that stays in sync
-        whenever the feed data changes.
-      </p>
 
       {currentUser.isDemo && (
         <article className="card empty-state" role="note">
-          <h3>Preview/demo behavior</h3>
-          <p className="muted">
-            Subscription management is currently tied to the selected preview
-            identity. Switching preview users shows only that identity&apos;s
-            schedule feed and subscription state.
-          </p>
+          <h3>Preview mode</h3>
+          <p className="muted">Subscriptions belong to the selected preview user.</p>
         </article>
       )}
 
@@ -297,10 +287,7 @@ export function CalendarExport({ currentUser }: Props) {
         <section className="card hero-panel download-controls-card">
           <div>
             <h3>Download calendar (.ics)</h3>
-            <p className="muted">
-              This is a one-time snapshot for the selected window. It does not
-              update automatically after import.
-            </p>
+            <p className="muted">Downloads a one-time .ics file.</p>
           </div>
 
           <div className="hero-actions">
@@ -353,11 +340,6 @@ export function CalendarExport({ currentUser }: Props) {
             </span>
           </div>
 
-          <p className="muted">
-            The downloaded file includes only your schedule for the selected{" "}
-            {weeks === 1 ? "week" : "four-week"} window.
-          </p>
-
           <div className="calendar-actions">
             <button
               className="primary-button"
@@ -386,15 +368,11 @@ export function CalendarExport({ currentUser }: Props) {
 
       <section className="card calendar-section">
         <div className="group-header">
-          <h3>Subscribe to calendar</h3>
-          <span className="muted">Private, revocable feed</span>
+          <h3>Calendar subscription</h3>
+          <span className="muted">Private feed</span>
         </div>
 
-        <p className="muted">
-          A subscription updates when external calendar apps fetch the feed
-          again. The URL belongs only to the current user, so it should never
-          be shared.
-        </p>
+        <p className="muted">Keeps your calendar updated automatically.</p>
 
         {isLoadingSubscription ? (
           <article className="card inset-card empty-state" aria-live="polite">
@@ -469,9 +447,7 @@ export function CalendarExport({ currentUser }: Props) {
                   onFocus={() => void handleSubscriptionUrlInteraction()}
                 />
                 <span className="field-help">
-                  This raw URL is shown only right after generation or
-                  regeneration. If you leave or refresh the page, generate a
-                  new one instead.
+                  Shown only after generate or regenerate.
                 </span>
                 <span
                   className="field-message"
@@ -485,18 +461,13 @@ export function CalendarExport({ currentUser }: Props) {
               <article className="card inset-card empty-state" role="note">
                 <h4>Active subscription exists</h4>
                 <p className="muted">
-                  A private feed already exists for this user, but the raw URL
-                  cannot be recovered from storage. Regenerate it to reveal a
-                  new URL or revoke it to disable feed access.
+                  Regenerate to reveal a new URL, or revoke to disable the feed.
                 </p>
               </article>
             ) : (
               <article className="card inset-card empty-state" role="note">
                 <h4>No active subscription yet</h4>
-                <p className="muted">
-                  Generate a private URL when you want your calendar app to stay
-                  in sync automatically.
-                </p>
+                <p className="muted">Generate a private URL to subscribe.</p>
               </article>
             )}
 
@@ -513,39 +484,30 @@ export function CalendarExport({ currentUser }: Props) {
 
       <section className="card calendar-section">
         <div className="group-header">
-          <h3>Setup guidance</h3>
-          <span className="muted">ICS-compatible calendars</span>
+          <h3>Calendar apps</h3>
+          <span className="muted">ICS subscription</span>
         </div>
 
         <div className="privacy-grid">
           <article className="card inset-card">
             <h4>Apple Calendar</h4>
-            <p className="muted">
-              Add the private URL as a new calendar subscription, then confirm
-              the refresh settings you want on your Apple device.
-            </p>
+            <p className="muted">Add a new calendar subscription and paste the URL.</p>
           </article>
           <article className="card inset-card">
             <h4>Google Calendar</h4>
-            <p className="muted">
-              In Google Calendar, add the subscription from URL so Google can
-              fetch updates from the private feed over time.
-            </p>
+            <p className="muted">Use Add by URL and paste the private feed.</p>
           </article>
           <article className="card inset-card">
             <h4>Outlook</h4>
-            <p className="muted">
-              Use Outlook&apos;s subscribe-from-web option and paste the private
-              feed URL instead of importing a one-time file.
-            </p>
+            <p className="muted">Use Subscribe from web and paste the URL.</p>
           </article>
         </div>
       </section>
 
       <section className="card calendar-section">
         <div className="group-header">
-          <h3>Privacy notes</h3>
-          <span className="muted">Before you subscribe</span>
+          <h3>Privacy</h3>
+          <span className="muted">Feed access</span>
         </div>
 
         <ul className="privacy-list">

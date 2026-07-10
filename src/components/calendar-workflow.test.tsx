@@ -20,22 +20,21 @@ describe("schedule and calendar workflow", () => {
     );
 
     expect(markup).toContain("Download calendar (.ics)");
-    expect(markup).toContain("Subscribe to calendar");
+    expect(markup).toContain("Calendar subscription");
     expect(markup).toContain("Loading subscription status");
-    expect(markup).toContain("Setup guidance");
+    expect(markup).toContain("Calendar apps");
     expect(markup).toContain("Apple Calendar");
     expect(markup).toContain("Google Calendar");
     expect(markup).toContain("Outlook");
-    expect(markup).toContain("Privacy notes");
+    expect(markup).toContain("Privacy");
   });
 
   it("keeps the schedule section focused on viewing shifts and linking to calendar management", () => {
     const markup = renderToStaticMarkup(
-      <MySchedule currentUser={currentUser} onNavigate={() => undefined} />,
+      <MySchedule currentUser={currentUser} />,
     );
 
     expect(markup).toContain("See what you&#x27;re working");
-    expect(markup).toContain("Manage calendar");
     expect(markup).not.toContain("Personal schedule export");
     expect(markup).not.toContain("Download calendar (.ics)");
     expect(markup).not.toContain(">Feedback<");

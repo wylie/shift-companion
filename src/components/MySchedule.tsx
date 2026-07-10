@@ -18,7 +18,6 @@ import type { CurrentUser, Shift } from "../types";
 
 type Props = {
   currentUser: CurrentUser;
-  onNavigate: (section: "calendar") => void;
 };
 
 type ScheduleViewMode = "week" | "four-week";
@@ -30,7 +29,7 @@ function getShiftCountLabel(count: number): string {
   return `${count} ${count === 1 ? "shift" : "shifts"}`;
 }
 
-export function MySchedule({ currentUser, onNavigate }: Props) {
+export function MySchedule({ currentUser }: Props) {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
   const [viewMode, setViewMode] = useState<ScheduleViewMode>("week");
   const [myShifts, setMyShifts] = useState<Shift[]>([]);
@@ -355,27 +354,6 @@ export function MySchedule({ currentUser, onNavigate }: Props) {
           </p>
         </article>
       )}
-
-      <section className="card schedule-calendar-cta">
-        <div>
-          <p className="eyebrow">Calendar</p>
-          <h3>Manage calendar</h3>
-          <p className="muted">
-            Use the Calendar section below for one-time downloads, private
-            subscriptions, setup guidance, and privacy details.
-          </p>
-        </div>
-
-        <div className="calendar-actions">
-          <button
-            className="ghost-button"
-            type="button"
-            onClick={() => onNavigate("calendar")}
-          >
-            Manage calendar
-          </button>
-        </div>
-      </section>
     </section>
   );
 }

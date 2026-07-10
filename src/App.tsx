@@ -325,15 +325,6 @@ export default function App() {
     scrollToSection(view === "settings" ? "settings" : "schedule");
   }
 
-  function handleSelectSection(section: "schedule" | "calendar" | "settings" | "feedback") {
-    const nextPage = getPageForSection(section);
-    setActiveView(nextPage);
-
-    requestAnimationFrame(() => {
-      scrollToSection(section);
-    });
-  }
-
   return (
     <div className="app-shell">
       <AppSidebar
@@ -374,7 +365,7 @@ export default function App() {
         {activeView === "schedule" ? (
           <div className="consolidated-page">
             <div className="anchor-section" id="schedule">
-              <MySchedule currentUser={currentUser} onNavigate={handleSelectSection} />
+              <MySchedule currentUser={currentUser} />
             </div>
 
             <div className="anchor-section" id="calendar">
