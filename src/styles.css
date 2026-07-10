@@ -182,7 +182,7 @@ h2 {
 
 .hero-panel {
   display: grid;
-  gap: 1rem;
+  gap: 0.9rem;
   background:
     linear-gradient(135deg, rgba(20, 58, 103, 0.96), rgba(34, 77, 134, 0.92)),
     #143a67;
@@ -239,6 +239,13 @@ h2 {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.download-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.95fr);
+  align-items: stretch;
 }
 
 .form-card,
@@ -493,6 +500,8 @@ h2 {
 .toolbar-side,
 .view-toggle,
 .toolbar-actions,
+.download-controls-card,
+.download-summary-card,
 .schedule-weeks-stack,
 .schedule-week-block,
 .week-block-header,
@@ -625,6 +634,17 @@ h2 {
 .toolbar-actions {
   grid-template-columns: repeat(3, auto);
   justify-content: end;
+}
+
+.download-controls-card {
+  align-content: start;
+  min-height: 100%;
+}
+
+.download-summary-card {
+  align-content: start;
+  min-height: 100%;
+  gap: 0.8rem;
 }
 
 .calendar-actions {
@@ -786,6 +806,7 @@ select[aria-invalid="true"] {
   .schedule-toolbar,
   .toolbar-side,
   .view-toggle,
+  .download-grid,
   .toolbar-actions,
   .calendar-actions,
   .subscription-actions,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiClient } from "../data/apiClient";
 import {
   addDays,
@@ -35,6 +35,9 @@ const emptySubscriptionStatus: CalendarSubscriptionStatus = {
 };
 
 export function CalendarExport({ currentUser }: Props) {
+  const subscriptionUrlInputRef = useRef<HTMLInputElement | null>(null);
+  const copyMessageResetTimerRef = useRef<number | null>(null);
+  const lastAutoCopyAtRef = useRef(0);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(today));
   const [weeks, setWeeks] = useState<CalendarWindow>(1);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -49,11 +52,20 @@ export function CalendarExport({ currentUser }: Props) {
   const [subscriptionStatus, setSubscriptionStatus] =
     useState<CalendarSubscriptionStatus>(emptySubscriptionStatus);
   const [subscriptionUrl, setSubscriptionUrl] = useState<string | null>(null);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
   const [isMutatingSubscription, setIsMutatingSubscription] = useState(false);
 
   const visibleRangeEnd = addWeeks(weekStart, weeks);
   const exportRangeEnd = addDays(visibleRangeEnd, -1);
+
+  useEffect(() => {
+    return () => {
+      if (copyMessageResetTimerRef.current !== null) {
+        window.clearTimeout(copyMessageResetTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let isCancelled = false;
@@ -123,6 +135,7 @@ export function CalendarExport({ currentUser }: Props) {
       setIsMutatingSubscription(true);
       setSubscriptionError(null);
       setSubscriptionMessage(null);
+      setCopyFeedback(null);
 
       const nextSubscription =
         await apiClient.createOrRegenerateCalendarSubscription(currentUser.id);
@@ -143,10 +156,37 @@ export function CalendarExport({ currentUser }: Props) {
     }
   }
 
-  async function handleCopySubscriptionUrl() {
+  function selectSubscriptionUrl() {
+    const input = subscriptionUrlInputRef.current;
+
+    if (!input) {
+      return;
+    }
+
+    input.focus();
+    input.select();
+    input.setSelectionRange(0, input.value.length);
+  }
+
+  function showCopyFeedback(message: string) {
+    setCopyFeedback(message);
+
+    if (copyMessageResetTimerRef.current !== null) {
+      window.clearTimeout(copyMessageResetTimerRef.current);
+    }
+
+    copyMessageResetTimerRef.current = window.setTimeout(() => {
+      setCopyFeedback(null);
+      copyMessageResetTimerRef.current = null;
+    }, 4000);
+  }
+
+  async function copySubscriptionUrlToClipboard() {
     if (!subscriptionUrl) {
       return;
     }
+
+    selectSubscriptionUrl();
 
     try {
       if (!navigator.clipboard) {
@@ -154,12 +194,28 @@ export function CalendarExport({ currentUser }: Props) {
       }
 
       await navigator.clipboard.writeText(subscriptionUrl);
-      setSubscriptionMessage("Copied the private subscription URL.");
+      setSubscriptionError(null);
+      showCopyFeedback("Subscription URL copied.");
     } catch {
-      setSubscriptionError(
-        "Copy failed in this browser. Select and copy the URL manually.",
-      );
+      setSubscriptionError(null);
+      showCopyFeedback("URL selected—press Command-C or Ctrl-C to copy.");
     }
+  }
+
+  async function handleCopySubscriptionUrl() {
+    await copySubscriptionUrlToClipboard();
+  }
+
+  async function handleSubscriptionUrlInteraction() {
+    const now = Date.now();
+
+    if (now - lastAutoCopyAtRef.current < 200) {
+      selectSubscriptionUrl();
+      return;
+    }
+
+    lastAutoCopyAtRef.current = now;
+    await copySubscriptionUrlToClipboard();
   }
 
   async function handleRevokeSubscription() {
@@ -167,6 +223,7 @@ export function CalendarExport({ currentUser }: Props) {
       setIsMutatingSubscription(true);
       setSubscriptionError(null);
       setSubscriptionMessage(null);
+      setCopyFeedback(null);
 
       const nextStatus = await apiClient.revokeCalendarSubscription(
         currentUser.id,
@@ -213,94 +270,96 @@ export function CalendarExport({ currentUser }: Props) {
         </article>
       )}
 
-      <section className="card hero-panel">
-        <div>
-          <h3>Download calendar (.ics)</h3>
+      <div className="download-grid">
+        <section className="card hero-panel download-controls-card">
+          <div>
+            <h3>Download calendar (.ics)</h3>
+            <p className="muted">
+              This is a one-time snapshot for the selected window. It does not
+              update automatically after import.
+            </p>
+          </div>
+
+          <div className="hero-actions">
+            <button
+              className={`toggle-button ${weeks === 1 ? "active" : ""}`}
+              type="button"
+              onClick={() => setWeeks(1)}
+            >
+              1 week
+            </button>
+            <button
+              className={`toggle-button ${weeks === 4 ? "active" : ""}`}
+              type="button"
+              onClick={() => setWeeks(4)}
+            >
+              4 weeks
+            </button>
+          </div>
+
+          <div className="toolbar-actions">
+            <button
+              className="ghost-button"
+              type="button"
+              onClick={() => setWeekStart((current) => addWeeks(current, -1))}
+            >
+              Previous week
+            </button>
+            <button
+              className="ghost-button"
+              type="button"
+              onClick={() => setWeekStart(startOfWeek(today))}
+            >
+              This week
+            </button>
+            <button
+              className="ghost-button"
+              type="button"
+              onClick={() => setWeekStart((current) => addWeeks(current, 1))}
+            >
+              Next week
+            </button>
+          </div>
+        </section>
+
+        <section className="card calendar-section download-summary-card">
+          <div className="group-header">
+            <h3>{formatWeekRange(weekStart)}</h3>
+            <span className="muted">
+              {formatDateLabel(weekStart)} through {formatDateLabel(exportRangeEnd)}
+            </span>
+          </div>
+
           <p className="muted">
-            This is a one-time snapshot for the selected window. It does not
-            update automatically after import.
+            The downloaded file includes only your schedule for the selected{" "}
+            {weeks === 1 ? "week" : "four-week"} window.
           </p>
-        </div>
 
-        <div className="hero-actions">
-          <button
-            className={`toggle-button ${weeks === 1 ? "active" : ""}`}
-            type="button"
-            onClick={() => setWeeks(1)}
-          >
-            1 week
-          </button>
-          <button
-            className={`toggle-button ${weeks === 4 ? "active" : ""}`}
-            type="button"
-            onClick={() => setWeeks(4)}
-          >
-            4 weeks
-          </button>
-        </div>
+          <div className="calendar-actions">
+            <button
+              className="primary-button"
+              type="button"
+              disabled={isDownloading}
+              onClick={() => void handleDownloadCalendar()}
+            >
+              {isDownloading ? "Preparing calendar..." : "Download calendar (.ics)"}
+            </button>
+          </div>
 
-        <div className="toolbar-actions">
-          <button
-            className="ghost-button"
-            type="button"
-            onClick={() => setWeekStart((current) => addWeeks(current, -1))}
-          >
-            Previous week
-          </button>
-          <button
-            className="ghost-button"
-            type="button"
-            onClick={() => setWeekStart(startOfWeek(today))}
-          >
-            This week
-          </button>
-          <button
-            className="ghost-button"
-            type="button"
-            onClick={() => setWeekStart((current) => addWeeks(current, 1))}
-          >
-            Next week
-          </button>
-        </div>
-      </section>
+          {downloadMessage && (
+            <p className="success-message" role="status">
+              {downloadMessage}
+            </p>
+          )}
 
-      <section className="card calendar-section">
-        <div className="group-header">
-          <h3>{formatWeekRange(weekStart)}</h3>
-          <span className="muted">
-            {formatDateLabel(weekStart)} through {formatDateLabel(exportRangeEnd)}
-          </span>
-        </div>
-
-        <p className="muted">
-          The downloaded file includes only your schedule for the selected{" "}
-          {weeks === 1 ? "week" : "four-week"} window.
-        </p>
-
-        <div className="calendar-actions">
-          <button
-            className="primary-button"
-            type="button"
-            disabled={isDownloading}
-            onClick={() => void handleDownloadCalendar()}
-          >
-            {isDownloading ? "Preparing calendar..." : "Download calendar (.ics)"}
-          </button>
-        </div>
-
-        {downloadMessage && (
-          <p className="success-message" role="status">
-            {downloadMessage}
-          </p>
-        )}
-
-        {errorMessage && (
-          <article className="card inset-card empty-state" role="alert">
-            <h4>Calendar export needs attention</h4>
-            <p className="muted">{errorMessage}</p>
-          </article>
-        )}
-      </section>
+          {errorMessage && (
+            <article className="card inset-card empty-state" role="alert">
+              <h4>Calendar export needs attention</h4>
+              <p className="muted">{errorMessage}</p>
+            </article>
+          )}
+        </section>
+      </div>
 
       <section className="card calendar-section">
         <div className="group-header">
@@ -382,13 +441,23 @@ export function CalendarExport({ currentUser }: Props) {
                 Private subscription URL
                 <input
                   className="subscription-url-field"
+                  ref={subscriptionUrlInputRef}
                   readOnly
                   value={subscriptionUrl}
+                  onClick={() => void handleSubscriptionUrlInteraction()}
+                  onFocus={() => void handleSubscriptionUrlInteraction()}
                 />
                 <span className="field-help">
                   This raw URL is shown only right after generation or
                   regeneration. If you leave or refresh the page, generate a
                   new one instead.
+                </span>
+                <span
+                  className="field-message"
+                  aria-live="polite"
+                  role="status"
+                >
+                  {copyFeedback}
                 </span>
               </label>
             ) : subscriptionStatus.active ? (
