@@ -1,6 +1,6 @@
-import { hasDatabaseUrl } from "../db/connection";
-import { createMockDataAccess } from "./mockDataAccess";
-import { createPostgresDataAccess } from "./postgresDataAccess";
+import { hasDatabaseUrl } from "../db/connection.js";
+import { createMockDataAccess } from "./mockDataAccess.js";
+import { createPostgresDataAccess } from "./postgresDataAccess.js";
 
 export function createDataAccess() {
   if (hasDatabaseUrl()) {

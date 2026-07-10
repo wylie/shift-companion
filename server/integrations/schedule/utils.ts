@@ -1,5 +1,5 @@
-import { isWithinRange, parseLocalDateTime } from "../../../src/lib/date";
-import type { Shift } from "../../../src/types";
+import { isWithinRange, parseLocalDateTime } from "../../../src/lib/date.js";
+import type { Shift } from "../../../src/types.js";
 
 export function filterShiftsByRange(
   shifts: Shift[],

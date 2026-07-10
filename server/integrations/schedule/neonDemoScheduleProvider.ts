@@ -1,11 +1,11 @@
-import type { AppDataAccess } from "../../data/types";
-import type { IntegrationProviderStatus, ScheduleProvider } from "../types";
-import { readOnlyScheduleCapabilities } from "../types";
+import type { AppDataAccess } from "../../data/types.js";
+import type { IntegrationProviderStatus, ScheduleProvider } from "../types.js";
+import { readOnlyScheduleCapabilities } from "../types.js";
 import {
   mapNeonShiftRecordToScheduleShift,
   mapNeonShiftRecordsToScheduleShifts,
-} from "../mappers/neonScheduleMapper";
-import { filterShiftsByRange } from "./utils";
+} from "../mappers/neonScheduleMapper.js";
+import { filterShiftsByRange } from "./utils.js";
 
 const status: IntegrationProviderStatus = {
   availability: "available",

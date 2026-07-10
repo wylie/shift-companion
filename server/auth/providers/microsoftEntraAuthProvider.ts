@@ -1,6 +1,6 @@
-import type { AppConfig } from "../../config";
-import { evaluateMicrosoftIntegrationReadiness } from "../../integrations/microsoftReadiness";
-import type { AuthProvider, AuthProviderStatus } from "../types";
+import type { AppConfig } from "../../config.js";
+import { evaluateMicrosoftIntegrationReadiness } from "../../integrations/microsoftReadiness.js";
+import type { AuthProvider, AuthProviderStatus } from "../types.js";
 
 export function getMicrosoftEntraProviderStatus(
   config: AppConfig,

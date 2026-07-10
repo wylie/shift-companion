@@ -1,7 +1,7 @@
-import type { AppHealthResponse, HealthCheck } from "../src/types";
-import type { AppConfig } from "./config";
-import { appConfig, isMicrosoftAuthConfigured, isTeamsSsoConfigured } from "./config";
-import { createPool, hasDatabaseUrl } from "./db/connection";
+import type { AppHealthResponse, HealthCheck } from "../src/types.js";
+import type { AppConfig } from "./config.js";
+import { appConfig, isMicrosoftAuthConfigured, isTeamsSsoConfigured } from "./config.js";
+import { createPool, hasDatabaseUrl } from "./db/connection.js";
 
 async function getDatabaseHealthCheck(
   isDatabaseConfigured: boolean,

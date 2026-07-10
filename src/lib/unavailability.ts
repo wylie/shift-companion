@@ -1,4 +1,4 @@
-import type { UnavailabilityRule } from "../types";
+import type { UnavailabilityRule } from "../types.js";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "long",

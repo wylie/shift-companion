@@ -7,7 +7,7 @@ import type {
   Shift,
   StaffMember,
   UnavailabilityRule,
-} from "../../src/types";
+} from "../../src/types.js";
 
 export type UnavailabilityRuleRecord = UnavailabilityRule;
 export type ShiftRecord = Shift;

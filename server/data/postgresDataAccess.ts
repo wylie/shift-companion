@@ -1,5 +1,5 @@
 import { and, desc, eq, gte, inArray, isNull } from "drizzle-orm";
-import { getDb } from "../db/connection";
+import { getDb } from "../db/connection.js";
 import {
   auditEventsTable,
   calendarSubscriptionsTable,
@@ -9,8 +9,8 @@ import {
   shiftsTable,
   unavailabilityRulesTable,
   usersTable,
-} from "../db/schema";
-import type { AppDataAccess } from "./types";
+} from "../db/schema.js";
+import type { AppDataAccess } from "./types.js";
 import type {
   AuditEvent,
   CurrentUser,
@@ -18,8 +18,8 @@ import type {
   DepartmentMembership,
   Shift,
   UnavailabilityRule,
-} from "../../src/types";
-import { normalizeUnavailabilityRule } from "../../src/lib/unavailability";
+} from "../../src/types.js";
+import { normalizeUnavailabilityRule } from "../../src/lib/unavailability.js";
 
 function toUserDepartmentsMap(
   memberships: Array<{ userId: string; departmentId: string }>,

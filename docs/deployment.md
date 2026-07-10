@@ -21,9 +21,17 @@ This keeps local Express development and production route behavior aligned:
 
 - `server/index.ts` starts the local API on port `8787`
 - `api/[...path].ts` reuses the same Express app for Vercel-hosted `/api/*` requests
-- `vercel.json` points the static site at `dist/` without rewriting API requests into `index.html`
+- `vercel.json` points the static site at `dist/` and rewrites non-API routes to `index.html` without swallowing `/api/*`
 
 If `/api/bootstrap` or other API routes return `404` in production, confirm that the deployment includes the root-level `api/` directory and that Vercel is building with `npm run build`.
+
+If Vercel reports TypeScript import errors such as `TS2835` for missing `.js` extensions, run:
+
+```bash
+npm run typecheck:server
+```
+
+That command uses the server NodeNext configuration instead of the Vite client resolver, so the local failure mode matches the serverless API build.
 
 ## Environment checklist
 

@@ -1,6 +1,6 @@
 import { app, authentication } from "@microsoft/teams-js";
 import { useEffect, useState } from "react";
-import type { TeamsContextSummary, TeamsRuntimeState } from "../types";
+import type { TeamsContextSummary, TeamsRuntimeState } from "../types.js";
 
 type TeamsAppContext = Awaited<ReturnType<typeof app.getContext>>;
 type FrameProbe = {

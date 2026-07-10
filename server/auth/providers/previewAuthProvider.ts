@@ -1,6 +1,6 @@
-import { HttpError } from "../../http/errors";
-import type { AppDataAccess } from "../../data/types";
-import type { AuthProvider, AuthProviderStatus } from "../types";
+import { HttpError } from "../../http/errors.js";
+import type { AppDataAccess } from "../../data/types.js";
+import type { AuthProvider, AuthProviderStatus } from "../types.js";
 
 const status: AuthProviderStatus = {
   availability: "available",

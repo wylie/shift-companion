@@ -1,5 +1,5 @@
-import { appConfig } from "./config";
-import { getApp, logRuntimeReady } from "./runtime";
+import { appConfig } from "./config.js";
+import { getApp, logRuntimeReady } from "./runtime.js";
 
 const app = getApp();
 

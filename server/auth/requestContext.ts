@@ -1,5 +1,5 @@
 import type express from "express";
-import type { AuthRequestContext } from "./types";
+import type { AuthRequestContext } from "./types.js";
 
 export function resolveRequestUser(
   request: express.Request,

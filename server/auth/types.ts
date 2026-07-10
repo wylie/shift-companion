@@ -3,7 +3,7 @@ import type {
   AppRuntimeMode,
   CurrentUser,
   ProviderStatus,
-} from "../../src/types";
+} from "../../src/types.js";
 
 export type AuthRequestContext = {
   appRuntime: AppRuntimeMode;

@@ -1,4 +1,4 @@
-import { getApp, logRuntimeReady } from "../server/runtime";
+import { getApp, logRuntimeReady } from "../server/runtime.js";
 
 const app = getApp();
 

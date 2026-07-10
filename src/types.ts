@@ -3,25 +3,25 @@ import type {
   AuthMode,
   AuthProviderId,
   AuthStatus,
-} from "./models/auth";
+} from "./models/auth.js";
 import type {
   UnavailabilityRule,
   UnavailabilityRuleInput,
   UnavailabilityRuleType,
-} from "./models/availability";
+} from "./models/availability.js";
 import type {
   ProviderAvailability,
   ProviderCapability,
   ProviderStatus,
   ScheduleProviderId,
-} from "./models/integration";
+} from "./models/integration.js";
 import type {
   MicrosoftIntegrationReadiness,
   MicrosoftReadinessCheck,
   MicrosoftReadinessState,
   MicrosoftSetupChecklistItem,
-} from "./models/microsoft";
-import type { Shift, ShiftAssignment } from "./models/schedule";
+} from "./models/microsoft.js";
+import type { Shift, ShiftAssignment } from "./models/schedule.js";
 
 export type UserRole = "staff" | "manager";
 

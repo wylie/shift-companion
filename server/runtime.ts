@@ -1,6 +1,6 @@
-import { createApp } from "./app";
-import { appConfig, isMicrosoftAuthConfigured, validateAppConfig } from "./config";
-import { logError, logInfo, logWarn } from "./logger";
+import { createApp } from "./app.js";
+import { appConfig, isMicrosoftAuthConfigured, validateAppConfig } from "./config.js";
+import { logError, logInfo, logWarn } from "./logger.js";
 
 let appInstance: ReturnType<typeof createApp> | undefined;
 let startupValidated = false;

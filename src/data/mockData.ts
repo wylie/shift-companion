@@ -7,8 +7,8 @@ import type {
   Shift,
   StaffMember,
   UnavailabilityRule,
-} from "../types";
-import { addDays, addWeeks, startOfWeek } from "../lib/date";
+} from "../types.js";
+import { addDays, addWeeks, startOfWeek } from "../lib/date.js";
 
 export const demoOrganization: Organization = {
   id: "org-demo-ymca",

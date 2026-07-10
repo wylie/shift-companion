@@ -1,15 +1,15 @@
-import type { Shift, StaffMember, Team, UnavailabilityRule } from "../types";
+import type { Shift, StaffMember, Team, UnavailabilityRule } from "../types.js";
 import {
   formatDateLabel,
   formatTimeRange,
   isWithinRange,
   parseLocalDateTime,
-} from "./date";
+} from "./date.js";
 import {
   formatUnavailabilityRuleSummary,
   getRuleDays,
   normalizeUnavailabilityRule,
-} from "./unavailability";
+} from "./unavailability.js";
 
 export type ManagerConflict = {
   id: string;

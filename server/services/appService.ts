@@ -5,8 +5,8 @@ import {
   canManageOwnUnavailability,
   canViewManagerDepartment,
   canViewOwnSchedule,
-} from "../../src/lib/access";
-import { detectManagerConflicts } from "../../src/lib/conflicts";
+} from "../../src/lib/access.js";
+import { detectManagerConflicts } from "../../src/lib/conflicts.js";
 import type {
   AppBootstrap,
   AuditEvent,
@@ -20,35 +20,35 @@ import type {
   UnavailabilityRule,
   UnavailabilityRuleInput,
   AppAuthSession,
-} from "../../src/types";
-import type { AppDataAccess } from "../data/types";
-import type { CalendarSubscriptionRecord } from "../data/types";
+} from "../../src/types.js";
+import type { AppDataAccess } from "../data/types.js";
+import type { CalendarSubscriptionRecord } from "../data/types.js";
 import type {
   AuthenticatedUser,
   AuthProvider,
   AuthRequestContext,
   AuthSession,
-} from "../auth/types";
-import { isAuthenticatedSession } from "../auth/types";
-import { HttpError } from "../http/errors";
-import type { IntegrationRegistry } from "../integrations/registry";
-import { createIntegrationRegistry } from "../integrations/registry";
-import { evaluateMicrosoftIntegrationReadiness } from "../integrations/microsoftReadiness";
+} from "../auth/types.js";
+import { isAuthenticatedSession } from "../auth/types.js";
+import { HttpError } from "../http/errors.js";
+import type { IntegrationRegistry } from "../integrations/registry.js";
+import { createIntegrationRegistry } from "../integrations/registry.js";
+import { evaluateMicrosoftIntegrationReadiness } from "../integrations/microsoftReadiness.js";
 import type {
   CalendarExportProvider,
   ScheduleProvider,
-} from "../integrations/types";
+} from "../integrations/types.js";
 import {
   addDays,
   formatWeekRange,
   isWithinRange,
   parseLocalDateTime,
-} from "../../src/lib/date";
-import { appConfig, getOptionalEnv } from "../config";
+} from "../../src/lib/date.js";
+import { appConfig, getOptionalEnv } from "../config.js";
 import {
   generateCalendarSubscriptionToken,
   hashCalendarSubscriptionToken,
-} from "../security/calendarSubscriptionToken";
+} from "../security/calendarSubscriptionToken.js";
 
 function toPreviewUser(
   user: CurrentUser,

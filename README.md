@@ -236,6 +236,25 @@ npm run dev
 
 Without `DATABASE_URL`, the API uses in-memory demo data. That mode is acceptable for UI development but not for persistence or release validation.
 
+## Typechecking and build verification
+
+Use the split typecheck commands when working on deployment-sensitive changes:
+
+```bash
+npm run typecheck:client
+npm run typecheck:server
+```
+
+`npm run typecheck:server` runs the API and shared server graph with NodeNext module resolution so local checks fail on the same missing `.js` extensions and server-only module issues that would otherwise break a Vercel function build.
+
+Production builds now run:
+
+```bash
+npm run build
+```
+
+That command executes both client and server typechecks before `vite build`, so broken API types fail locally, in CI, and on Vercel instead of producing a partial static-only deployment.
+
 ## Calendar subscriptions
 
 The app now supports two calendar paths:

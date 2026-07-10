@@ -1,5 +1,5 @@
-import type { Shift } from "../../../src/models/schedule";
-import type { ShiftRecord } from "../../data/types";
+import type { Shift } from "../../../src/models/schedule.js";
+import type { ShiftRecord } from "../../data/types.js";
 
 export function mapNeonShiftRecordToScheduleShift(record: ShiftRecord): Shift {
   return {

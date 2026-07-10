@@ -1,5 +1,5 @@
 import { eq, inArray } from "drizzle-orm";
-import { closePool, getDb } from "./connection";
+import { closePool, getDb } from "./connection.js";
 import {
   auditEvents,
   demoOrganization,
@@ -9,7 +9,7 @@ import {
   shifts,
   staffMembers,
   unavailabilityRules,
-} from "../../src/data/mockData";
+} from "../../src/data/mockData.js";
 import {
   auditEventsTable,
   departmentMembershipsTable,
@@ -18,7 +18,7 @@ import {
   shiftsTable,
   unavailabilityRulesTable,
   usersTable,
-} from "./schema";
+} from "./schema.js";
 
 async function main() {
   const db = getDb();

@@ -1,5 +1,5 @@
 import { webcrypto } from "node:crypto";
-import { appConfig } from "../config";
+import { appConfig } from "../config.js";
 
 type FetchLike = typeof fetch;
 

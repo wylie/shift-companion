@@ -1,7 +1,19 @@
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import { buildAppConfig, validateAppConfig } from "./config";
 
+const require = createRequire(import.meta.url);
+const packageJson = require("../package.json") as { version: string };
+
 describe("validateAppConfig", () => {
+  it("loads the package version in the server runtime", () => {
+    const config = buildAppConfig({
+      PORT: "8787",
+    });
+
+    expect(config.version).toBe(packageJson.version);
+  });
+
   it("warns about incomplete Microsoft Entra configuration without failing startup", () => {
     const config = buildAppConfig({
       ENTRA_CLIENT_ID: "client-id-only",

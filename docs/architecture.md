@@ -73,6 +73,12 @@ Key responsibilities:
 - schedule-provider selection between the current Neon/demo source and future external providers
 - authorization-aware application behavior through `AppService`
 
+The same Express app is reused in both runtime environments:
+
+- `server/index.ts` calls `app.listen()` for local development
+- `api/[...path].ts` exports the shared app for the Vercel Node function entry point
+- server typechecking runs under NodeNext rules so Vercel-only ESM import failures are caught locally
+
 ### Data
 
 The app uses a repository boundary so the same product behavior can run against:

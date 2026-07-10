@@ -1,9 +1,9 @@
-import type { AppConfig } from "../config";
+import type { AppConfig } from "../config.js";
 import type {
   MicrosoftIntegrationReadiness,
   MicrosoftReadinessCheck,
   MicrosoftReadinessState,
-} from "../../src/types";
+} from "../../src/types.js";
 
 function buildReadinessCheck(params: {
   disabledMessage: string;

@@ -3,7 +3,7 @@ import type {
   DepartmentMembership,
   NavItem,
   Team,
-} from "../types";
+} from "../types.js";
 
 export function canAccessManagerView(user: CurrentUser): boolean {
   return user.role === "manager";

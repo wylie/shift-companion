@@ -1,7 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createPool, closePool } from "./connection";
+import { createPool, closePool } from "./connection.js";
 
 async function main() {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));

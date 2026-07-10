@@ -1,4 +1,4 @@
-import type { AuthProviderId } from "./auth";
+import type { AuthProviderId } from "./auth.js";
 
 export type ScheduleProviderId = "microsoft-graph" | "neon-demo";
 

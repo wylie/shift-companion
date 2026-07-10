@@ -1,10 +1,10 @@
-import type { AppConfig } from "../../config";
-import { evaluateMicrosoftIntegrationReadiness } from "../microsoftReadiness";
+import type { AppConfig } from "../../config.js";
+import { evaluateMicrosoftIntegrationReadiness } from "../microsoftReadiness.js";
 import type {
   IntegrationProviderStatus,
   ScheduleProvider,
-} from "../types";
-import { readOnlyScheduleCapabilities } from "../types";
+} from "../types.js";
+import { readOnlyScheduleCapabilities } from "../types.js";
 
 export function getMicrosoftGraphScheduleProviderStatus(
   config: AppConfig,

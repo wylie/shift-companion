@@ -1,7 +1,12 @@
 import "dotenv/config";
-import packageJson from "../package.json";
-import type { AuthProviderId } from "../src/types";
-import type { ScheduleProviderId } from "./integrations/types";
+import { createRequire } from "node:module";
+import type { AuthProviderId } from "../src/types.js";
+import type { ScheduleProviderId } from "./integrations/types.js";
+
+const require = createRequire(import.meta.url);
+const { version: packageVersion } = require("../package.json") as {
+  version?: string;
+};
 
 export type AppConfig = {
   appBaseUrl?: string;
@@ -140,7 +145,7 @@ export function buildAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfig 
     ),
     scheduleProviderSelection: getTrimmedEnv(env, "SCHEDULE_PROVIDER"),
     teamsAppId: getTrimmedEnv(env, "TEAMS_APP_ID"),
-    version: packageJson.version,
+    version: packageVersion ?? "0.0.0",
   };
 }
 

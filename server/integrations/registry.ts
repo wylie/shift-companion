@@ -1,18 +1,18 @@
-import type { AuthProviderId, ScheduleProviderId } from "../../src/types";
-import type { AppConfig } from "../config";
-import type { AppDataAccess } from "../data/types";
-import { createMicrosoftEntraAuthProvider } from "../auth/providers/microsoftEntraAuthProvider";
-import { createPreviewAuthProvider } from "../auth/providers/previewAuthProvider";
-import type { AuthProvider } from "../auth/types";
-import { createEmailFeedbackProvider } from "./feedback/emailFeedbackProvider";
-import { createMicrosoftGraphScheduleProvider } from "./schedule/microsoftGraphScheduleProvider";
-import { createNeonDemoScheduleProvider } from "./schedule/neonDemoScheduleProvider";
+import type { AuthProviderId, ScheduleProviderId } from "../../src/types.js";
+import type { AppConfig } from "../config.js";
+import type { AppDataAccess } from "../data/types.js";
+import { createMicrosoftEntraAuthProvider } from "../auth/providers/microsoftEntraAuthProvider.js";
+import { createPreviewAuthProvider } from "../auth/providers/previewAuthProvider.js";
+import type { AuthProvider } from "../auth/types.js";
+import { createEmailFeedbackProvider } from "./feedback/emailFeedbackProvider.js";
+import { createMicrosoftGraphScheduleProvider } from "./schedule/microsoftGraphScheduleProvider.js";
+import { createNeonDemoScheduleProvider } from "./schedule/neonDemoScheduleProvider.js";
 import type {
   CalendarExportProvider,
   FeedbackProvider,
   ProviderDiagnostics,
   ScheduleProvider,
-} from "./types";
+} from "./types.js";
 
 export type IntegrationRegistry = {
   getAuthProvider(providerId?: AuthProviderId): AuthProvider;

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import type { Shift } from "../types";
-import { parseLocalDateTime, toIcsDateTime } from "./date";
+import type { Shift } from "../types.js";
+import { parseLocalDateTime, toIcsDateTime } from "./date.js";
 
 type CalendarExportOptions = {
   calendarName?: string;

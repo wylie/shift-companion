@@ -2,18 +2,21 @@ import express from "express";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildCalendarIcs } from "../src/lib/calendar";
-import type { AppErrorResponse } from "../src/types";
-import { startOfWeek } from "../src/lib/date";
-import type { UnavailabilityRuleInput } from "../src/types";
-import { resolveRequestUser } from "./auth/requestContext";
-import { appConfig } from "./config";
-import { getHealthSnapshot } from "./health";
-import { createDataAccess } from "./data";
-import { HttpError } from "./http/errors";
-import { createIntegrationRegistry } from "./integrations/registry";
-import { logError, logInfo, logWarn } from "./logger";
-import { AppService } from "./services/appService";
+import { buildCalendarIcs } from "../src/lib/calendar.js";
+import { startOfWeek } from "../src/lib/date.js";
+import type { UnavailabilityRuleInput } from "../src/types.js";
+import { resolveRequestUser } from "./auth/requestContext.js";
+import { appConfig } from "./config.js";
+import { getHealthSnapshot } from "./health.js";
+import { createDataAccess } from "./data/index.js";
+import {
+  buildErrorResponse,
+  hasStatusCode,
+  HttpError,
+} from "./http/errors.js";
+import { createIntegrationRegistry } from "./integrations/registry.js";
+import { logError, logInfo, logWarn } from "./logger.js";
+import { AppService } from "./services/appService.js";
 
 function parseWeekStart(value: unknown): Date {
   if (typeof value !== "string" || value.length === 0) {
@@ -313,7 +316,7 @@ export function createApp() {
           .setHeader("X-Robots-Tag", "noindex, nofollow, noarchive")
           .send(ics);
       } catch (error) {
-        if (error instanceof HttpError && error.statusCode === 404) {
+        if (hasStatusCode(error) && error.statusCode === 404) {
           response
             .status(404)
             .setHeader("Cache-Control", "no-store")
@@ -339,8 +342,11 @@ export function createApp() {
   });
 
   app.use(
-    (error: Error, request: express.Request, response: express.Response) => {
-      const statusCode = error instanceof HttpError ? error.statusCode : 500;
+    (error: unknown, request: express.Request, response: express.Response) => {
+      const { payload, statusCode } = buildErrorResponse(
+        error,
+        response.locals.requestId as string | undefined,
+      );
       const requestId = response.locals.requestId as string | undefined;
 
       if (statusCode >= 500) {
@@ -351,15 +357,6 @@ export function createApp() {
           statusCode,
         });
       }
-
-      const payload: AppErrorResponse = {
-        error:
-          statusCode >= 500
-            ? "Something went wrong. Please try again."
-            : error.message,
-        requestId,
-        statusCode,
-      };
 
       response.status(statusCode).json(payload);
     },

@@ -2,8 +2,8 @@ import type {
   ProviderCapability,
   ProviderStatus,
   Shift,
-} from "../../src/types";
-import type { AuthProviderStatus } from "../auth/types";
+} from "../../src/types.js";
+import type { AuthProviderStatus } from "../auth/types.js";
 
 export type ScheduleProviderId = "microsoft-graph" | "neon-demo";
 

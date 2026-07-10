@@ -7,7 +7,7 @@ import {
   shifts,
   staffMembers,
   unavailabilityRules,
-} from "../../src/data/mockData";
+} from "../../src/data/mockData.js";
 import type {
   AuditEvent,
   CurrentUser,
@@ -16,9 +16,9 @@ import type {
   Shift,
   StaffMember,
   UnavailabilityRule,
-} from "../../src/types";
-import type { AppDataAccess } from "./types";
-import { normalizeUnavailabilityRule } from "../../src/lib/unavailability";
+} from "../../src/types.js";
+import type { AppDataAccess } from "./types.js";
+import { normalizeUnavailabilityRule } from "../../src/lib/unavailability.js";
 
 type MockState = {
   auditEvents: AuditEvent[];

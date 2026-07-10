@@ -1,5 +1,5 @@
-import type { AppConfig } from "../../config";
-import type { FeedbackProvider, FeedbackProviderStatus } from "../types";
+import type { AppConfig } from "../../config.js";
+import type { FeedbackProvider, FeedbackProviderStatus } from "../types.js";
 
 function getFeedbackProviderStatus(config: AppConfig): FeedbackProviderStatus {
   if (!config.feedbackEmail) {

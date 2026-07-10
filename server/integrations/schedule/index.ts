@@ -1,8 +1,8 @@
-import type { AppDataAccess } from "../../data/types";
-import type { AppConfig } from "../../config";
-import type { ScheduleProvider } from "../types";
-import { createMicrosoftGraphScheduleProvider } from "./microsoftGraphScheduleProvider";
-import { createNeonDemoScheduleProvider } from "./neonDemoScheduleProvider";
+import type { AppDataAccess } from "../../data/types.js";
+import type { AppConfig } from "../../config.js";
+import type { ScheduleProvider } from "../types.js";
+import { createMicrosoftGraphScheduleProvider } from "./microsoftGraphScheduleProvider.js";
+import { createNeonDemoScheduleProvider } from "./neonDemoScheduleProvider.js";
 
 export function createScheduleProvider(params: {
   config: AppConfig;
