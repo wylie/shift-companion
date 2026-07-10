@@ -9,6 +9,22 @@ Deployment has two deliverables:
 
 The app should be deployed as a lightweight web service. The Teams package is metadata and icons, not hosted application logic.
 
+## Vercel deployment shape
+
+The production deployment uses:
+
+- Vite static output from `dist/`
+- a Vercel Node function entry point at `api/[...path].ts`
+- the existing Express application from `server/app.ts`
+
+This keeps local Express development and production route behavior aligned:
+
+- `server/index.ts` starts the local API on port `8787`
+- `api/[...path].ts` reuses the same Express app for Vercel-hosted `/api/*` requests
+- `vercel.json` points the static site at `dist/` without rewriting API requests into `index.html`
+
+If `/api/bootstrap` or other API routes return `404` in production, confirm that the deployment includes the root-level `api/` directory and that Vercel is building with `npm run build`.
+
 ## Environment checklist
 
 Recommended deployment variables:

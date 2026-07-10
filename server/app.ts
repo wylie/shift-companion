@@ -53,6 +53,7 @@ export function createApp() {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const distPath = path.resolve(__dirname, "../dist");
 
+  app.set("trust proxy", true);
   app.use(express.json());
   app.use((request, response, next) => {
     const requestId = randomUUID();
